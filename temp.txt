@@ -1,0 +1,105 @@
+<USER_REQUEST>
+You are given a task to integrate an existing React component in the codebase
+
+The codebase should support:
+- shadcn project structure  
+- Tailwind CSS
+- Typescript
+
+If it doesn't, provide instructions on how to setup project via shadcn CLI, install Tailwind or Typescript.
+
+Determine the default path for components and styles. 
+If default path for components is not /components/ui, provide instructions on why it's important to create this folder
+Copy-paste this component to /components/ui folder:
+```tsx
+heroui-tabs.tsx
+"use client"
+
+import "@heroui/styles/css"
+import "@/components/ui/heroui-tabs-utils/index.css"
+import { Tabs } from "@heroui/react"
+
+export { Tabs }
+export default Tabs
+
+
+demo.tsx
+"use client"
+
+import { Tabs } from "@/components/ui/heroui-tabs"
+
+export default function SecondaryVertical() {
+  return (
+    <div className="flex min-h-[320px] w-full items-center justify-center p-8">
+      <Tabs className="w-full max-w-lg" orientation="vertical" variant="secondary">
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="Vertical tabs">
+            <Tabs.Tab id="account">
+              Account
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="security">
+              Security
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="notifications">
+              Notifications
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="billing">
+              Billing
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <Tabs.Panel className="px-4" id="account">
+          <h3 className="mb-2 font-semibold">Account Settings</h3>
+          <p className="text-sm text-muted">Manage your account information and preferences.</p>
+        </Tabs.Panel>
+        <Tabs.Panel className="px-4" id="security">
+          <h3 className="mb-2 font-semibold">Security Settings</h3>
+          <p className="text-sm text-muted">
+            Configure two-factor authentication and password settings.
+          </p>
+        </Tabs.Panel>
+        <Tabs.Panel className="px-4" id="notifications">
+          <h3 className="mb-2 font-semibold">Notification Preferences</h3>
+          <p className="text-sm text-muted">Choose how and when you want to receive notifications.</p>
+        </Tabs.Panel>
+        <Tabs.Panel className="px-4" id="billing">
+          <h3 className="mb-2 font-semibold">Billing Information</h3>
+          <p className="text-sm text-muted">View and manage your subscription and payment methods.</p>
+        </Tabs.Panel>
+      </Tabs>
+    </div>
+  )
+}
+
+```
+
+Install NPM dependencies:
+```bash
+@heroui/react, @heroui/styles
+```
+
+Implementation Guidelines
+ 1. Analyze the component structure and identify all required dependencies
+ 2. Review the component's argumens and state
+ 3. Identify any required context providers or hooks and install them
+ 4. Questions to Ask
+ - What data/props will be passed to this component?
+ - Are there any specific state management requirements?
+ - Are there any required assets (images, icons, etc.)?
+ - What is the expected responsive behavior?
+ - What is the best place to use this component in the app?
+
+Steps to integrate
+ 0. Copy paste all the code above in the correct directories
+ 1. Install external dependencies
+ 2. Fill image assets with Unsplash stock images you know exist
+ 3. Use lucide-react icons for svgs or logos if component requires them
+as i have now referencenced
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-07-13T16:14:04+06:00.
+</ADDITIONAL_METADATA>

@@ -1,0 +1,1676 @@
+@import "tailwindcss";
+
+:root {
+    --color-primary: #f08b43;
+    --color-secondary: #D76F30; /* Burnt Saffron */
+    --color-accent: #f08b43;
+    --color-surface-base: #090D14;
+    --color-surface-elevated: #101520;
+    --color-surface-alt: #f08b43;
+    --color-text-primary: #E1DCD3;
+    --color-text-secondary: #AFA89D;
+    --color-border: rgba(255, 255, 255, 0.06);
+
+    /* Brand Accent Colors */
+    --color-burnt-saffron: #D76F30;
+    --color-temple-gold: #C59B27;
+    --color-deep-terracotta: #8D361F;
+    --color-warm-clay: #A96F5C;
+    --color-muted-ochre: #B07C30;
+
+    --space-micro: 8px;
+    --space-component: 24px;
+    --space-layout: 48px;
+    --space-macro: 120px;
+
+    --font-display: var(--font-playfair-display), serif;
+    --font-sans: var(--font-montserrat), sans-serif;
+    --font-heading: var(--font-playfair-display), serif;
+    --font-body: var(--font-playfair-display), serif;
+
+    /* Unified corner-radius system - one language across buttons, cards,
+       media, inputs, and modals instead of mixed ad-hoc values. */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-pill: 9999px;
+    --shadow-float: 0 24px 48px rgba(0, 0, 0, 0.5);
+
+    /* Hero-only text shadow - never used outside a hero. */
+    --hero-text-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.party-size-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+@media (max-width: 420px) {
+    .party-size-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(5, 7, 10, 0.3);
+    border-top-color: #05070A;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+}
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn-spinner { animation-duration: 1.4s; }
+}
+
+/*
+ * Clip horizontal overflow at the root. Off-canvas surfaces (mobile nav,
+ * reservation drawer) and full-bleed 100vw sections would otherwise inflate
+ * the initial containing block and create a phantom horizontal scroll on
+ * narrow viewports. `clip` (not `hidden`) is used so the menu page's
+ * position: sticky category bar keeps working.
+ */
+html {
+    overflow-x: clip;
+}
+
+body {
+    background-color: var(--color-surface-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    overflow-x: clip;
+    font-weight: 400;
+    position: relative;
+}
+
+/* System UI Overrides */
+::selection {
+    background-color: var(--color-primary);
+    color: #0a0c14;
+}
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #05070a;
+}
+::-webkit-scrollbar-thumb {
+    background: #151a28;
+    border-radius: 4px;
+    border: 2px solid #05070a;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary);
+}
+
+/* Ambient Candlelight Glow - fixes the 'flat void' problem */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background: 
+        radial-gradient(circle at 15% 20%, rgba(240, 139, 67, 0.035) 0%, rgba(240, 139, 67, 0) 50%),
+        radial-gradient(circle at 85% 80%, rgba(14, 20, 34, 0.25) 0%, rgba(14, 20, 34, 0) 50%);
+}
+
+/* Film Grain Texture (Atmosphere) */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+
+/* Global Typography Depth (High Readability) */
+h1, h2, h3, h4, h5, h6 {
+    text-shadow: 0 4px 16px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.9);
+}
+p, span, li, a {
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 max(8vw, 24px);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 36px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+    font-size: 0.85rem;
+    font-family: var(--font-sans);
+    cursor: pointer;
+}
+.btn-primary {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--color-primary);
+    box-shadow: 0 8px 22px rgba(240, 139, 67, 0.32);
+    font-weight: 700;
+}
+.btn-primary:hover, .btn-primary:focus-visible {
+    background-color: #ffab5e;
+    border-color: #ffab5e;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(240, 139, 67, 0.5);
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+.btn-primary:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 4px 12px rgba(240, 139, 67, 0.32);
+}
+/* Outlined cream button - high contrast on any dark or warm surface, and it
+   inverts to a solid cream fill on hover so the label never loses legibility.
+   Deliberately not orange, to avoid orange-on-orange against warm sections. */
+.btn-secondary {
+    background-color: transparent;
+    color: var(--color-text-primary);
+    border: 1.5px solid rgba(253, 251, 247, 0.5);
+}
+.btn-secondary:hover, .btn-secondary:focus-visible {
+    background-color: var(--color-text-primary);
+    color: #0a0c14 !important;
+    border-color: var(--color-text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+}
+.btn-secondary:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Hero Section */
+.hero {
+    padding-top: calc(var(--space-macro) + 96px);
+    padding-bottom: var(--space-macro);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(5, 7, 10, 0.55) 0%, rgba(5, 7, 10, 0.65) 100%);
+    z-index: 1;
+}
+
+/* Cinematic hero lighting: a vignette that darkens the edges and a soft
+   warm directional glow, so the copy reads as the lit focal point over
+   video/photo - editorial-photography lighting, not a flat scrim. Hero-only. */
+/* Cinematic hero lighting - a single layered composition that darkens the
+   frame edges, keeps the top readable under the nav, pulls the sides in, and
+   lifts a warm key light behind the headline so the eye lands on the type.
+   This is the HOMEPAGE HERO's signature treatment only - do not reuse it on
+   other media (see the brief: hero lighting is unique). */
+.hero-cinematic-light {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 52% 46% at 50% 44%, rgba(255, 193, 133, 0.22) 0%, rgba(255, 193, 133, 0) 62%),
+        linear-gradient(to bottom, rgba(5, 7, 10, 0.72) 0%, rgba(5, 7, 10, 0) 24%),
+        linear-gradient(to top, rgba(5, 7, 10, 0.96) 0%, rgba(5, 7, 10, 0) 42%),
+        linear-gradient(to right, rgba(5, 7, 10, 0.62) 0%, rgba(5, 7, 10, 0) 28%),
+        linear-gradient(to left, rgba(5, 7, 10, 0.62) 0%, rgba(5, 7, 10, 0) 28%),
+        radial-gradient(circle at 100% 0%, rgba(5, 7, 10, 0.8) 0%, rgba(5, 7, 10, 0) 35%),
+        radial-gradient(circle at 0% 100%, rgba(5, 7, 10, 0.8) 0%, rgba(5, 7, 10, 0) 35%);
+}
+.hero-text-shadow {
+    text-shadow: var(--hero-text-shadow);
+}
+
+/* Subtle cinematic drift on the homepage hero footage - barely perceptible. */
+@keyframes heroKenBurns {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); }
+}
+.hero-ken-burns {
+    animation: heroKenBurns 22s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+    .hero-ken-burns { animation: none; }
+}
+
+/*
+ * The Ignition - the opening ritual (homepage, first visit per session only).
+ * A single ember catches at the flagship's mark and blooms into the room.
+ * Entirely gated behind [data-ignition="igniting"], which app/layout.tsx's
+ * inline head script only ever sets when JS confirms reduced-motion is off -
+ * so nothing here needs its own reduced-motion guard.
+ */
+.ignition-veil {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: var(--color-surface-base);
+    pointer-events: none;
+}
+html[data-ignition="igniting"] .ignition-veil {
+    display: block;
+    animation: ignitionVeilRecede 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ignition-logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    will-change: opacity;
+}
+.ignition-logo-wipe {
+    filter: drop-shadow(0 0 24px rgba(240, 139, 67, 0.5)) brightness(1.2) sepia(1) hue-rotate(345deg) saturate(3);
+}
+html[data-ignition="igniting"] .ignition-logo-container {
+    animation: ignitionLogoFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+}
+html[data-ignition="igniting"] .ignition-logo-wipe {
+    animation: ignitionWipe 0.5s cubic-bezier(0.7, 0, 0.3, 1) 0.1s forwards;
+}
+
+@keyframes ignitionLogoFade {
+    0%, 60% { opacity: 1; }
+    100%    { opacity: 0; }
+}
+@keyframes ignitionWipe {
+    0%   { clip-path: inset(0 100% 0 0); }
+    100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes ignitionVeilRecede {
+    0%, 50%  { opacity: 1; }
+    100%     { opacity: 0; visibility: hidden; }
+}
+
+/* Hero copy arrives with the light, not before it. Fully visible by default -
+   the staggered entrance only happens during the ignition sequence itself. */
+html[data-ignition="igniting"] .ignition-reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: ignitionRevealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html[data-ignition="igniting"] .ignition-reveal-1 { animation-delay: 0.4s; }
+html[data-ignition="igniting"] .ignition-reveal-2 { animation-delay: 0.5s; }
+html[data-ignition="igniting"] .ignition-reveal-3 { animation-delay: 0.6s; }
+html[data-ignition="igniting"] .ignition-reveal-4 { animation-delay: 0.7s; }
+@keyframes ignitionRevealIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.display-1 {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 7.5rem);
+    line-height: 1.05;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-component);
+    letter-spacing: -0.04em;
+    /* Balance multi-line headings so a lone word never dangles on its own
+       line - every display heading reads as an intentionally composed block. */
+    text-wrap: balance;
+}
+.body-large {
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 48ch;
+    margin-bottom: var(--space-layout);
+    color: rgba(253, 251, 247, 0.75);
+}
+
+/* Accessibility Focus States */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(240, 139, 67, 0.4), 0 0 12px rgba(240, 139, 67, 0.8);
+    border-radius: 4px;
+}
+
+/* Typography Classes */
+.display-2 {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.1;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-component);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+}
+
+/* Opt-in pretty-wrap for body copy and longer paragraphs: avoids typographic
+   orphans (a single short word on the last line) without the tighter
+   line-count balancing that suits headings. */
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+.overline {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--color-accent);
+    display: block;
+    margin-bottom: var(--space-micro);
+}
+
+.pattern-overlay {
+    position: relative;
+    z-index: 1;
+}
+.pattern-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single White.svg');
+    background-size: 150px;
+    background-repeat: repeat;
+    opacity: 0.04;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Phase 14: Global Micro-interactions */
+.page-transition {
+    animation: fadeUpIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes fadeUpIn {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Scroll cue: a small ember drifting upward and fading, looping - carries
+   the fire motif established by the ignition sequence into ordinary use. */
+.ember-drift-track {
+    position: relative;
+    width: 1px;
+    height: 40px;
+    margin: 0 auto;
+    background: rgba(240, 139, 67, 0.15);
+    overflow: visible;
+}
+.ember-drift-dot {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 6px 2px rgba(240, 139, 67, 0.6);
+    transform: translate(-50%, 0);
+    animation: emberDrift 2.4s ease-in-out infinite;
+}
+@keyframes emberDrift {
+    0%   { transform: translate(-50%, 0); opacity: 0; }
+    18%  { opacity: 1; }
+    82%  { opacity: 0.15; }
+    100% { transform: translate(-50%, -40px); opacity: 0; }
+}
+
+/* Subpage Layouts */
+.page-hero {
+    padding-top: calc(var(--space-macro) + 96px);
+    padding-bottom: var(--space-layout);
+    text-align: center;
+}
+.menu-category {
+    padding-top: var(--space-layout);
+    padding-bottom: var(--space-macro);
+    background-color: var(--color-surface-base);
+}
+
+/* Phase 14: Premium Reservation Form Styles */
+.premium-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-micro);
+    width: 100%;
+}
+
+.premium-input {
+    width: 100%;
+    padding: 16px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border-radius: 0;
+}
+
+.premium-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-accent);
+}
+
+.premium-input::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.7;
+}
+
+select.premium-input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b59367%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 10px auto;
+    padding-right: 24px;
+}
+
+/* Menu hero - a single hero dish under a warm key light. The glow is the
+   atmosphere; the dish rests (no frame). Immersive through scale + light. */
+.menu-hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background-color: var(--color-surface-base);
+    padding-top: 96px;
+}
+.menu-hero-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 50% 60% at 68% 46%, rgba(240, 139, 67, 0.20) 0%, rgba(240, 139, 67, 0) 60%),
+        radial-gradient(ellipse 90% 90% at 50% 50%, rgba(8, 12, 20, 0) 44%, rgba(8, 12, 20, 0.72) 100%);
+}
+.menu-hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 max(8vw, 24px);
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.02fr 0.98fr;
+    gap: clamp(24px, 4vw, 72px);
+    align-items: center;
+}
+.menu-hero-copy { position: relative; z-index: 2; }
+/* Menu hero headline: contained so "A journey" never fractures to one word
+   per line. Smaller than the homepage display-1, sized to its column. */
+.menu-hero-copy .display-1 {
+    font-size: clamp(2.75rem, 5.5vw, 4.75rem);
+    letter-spacing: -0.03em;
+}
+/* Layered dish cluster - one hero plate with two smaller satellites at
+   different scales, overlapping into an asymmetric, appetite-first collage
+   rather than a single centred image. */
+.menu-hero-stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+}
+.menu-hero-cluster {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin-left: auto;
+    aspect-ratio: 1 / 1;
+}
+/* A soft warm environment the dishes float within - reads as premium editorial
+   light, not a flat backdrop. Sits behind every plate. */
+.menu-hero-cluster::before {
+    content: "";
+    position: absolute;
+    inset: 6% 2% 10% 2%;
+    background: radial-gradient(ellipse 58% 52% at 52% 44%, rgba(240, 139, 67, 0.12) 0%, rgba(240, 139, 67, 0.04) 40%, rgba(240, 139, 67, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(6px);
+}
+/* Scoped under .menu-hero-cluster so these win over the later, equal-specificity
+   .dish base rules (which set position:relative and width:100%). */
+.menu-hero-cluster .mh-dish { position: absolute; width: auto; }
+.menu-hero-cluster .mh-dish--hero  { width: 74%; top: 6%; right: 3%; z-index: 2; }
+.menu-hero-cluster .mh-dish--sat-a { width: 40%; left: 0%; bottom: 5%; z-index: 3; }
+.menu-hero-cluster .mh-dish--sat-b { width: 31%; top: 0%; left: 15%; z-index: 1; }
+/* Depth: the back plate recedes (dimmer, cooler, softer), the front plate
+   reads crisp and near - so the cluster occupies real space rather than
+   three cut-outs on one plane. */
+.menu-hero-cluster .mh-dish--sat-b .dish-img {
+    filter:
+        drop-shadow(0 18px 26px rgba(0, 0, 0, 0.42))
+        brightness(0.86) saturate(0.92);
+}
+.menu-hero-cluster .mh-dish--sat-a .dish-img {
+    filter:
+        drop-shadow(0 2px 1px rgba(255, 246, 232, 0.28))
+        drop-shadow(0 22px 26px rgba(0, 0, 0, 0.5))
+        drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+}
+@media (max-width: 860px) {
+    .menu-hero { min-height: 0; padding-top: 128px; padding-bottom: 48px; }
+    .menu-hero-inner { grid-template-columns: 1fr; gap: 8px; }
+    .menu-hero-stage { order: -1; }
+    .menu-hero-cluster { max-width: 380px; margin: 0 auto; aspect-ratio: 4 / 3; }
+    .menu-hero-cluster .mh-dish--hero  { width: 70%; top: 4%; right: 6%; }
+    .menu-hero-cluster .mh-dish--sat-a { width: 40%; left: 2%; bottom: 0; }
+    .menu-hero-cluster .mh-dish--sat-b { display: none; }
+}
+
+/* Sprint 02: Menu Culinary Gallery */
+.menu-nav-section {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+.menu-nav::-webkit-scrollbar {
+    display: none;
+}
+/* Category hierarchy: a soft hover state on inactive pills gives the bar
+   depth and feedback without adding static dividers that would clutter the
+   already-solid active pill. */
+.menu-nav-item {
+    border-radius: var(--radius-pill);
+}
+.menu-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.07);
+}
+.menu-category {
+    scroll-margin-top: 160px; /* Offset for sticky header + nav */
+}
+
+/* Phone-only contextual section rail - a Google-Docs-style document outline.
+   Hidden on desktop (the horizontal pill nav owns that); on phones it's a slim
+   fixed rail of dashes you drag a finger along to magnify sections, releasing
+   (or tapping) to jump. Never a panel/drawer - content stays visible. */
+/* phone-only section rail */
+.menu-rail { display: none; }
+@media (max-width: 768px) {
+    .menu-rail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 9999;
+        max-height: 80vh;
+        padding: 8px 6px 8px 16px;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .menu-rail-item {
+        all: unset;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 8px 0;
+        min-height: 28px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;
+    }
+    .menu-rail-name {
+        position: absolute;
+        right: calc(100% + 14px);
+        top: 50%;
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1.05;
+        white-space: nowrap;
+        transform-origin: right center;
+        text-shadow: 0 2px 12px rgba(5, 7, 10, 0.96), 0 0 4px rgba(5, 7, 10, 0.98);
+        transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                    color 0.3s ease;
+        pointer-events: none;
+    }
+    .menu-rail-dash {
+        display: block;
+        height: 2px;
+        border-radius: 1px;
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+
+    /* Backdrop strip - a dark scrim behind the rail area. At rest it's a subtle
+       edge gradient so white dashes don't vanish against white menu text. On
+       touch it darkens and widens so rail labels sit on a solid readable band. */
+    .menu-rail-backdrop {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 60px;
+        z-index: 9998;
+        pointer-events: none;
+        background: linear-gradient(to left, rgba(18,16,24,0.45), transparent);
+        transition: width 0.3s ease, background 0.3s ease;
+    }
+    .menu-rail-backdrop--active {
+        width: 130px;
+        background: linear-gradient(to left, rgba(18,16,24,0.88), rgba(18,16,24,0.38) 60%, transparent);
+    }
+
+    /* Active rail - labels get a solid pill behind them so they're always
+       readable, no matter what menu content sits behind the rail. */
+    .menu-rail--active .menu-rail-name {
+        background: var(--color-primary);
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: var(--radius-sm);
+        padding: 5px 14px;
+        right: calc(100% + 18px);
+        box-shadow: 0 6px 18px rgba(240,139,67,0.3);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .menu-rail-name, .menu-rail-dash { transition: none !important; }
+}
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-layout) var(--space-component);
+}
+
+/*
+ * Menu masonry stagger: only offset cards once the grid is multi-column
+ * (>=768px). In the single-column mobile layout the offset would create
+ * uneven, jarring vertical gaps, so we rely on the grid row-gap instead.
+ */
+@media (min-width: 768px) {
+    .menu-grid {
+        row-gap: 0;
+    }
+    .menu-card.is-even {
+        margin-bottom: 120px;
+    }
+    .menu-card.is-odd {
+        margin-top: 120px;
+    }
+}
+
+
+/* Food photography - the dish IS the hero. No frame, no box: the plated
+   cutout rests on the page, lit from above. A silhouette-following drop
+   shadow reads as an overhead key light; a separate soft contact shadow
+   grounds the plate on the surface. On hover the dish lifts a touch and its
+   contact shadow spreads, the way a plate lifts off a table. */
+.dish {
+    position: relative;
+    width: 100%;
+}
+/* Overhead key light - a soft warm pool falling across the top of the plate,
+   as if lit from the upper side. The element extends above the dish and is
+   clipped by overflow:hidden, so the top edge dissolves instead of cutting
+   in with a straight line. */
+.dish::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 84%;
+    height: 74%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse 62% 50% at 50% 26%, rgba(255, 238, 214, 0.26) 0%, rgba(255, 238, 214, 0) 70%);
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 20%, #000 85%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 20%, #000 85%, transparent 100%);
+    mask-composite: intersect;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.5s ease;
+}
+.dish:hover::before { opacity: 1; }
+/* Contact shadow: tight under the plate, dark and short - reads as cast
+   directly by the overhead key light. A concentrated dark core with a
+   brief penumbra so the dish floats just above the surface. */
+.dish::after {
+    content: "";
+    position: absolute;
+    left: 26%;
+    right: 26%;
+    bottom: 5%;
+    height: 4%;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.38) 35%, rgba(0, 0, 0, 0) 78%);
+    filter: blur(5px);
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+}
+.dish > img,
+.dish .dish-img {
+    position: relative;
+    z-index: 1;
+    object-fit: contain;
+    /* Directional light from the upper side: a fine near-white top highlight,
+       layered over a soft mid shadow and a deeper ambient shadow - premium
+       depth without any artificial glow. */
+    filter:
+        drop-shadow(0 1px 0 rgba(255, 246, 232, 0.25))
+        drop-shadow(0 14px 18px rgba(0, 0, 0, 0.4))
+        drop-shadow(0 30px 46px rgba(0, 0, 0, 0.26));
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
+}
+.dish:hover > img,
+.dish:hover .dish-img {
+    transform: translateY(-8px);
+}
+.dish:hover::after {
+    transform: scale(1.1);
+    opacity: 0.66;
+}
+/* Some plates were shot dead-on and read flat, like a UI icon. A gentle tilt,
+   applied only to those, re-seats the dish on the table at a natural angle;
+   it settles level on hover. Opt-in via .dish--angled so top-down shots that
+   already look plated are left untouched. */
+.dish--angled > img,
+.dish--angled .dish-img {
+    transform: rotate(-5deg);
+}
+.dish--angled:hover > img,
+.dish--angled:hover .dish-img {
+    transform: translateY(-8px) rotate(0deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dish--angled > img,
+    .dish--angled .dish-img { transform: none; }
+}
+
+/* Floating presentation - for dishes suspended in space (the menu hero), not
+   resting on a surface. The tight contact shadow becomes a soft shadow cast
+   well below to imply suspension, and a wider ambient glow lifts the plate off
+   the dark ground. Light stays consistent: highlight on top, shadow beneath. */
+.dish--float::after {
+    left: 24%;
+    right: 24%;
+    bottom: 1%;
+    height: 8%;
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.24) 42%, rgba(0, 0, 0, 0) 80%);
+    filter: blur(12px);
+}
+.dish--float::before {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    opacity: 0.85;
+    background: radial-gradient(ellipse 58% 54% at 50% 42%, rgba(255, 236, 210, 0.22) 0%, rgba(255, 236, 210, 0) 72%);
+}
+.dish--float .dish-img {
+    filter:
+        drop-shadow(0 2px 1px rgba(255, 246, 232, 0.24))
+        drop-shadow(0 24px 30px rgba(0, 0, 0, 0.46))
+        drop-shadow(0 10px 16px rgba(0, 0, 0, 0.34));
+}
+
+/* Signature spreads - an editorial two-up, deliberately off-centre. The plate
+   runs large toward one edge; the copy sits in the opposite column with
+   generous negative space and a ghosted index numeral. Alternating sides
+   create a reading rhythm rather than two mirrored, centred rows. */
+.spread {
+    display: grid;
+    grid-template-columns: 1.28fr 0.72fr;
+    align-items: center;
+    gap: clamp(28px, 5vw, 72px);
+    position: relative;
+}
+.spread--reverse { grid-template-columns: 0.72fr 1.28fr; }
+.spread--reverse .spread-media { order: 2; }
+.spread--reverse .spread-copy  { order: 1; text-align: right; }
+.spread--reverse .spread-copy .spread-meta { justify-content: flex-end; }
+.spread-media { position: relative; }
+.spread-index {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    line-height: 0.8;
+    font-weight: 700;
+    color: rgba(240, 139, 67, 0.16);
+    margin-bottom: 12px;
+}
+.spread-meta {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+@media (max-width: 820px) {
+    .spread,
+    .spread--reverse { grid-template-columns: 1fr; gap: 24px; }
+    .spread--reverse .spread-media { order: -1; }
+    .spread--reverse .spread-copy  { order: 2; text-align: left; }
+    .spread--reverse .spread-copy .spread-meta { justify-content: flex-start; }
+    .spread-media { width: 100%; max-width: 460px; margin: 0 auto; }
+}
+
+.menu-card {
+    background: transparent;
+    padding: var(--space-component) 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+.menu-card-visual {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--space-component);
+}
+.menu-card-visual img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.15));
+    transition: transform 0.4s ease;
+}
+.menu-card:hover .menu-card-visual img {
+    transform: scale(1.05);
+}
+.menu-card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    flex-grow: 1;
+}
+
+/* CHAPTER III - Heritage: an art-directed mosaic, not an image-plus-paragraph
+   band. A large feature room anchors the composition; supporting rooms at
+   different scales stagger around it; the signature line sits in its own
+   negative space above. Stays dark - part of the Editorial Nocturne. */
+.heritage {
+    position: relative;
+    background-color: var(--color-surface-base);
+    padding: var(--space-macro) 0;
+    overflow: hidden;
+}
+.heritage-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 max(8vw, 24px);
+}
+.heritage-head {
+    max-width: 800px;
+    margin-bottom: 56px;
+}
+.heritage-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--color-primary);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+.heritage-eyebrow::before {
+    content: "";
+    width: 40px;
+    height: 1px;
+    background: var(--color-primary);
+    display: inline-block;
+}
+.heritage-quote {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.6vw, 3.4rem);
+    line-height: 1.14;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-style: italic;
+    margin: 0;
+    text-wrap: balance;
+}
+.heritage-quote em { color: var(--color-primary); font-style: italic; }
+
+/* The mosaic: a 3-column editorial grid. One tall feature, one portrait
+   supporting crop, one wide crop, and a text block set into the negative
+   space - each a different scale, so the wall reads as curated, not tiled. */
+.heritage-mosaic {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 24px;
+}
+.hm {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
+}
+.hm img { 
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hm:hover img {
+    transform: scale(1.04);
+}
+.hm--feature { grid-column: 1; grid-row: 1 / 3; min-height: 460px; }
+.hm--tall    { grid-column: 2; grid-row: 1; min-height: 300px; }
+.hm--wide    { grid-column: 3; grid-row: 1; min-height: 300px; }
+/* The caption sits as a horizontal band beneath the two supporting rooms,
+   spanning both right columns - text and its link on one line, not a cramped
+   paragraph. */
+.hm--note {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding-top: 16px;
+}
+.hm--note p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    max-width: 55ch;
+    font-size: 1.05rem;
+}
+
+/* Interior caption for images */
+.hm-cap {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    color: #fdfbf7;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    z-index: 2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+.hm-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(8, 12, 20, 0.04) 0%, rgba(8, 12, 20, 0.55) 100%);
+    z-index: 1;
+    pointer-events: none;
+    transition: background 0.6s ease;
+}
+.hm:hover .hm-scrim {
+    background: linear-gradient(160deg, rgba(8, 12, 20, 0.0) 0%, rgba(8, 12, 20, 0.35) 100%);
+}
+@media (max-width: 1024px) {
+    .heritage-mosaic { grid-template-columns: 1fr 1fr; }
+    .hm--feature { grid-column: 1 / 3; grid-row: 1; min-height: 340px; }
+    .hm--tall    { grid-column: 1; grid-row: 2; min-height: 240px; }
+    .hm--wide    { grid-column: 2; grid-row: 2; min-height: 240px; }
+    .hm--note    { grid-column: 1 / 3; grid-row: 3; padding: 8px 0; }
+}
+@media (max-width: 768px) {
+    .heritage-mosaic { grid-template-columns: 1fr; }
+    .hm--feature, .hm--tall, .hm--wide, .hm--note {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+    }
+    .hm--feature { min-height: 300px; }
+    .hm--note { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+
+/* Gift card stack hover - replaces inline JS onMouseEnter/Leave */
+.gift-card-stack {
+    transition: transform 0.3s ease;
+}
+.gift-card-stack:hover {
+    transform: scale(1.02);
+}
+
+/* Phase 9: Motion Classes */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 1000ms cubic-bezier(0.22, 1, 0.36, 1), transform 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-visible.reveal-hidden,
+.reveal-hidden.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-clip {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.reveal-visible .reveal-clip, .reveal-clip.reveal-visible {
+    clip-path: inset(0 0 0 0);
+}
+
+/* The wok toss: for the two signature-dish images only. A brief arc and
+   settle - a touch of overshoot on landing - rather than a plain fade-up,
+   echoing "the rhythm of the wok" language already on this page. */
+.reveal-toss {
+    opacity: 0;
+    transform: translateY(30px) rotate(-5deg) scale(0.93);
+    transition:
+        opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 900ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.reveal-toss.reveal-visible {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+}
+
+/* Chapter transition: a brush stroke marking the seam between sections,
+   swept once as the next chapter arrives (see components/ui/brush-transition.tsx) */
+.brush-sweep {
+    z-index: 60;
+    pointer-events: none;
+    overflow: visible;
+}
+.brush-sweep-img {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    transform: translate(-130vw, 0);
+    animation: brushSweep 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.45));
+}
+@keyframes brushSweep {
+    to { transform: translate(130vw, 0); }
+}
+
+/* ============================================================
+   Background motif system
+   One visual language, many marks. Each major section can carry its own
+   low-opacity Thai motif (lotus, lattice) as a near-invisible black-on-black
+   texture - discovered, not noticed. Purely decorative: always behind
+   content, never interactive.
+   ============================================================ */
+.motif {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+}
+/* A single lotus, drifted to a corner - for feature sections. */
+.motif--lotus {
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp');
+    filter: grayscale(1) brightness(1.6);
+}
+/* A quiet repeating lotus - the actual brand motif (Lotus Single White),
+   tiled at very low opacity for an atmospheric field rather than a loud
+   pattern. This is the Khao San visual language, not abstract geometry. */
+.motif--lotus-field {
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single White.svg');
+    background-repeat: repeat;
+    background-size: 200px;
+    opacity: 0.035;
+}
+.motif--tl   { inset: -4% auto auto -4%; width: 42%; height: 42%; }
+.motif--tr   { inset: -4% -4% auto auto; width: 40%; height: 40%; }
+.motif--br   { inset: auto -4% -6% auto; width: 44%; height: 44%; }
+.motif--bl   { inset: auto auto -6% -4%; width: 40%; height: 40%; }
+.motif--fill { inset: 0; width: auto; height: auto; }
+
+/* ============================================================
+   Designed section backgrounds
+   Real brand artwork (the deep-navy Thai lattice + lotus line-work) behind a
+   dark scrim, so a section reads as near-black with the pattern quietly
+   emerging - richer than a flat fill, still cinematic and legible. Used to
+   replace solid-colour sections; varied per section so nothing repeats.
+   ============================================================ */
+.bg-lattice {
+    background-color: var(--color-surface-base);
+    background-image:
+        linear-gradient(rgba(8, 12, 20, 0.52), rgba(8, 12, 20, 0.65)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+}
+
+/* Corner-florals variant - lotus blooms anchored in the corners over the
+   lattice, for hero-scale sections where the centre must stay clear for copy. */
+.bg-lotus-corners {
+    background-color: var(--color-surface-base);
+    background-image:
+        linear-gradient(rgba(8, 12, 20, 0.55), rgba(8, 12, 20, 0.70)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+}
+/* Deeper scrim for text-dense sections where the pattern should read but stay
+   quiet under long-form copy. */
+.bg-lattice--quiet {
+    background-color: var(--color-surface-base);
+    background-image:
+        linear-gradient(rgba(8, 12, 20, 0.68), rgba(8, 12, 20, 0.75)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+}
+
+
+/* Gift card hero - same split-grid logic as the menu hero: contained copy on
+   one side, the card composition on the other, one padding rhythm, collapsing
+   to a single column with the visual on top on narrow screens. */
+.giftcard-hero-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 120px max(8vw, 24px) 96px;
+    display: grid;
+    grid-template-columns: 1.02fr 0.98fr;
+    grid-template-rows: auto auto;
+    gap: clamp(24px, 4vw, 72px);
+    align-items: start;
+}
+.gift-hero-head {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 24px;
+}
+.gift-hero-body {
+    grid-column: 1;
+    grid-row: 2;
+}
+.giftcard-hero-cards {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 clamp(8px, 2vw, 40px);
+}
+
+@media (max-width: 860px) {
+    .giftcard-hero-inner {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 36px;
+        padding-top: 128px;
+        padding-bottom: 56px;
+    }
+    .gift-hero-head {
+        grid-column: 1;
+        grid-row: auto;
+        order: -2;
+        margin-bottom: 0;
+        padding-bottom: 56px;
+    }
+    .gift-hero-body {
+        grid-column: 1;
+        grid-row: auto;
+        order: 0;
+    }
+    .giftcard-hero-cards {
+        grid-column: 1;
+        grid-row: auto;
+        order: -1;
+        min-height: 320px;
+    }
+}
+
+/* Homepage gift card section - 3-child grid, same clean pattern as giftcard hero */
+.landing-gift-grid {
+    display: grid;
+    grid-template-columns: 0.72fr 1.28fr;
+    grid-template-rows: auto auto;
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+.landing-gift-head {
+    grid-column: 1;
+    grid-row: 1;
+}
+.landing-gift-body {
+    grid-column: 1;
+    grid-row: 2;
+}
+.landing-gift-cards {
+    grid-column: 2;
+    grid-row: 1 / 3;
+}
+@media (max-width: 768px) {
+    .landing-gift-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .landing-gift-head {
+        grid-column: 1;
+        grid-row: auto;
+        order: -2;
+        padding-bottom: 40px;
+    }
+    .landing-gift-body {
+        grid-column: 1;
+        grid-row: auto;
+        order: 0;
+    }
+    .landing-gift-cards {
+        grid-column: 1;
+        grid-row: auto;
+        order: -1;
+        padding: 48px 0 56px 0;
+    }
+}
+
+/* ============================================================
+   Feathered media frames
+   Video/media that dissolves into the page instead of sitting as a hard
+   outlined rectangle - a soft alpha mask fades all four edges. Pair with a
+   diffuse ambient shadow (.media-soft) for weight without a visible border.
+   ============================================================ */
+.media-feather {
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+    mask-composite: intersect;
+}
+.media-soft {
+    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================================
+   Section spacing scale - one rhythm for every section's vertical padding,
+   replacing ad-hoc px values scattered across pages. Built on --space-macro
+   so it already flexes down at the tablet/mobile breakpoints below.
+   ============================================================ */
+.section-pad   { padding-top: var(--space-macro); padding-bottom: var(--space-macro); }
+.section-pad-t { padding-top: var(--space-macro); }
+.section-pad-b { padding-bottom: var(--space-macro); }
+
+/* ============================================================
+   Image blend treatment - same intersecting linear-gradient mask
+   as the Chapter II video (.media-feather), with rounded corners.
+   The fade zone is opened wider for still photographs so the
+   dissolve into the nocturnal background reads clearly at every
+   size; narrow 7-9% windows that work on full-bleed video are
+   imperceptible on smaller editorial stills.
+   ============================================================ */
+.img-feather {
+    border-radius: var(--radius-lg);
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 18%, #000 82%, transparent 100%);
+    mask-composite: intersect;
+}
+
+/* ============================================================
+   Section dissolve - hard horizontal cuts between sections
+   become soft editorial transitions. Each section's top edge
+   fades in from noir and its bottom edge dissolves back,
+   matching the .media-feather / .img-feather dissolve language.
+   ============================================================ */
+.section-blend-top,
+.section-blend-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+.section-blend-top {
+    top: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, var(--color-surface-base) 0%, transparent 100%);
+}
+.section-blend-bottom {
+    bottom: 0;
+    height: 120px;
+    background: linear-gradient(to top, var(--color-surface-base) 0%, transparent 100%);
+}
+
+/* ============================================================
+   Footer - compact, dark, gradient-free. A restrained sign-off: a small
+   wordmark, a line of intent, structured nav, and a thin rule. No glow, no
+   giant watermark - deliberately contained in height.
+   ============================================================ */
+.site-footer {
+    position: relative;
+    overflow: hidden;
+    background: #0A0401;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    padding: clamp(44px, 5vw, 68px) 0 22px;
+}
+/* Faint lotus/lattice texture so the footer reads as a designed close, not a
+   flat dull band. No gradient - a solid low-opacity image wash. */
+.site-footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+}
+.site-footer__inner { position: relative; z-index: 2; }
+.footer-top {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr 1fr 1.1fr;
+    gap: 30px 48px;
+    padding-bottom: 34px;
+}
+.footer-logo {
+    height: 50px;
+    width: auto;
+    margin-bottom: 18px;
+    /* recolour the navy mark to warm cream so it reads on the dark ground */
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+.footer-tagline {
+    color: rgba(253, 251, 247, 0.6);
+    font-size: 0.96rem;
+    line-height: 1.55;
+    max-width: 32ch;
+    margin-bottom: 20px;
+    text-wrap: pretty;
+}
+.footer-reserve {
+    display: inline-block;
+    color: var(--color-primary);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 0;
+    border: none;
+    border-bottom: 1px solid rgba(240, 139, 67, 0.4);
+    background: none;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+.footer-reserve:hover,
+.footer-reserve:focus-visible { color: #ffab5e; border-color: #ffab5e; }
+.footer-outlets {
+    margin-top: 22px;
+    color: rgba(253, 251, 247, 0.5);
+    font-size: 0.76rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
+.footer-col h4 {
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+.footer-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+.footer-link {
+    color: rgba(253, 251, 247, 0.78);
+    text-decoration: none;
+    font-size: 0.95rem;
+    display: inline-block;
+    padding: 4px 0;
+    transition: color 0.3s ease;
+}
+.footer-link:hover,
+.footer-link:focus-visible { color: var(--color-primary); }
+.footer-hours { color: rgba(253, 251, 247, 0.66); font-size: 0.92rem; display: inline-block; padding: 4px 0; }
+.footer-divider { height: 1px; background: var(--color-border); }
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding-top: 22px;
+    color: rgba(253, 251, 247, 0.45);
+    font-size: 0.8rem;
+}
+.footer-legal { display: flex; gap: 24px; }
+.footer-legal a {
+    color: inherit;
+    text-decoration: none;
+    padding: 4px 0;
+    transition: color 0.3s ease;
+}
+.footer-legal a:hover,
+.footer-legal a:focus-visible { color: rgba(253, 251, 247, 0.8); }
+@media (max-width: 900px) {
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
+    .footer-brand { grid-column: 1 / 3; }
+}
+@media (max-width: 560px) {
+    .footer-top { grid-template-columns: 1fr 1fr; }
+    .footer-brand { grid-column: 1 / 3; }
+    .footer-bottom { justify-content: flex-start; }
+}
+
+/* --- Mobile Responsiveness Adjustments --- */
+.location-card-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    min-height: 800px;
+    display: flex;
+    align-items: center;
+    margin-left: calc(50% - 50vw);
+}
+
+.location-card-image-wrapper {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+}
+
+.location-card-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 700px;
+    padding: 0 8vw;
+}
+
+.location-card-gradient {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+}
+
+.location-card-gradient.align-left {
+    background: linear-gradient(to right, rgba(5, 7, 10, 0.98) 0%, rgba(5, 7, 10, 0.7) 45%, rgba(5, 7, 10, 0) 100%);
+}
+
+.location-card-gradient.align-right {
+    background: linear-gradient(to left, rgba(5, 7, 10, 0.98) 0%, rgba(5, 7, 10, 0.7) 45%, rgba(5, 7, 10, 0) 100%);
+}
+
+.section-reservation {
+    position: relative;
+    overflow: hidden;
+    padding: 160px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    /* Compress Reservation Section to a cinematic wide crop on mobile */
+    .section-reservation {
+        padding: 64px 0;
+    }
+    
+    /* Rebuild LocationCard for Portrait Screens */
+    .location-card-container {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        height: auto;
+        min-height: auto;
+    }
+    
+    /* The photo takes the top portion, preserving aspect ratio */
+    .location-card-image-wrapper {
+        position: relative;
+        height: 60vh;
+        width: 100vw;
+    }
+
+    /* Gradient now serves as a soft floor fading up */
+    .location-card-gradient,
+    .location-card-gradient.align-left,
+    .location-card-gradient.align-right {
+        top: auto;
+        bottom: 0;
+        height: 50vh;
+        background: linear-gradient(to top, rgba(5, 7, 10, 1) 0%, rgba(5, 7, 10, 0.95) 40%, rgba(5, 7, 10, 0) 100%);
+    }
+
+    .location-card-content {
+        text-align: left !important;
+        padding: 48px 24px;
+        background-color: rgba(5, 7, 10, 1);
+        margin-top: -120px; /* pull up over the gradient */
+    }
+    
+    .location-card-content p,
+    .location-card-content div {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+}
+
+/* Phase 8: Responsive Adaptation */
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
+    :root {
+        --space-macro: 72px;
+        --space-layout: 40px;
+    }
+    .container {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 20px;
+        padding: 0 48px;
+    }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+    :root {
+        --space-macro: 48px;
+        --space-layout: 24px;
+    }
+    .container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 0 24px;
+    }
+
+    .display-1 {
+        font-size: 3rem;
+    }
+    .display-2 {
+        font-size: 2.25rem;
+    }
+}
+
+/* Respect user motion preferences (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    /* Ensure scroll-revealed content is never left hidden */
+    .reveal-hidden,
+    .reveal-toss {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .reveal-clip {
+        clip-path: none !important;
+    }
+    .ember-drift-dot {
+        animation: none !important;
+        opacity: 0.5 !important;
+        transform: translate(-50%, -18px) !important;
+    }
+}
