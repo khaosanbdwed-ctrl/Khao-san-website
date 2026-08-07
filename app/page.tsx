@@ -310,7 +310,7 @@ export default function Home() {
                                         href={`https://maps.google.com/?q=${encodeURIComponent(loc.mapQuery)}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="btn btn-secondary"
+                                        className="btn btn-secondary btn-directions"
                                     >Directions</a>
                                 </div>
                             </div>
