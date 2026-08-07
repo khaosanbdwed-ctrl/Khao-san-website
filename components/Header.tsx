@@ -20,16 +20,21 @@ export default function Header() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    /* Hide header while the hero section occupies the viewport.
-       Once the hero scrolls out (< 10% visible), the header fades in. */
+    /* Hide header while either hero section is in view.
+       .hero = top hero (homepage), .menu-hero = top hero (menu page). */
     useEffect(() => {
-        const hero = document.querySelector('.hero');
-        if (!hero) { setInHero(false); return; }
+        const els = document.querySelectorAll('.hero, .menu-hero');
+        if (!els.length) { setInHero(false); return; }
         const io = new IntersectionObserver(
-            ([entry]) => setInHero(entry.isIntersecting),
+            (entries) => {
+                const any = entries.some(e => e.isIntersecting);
+                // ponytail: only flip state when needed — avoids re-renders
+                setInHero(prev => any || document.querySelectorAll('.hero, .menu-hero')
+                    .length === entries.filter(e => !e.isIntersecting).length ? any : prev);
+            },
             { threshold: 0.1 }
         );
-        io.observe(hero);
+        els.forEach(el => io.observe(el));
         return () => io.disconnect();
     }, []);
 
