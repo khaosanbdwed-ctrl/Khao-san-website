@@ -42,7 +42,7 @@ export default function Header() {
                 },
                 { threshold: 0.1 }
             );
-            els.forEach(el => io.observe(el));
+            els.forEach(el => io?.observe(el));
         }, 50);
 
         return () => {
