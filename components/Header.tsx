@@ -9,6 +9,7 @@ const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${enc
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [inHero, setInHero] = useState(true);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -17,6 +18,19 @@ export default function Header() {
         window.addEventListener('scroll', handleScroll);
         handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    /* Hide header while the hero section occupies the viewport.
+       Once the hero scrolls out (< 10% visible), the header fades in. */
+    useEffect(() => {
+        const hero = document.querySelector('.hero');
+        if (!hero) { setInHero(false); return; }
+        const io = new IntersectionObserver(
+            ([entry]) => setInHero(entry.isIntersecting),
+            { threshold: 0.1 }
+        );
+        io.observe(hero);
+        return () => io.disconnect();
     }, []);
 
     useEffect(() => {
@@ -52,6 +66,11 @@ export default function Header() {
                 z-index: 100;
                 transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             }
+            /* Invisible while hero is in view */
+            .header-container.in-hero {
+                opacity: 0 !important;
+                pointer-events: none;
+            }
             /* Resting height is 14 + 50 + 14 = 78px, down from 120px. At the old
                size the bar covered the top eighth of the hero with a milky
                blurred slab. It stays translucent rather than going fully
@@ -79,7 +98,8 @@ export default function Header() {
             @keyframes khaosanHeaderArrive {
                 from { opacity: 0; transform: translateY(-6px); }
                 to   { opacity: 1; transform: translateY(0); }
-            }
+            }`
+            + `
             /* The site-wide .btn padding (16px/36px) made this 57px tall - taller
                than the 50px logo - so the CTA, not the mark, was setting the
                bar's height. Compact here so the logo governs and the header
@@ -156,7 +176,7 @@ export default function Header() {
             }
         `}} />
 
-        <header className={`header-container ${scrolled ? 'scrolled' : 'top'}`}>
+        <header className={`header-container ${scrolled ? 'scrolled' : 'top'}${inHero && !menuOpen ? ' in-hero' : ''}`}>
             
             {/* Left Column - Empty to balance CSS Grid */}
             <div className="header-left"></div>
