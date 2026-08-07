@@ -254,7 +254,7 @@ export default function Home() {
                     <div className="spread spread--reverse">
                         <div className="spread-copy">
                             <div className="spread-meta">
-                                <span style={{color: '#ff6b4d', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase'}}>🌶 Fiery</span>
+                                <span style={{color: 'var(--color-brand-blue)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase'}}>🌶 Fiery</span>
                                 <span style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem', fontStyle: 'italic'}}>Lemongrass &amp; Kaffir Lime</span>
                             </div>
                             <h3 className="display-2" style={{marginBottom: '18px'}}>Tom Yum Goong</h3>

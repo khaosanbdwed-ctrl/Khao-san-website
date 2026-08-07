@@ -20,7 +20,7 @@ export interface MenuCardProps {
 }
 
 const BADGE_META: Record<MenuBadge, { label: string; icon: React.ReactNode; color: string }> = {
-    spicy: { label: 'Spicy', icon: <Flame size={12} strokeWidth={3} />, color: '#ff6b4d' },
+    spicy: { label: 'Spicy', icon: <Flame size={12} strokeWidth={3} />, color: 'var(--color-brand-blue)' },
     special: { label: 'Special', icon: <BookOpen size={12} strokeWidth={3} />, color: 'var(--color-primary)' },
     featured: { label: 'Featured', icon: <Camera size={12} strokeWidth={3} />, color: '#e8c874' },
     new: { label: 'New', icon: <Sparkles size={12} strokeWidth={3} />, color: '#5fc7b8' },
