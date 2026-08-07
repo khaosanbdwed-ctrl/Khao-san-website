@@ -231,20 +231,23 @@ body::after {
    inverts to a solid cream fill on hover so the label never loses legibility.
    Deliberately not orange, to avoid orange-on-orange against warm sections. */
 .btn-secondary {
-    background-color: transparent;
-    color: var(--color-text-primary);
-    border: 1.5px solid rgba(253, 251, 247, 0.5);
+    background-color: rgba(30, 65, 123, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 24px rgba(30, 65, 123, 0.35);
 }
 .btn-secondary:hover, .btn-secondary:focus-visible {
-    background-color: var(--color-surface-elevated);
-    color: #0a0c14 !important;
-    border-color: var(--color-surface-elevated);
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #16233d !important;
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgba(141, 54, 31, 0.18);
+    box-shadow: 0 14px 32px rgba(30, 65, 123, 0.4);
 }
 .btn-secondary:active {
     transform: translateY(0) scale(0.97);
-    box-shadow: 0 4px 10px rgba(141, 54, 31, 0.16);
+    box-shadow: 0 4px 12px rgba(30, 65, 123, 0.3);
 }
 
 /* Hero Section
@@ -1270,7 +1273,7 @@ select.premium-input {
    accent this palette already uses for marks on light ground, and it separates
    clearly from the near-navy quote while still reading as brand. */
 .heritage-quote em {
-    color: var(--color-deep-terracotta);
+    color: var(--color-brand-butter);
     font-style: italic;
 }
 
@@ -1683,10 +1686,10 @@ select.premium-input {
    shares nothing with the .bg-orange-field selector at the CSS level. */
 .bg-orange-field,
 .bg-orange-field--quiet {
-    --color-text-primary: #16233d;              /* 7.25:1 */
-    --color-text-secondary: #33405c;            /* 4.80:1 */
-    --color-primary: var(--color-brand-blue);   /* 4.64:1 - was orange-on-orange */
-    --color-accent: var(--color-brand-blue);
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.9);
+    --color-primary: #ffffff;
+    --color-accent: #ffffff;
 }
 /* An orange CTA on an orange field reads as a flat shape with no edge, so the
    field flips it to the brand's other primary. The label goes back to white,
@@ -1704,17 +1707,22 @@ select.premium-input {
     color: #ffffff;
     box-shadow: 0 18px 38px rgba(30, 65, 123, 0.45);
 }
-/* The default cream outline all but disappears on orange - the outline picks
-   up the ink colour instead, and fills to solid blue on hover. */
+/* Translucent blue blurry button on orange background */
 .bg-orange-field .btn-secondary {
-    border-color: rgba(22, 35, 61, 0.45);
-    color: var(--color-text-primary);
+    background-color: rgba(30, 65, 123, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(30, 65, 123, 0.35);
 }
 .bg-orange-field .btn-secondary:hover,
 .bg-orange-field .btn-secondary:focus-visible {
-    background-color: var(--color-brand-blue);
-    border-color: var(--color-brand-blue);
-    color: #ffffff !important;
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #16233d !important;
+    transform: translateY(-2px);
+    box-shadow: 0 14px 32px rgba(30, 65, 123, 0.4);
 }
 
 /* Blue field (#1e417b): light ink only. */
@@ -2071,29 +2079,20 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
 .site-footer {
     position: relative;
     overflow: hidden;
-    background-color: #cfa382;                 /* paper's own tone, if the image fails */
-    /* The paper and nothing else - no wash, no pattern layered over it. The
-       texture IS the design here. Contrast is handled entirely in the ink
-       below rather than by tinting the surface. */
-    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Footer/Footer.webp');
+    background-color: #0c1424;
+    background-image:
+        linear-gradient(rgba(12, 20, 36, 0.78), rgba(12, 20, 36, 0.86)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Elephant 16 by 9 Ratio Landscape.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    border-top: 1px solid rgba(22, 22, 22, 0.10);
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
     padding: clamp(44px, 5vw, 68px) 0 22px;
 
-    /* Light warm surface - re-point the ink scale rather than overriding a
-       dozen individual colours. Measured against the untinted paper (mean
-       rgb(206,165,128), darkest rgb(196,147,108)):
-         #161616 -> 8.03:1 mean / 6.67:1 worst   body, links
-         #16233d -> 6.99:1 mean / 5.82:1 worst   headings (deep navy)
-         #4a3a2c -> 4.83:1 mean / 4.02:1 worst   secondary
-       Brand orange (1.04:1) and white (2.25:1) are unusable here and are not
-       used anywhere in this footer. */
-    --color-text-primary: #161616;
-    --color-text-secondary: #4a3a2c;
-    --color-primary: #16233d;
-    --color-accent: #16233d;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.82);
+    --color-primary: #ffffff;
+    --color-accent: var(--color-brand-butter);
 }
 .site-footer__inner { position: relative; z-index: 2; }
 .footer-top {
@@ -2106,10 +2105,6 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     height: 50px;
     width: auto;
     margin-bottom: 18px;
-    /* No knock-out filter any more. The source mark is solid brand navy, which
-       is exactly right on kraft paper (4.44:1) - it is the brand's own printed
-       lockup. Inverting it to cream here would leave it at 2.25:1, i.e. barely
-       visible, which is what the dark footer needed and this one does not. */
     opacity: 1;
 }
 .footer-tagline {
@@ -2122,7 +2117,7 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
 }
 .footer-reserve {
     display: inline-block;
-    color: var(--color-primary);
+    color: var(--color-brand-butter);
     font-family: var(--font-sans);
     font-size: 0.82rem;
     font-weight: 700;
@@ -2131,13 +2126,13 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     text-decoration: none;
     padding: 8px 0;
     border: none;
-    border-bottom: 1.5px solid rgba(22, 35, 61, 0.5);
+    border-bottom: 1.5px solid var(--color-brand-butter);
     background: none;
     cursor: pointer;
     transition: color 0.3s ease, border-color 0.3s ease;
 }
 .footer-reserve:hover,
-.footer-reserve:focus-visible { color: #000000; border-color: #000000; }
+.footer-reserve:focus-visible { color: #ffffff; border-color: #ffffff; }
 .footer-outlets {
     margin-top: 22px;
     color: var(--color-text-secondary);
@@ -2150,7 +2145,7 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--color-primary);
+    color: var(--color-brand-butter);
     margin-bottom: 10px;
     font-weight: 600;
 }
@@ -2164,9 +2159,9 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     transition: color 0.3s ease;
 }
 .footer-link:hover,
-.footer-link:focus-visible { color: var(--color-primary); }
+.footer-link:focus-visible { color: var(--color-brand-butter); }
 .footer-hours { color: var(--color-text-secondary); font-size: 0.92rem; display: inline-block; padding: 4px 0; }
-.footer-divider { height: 1px; background: rgba(22, 22, 22, 0.16); }
+.footer-divider { height: 1px; background: rgba(255, 255, 255, 0.14); }
 .footer-bottom {
     display: flex;
     justify-content: space-between;
@@ -2174,11 +2169,7 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     flex-wrap: wrap;
     gap: 14px;
     padding-top: 22px;
-    /* Legal/copyright is exactly the copy people need to be able to read on
-       demand, so it should never be the least legible thing on the page. A warm
-       mid-brown keeps it visibly quieter than the nav links while still sitting
-       comfortably above the 4.5:1 floor on the paper. */
-    color: #5c4835;
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.8rem;
 }
 .footer-legal { display: flex; gap: 24px; }
@@ -2189,7 +2180,7 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
     transition: color 0.3s ease;
 }
 .footer-legal a:hover,
-.footer-legal a:focus-visible { color: var(--color-primary); }
+.footer-legal a:focus-visible { color: var(--color-brand-butter); }
 @media (max-width: 900px) {
     .footer-top { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
     .footer-brand { grid-column: 1 / 3; }
