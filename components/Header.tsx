@@ -201,7 +201,9 @@ export default function Header() {
 
             {/* Center Column - Nav Links + Logo perfectly centered */}
             <nav className="header-center">
-                <Link href="/menu" className="nav-link desktop-only">Menu</Link>
+                <Link href={pathname === '/menu' ? "/" : "/menu"} className="nav-link desktop-only">
+                    {pathname === '/menu' ? "Home" : "Menu"}
+                </Link>
                 <Link href="/#havens" className="nav-link desktop-only">Locations</Link>
 
                 {/* Logo */}
@@ -306,7 +308,9 @@ export default function Header() {
                     zIndex: 99
                 }}
             >
-                <Link href="/menu" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Menu</Link>
+                <Link href={pathname === '/menu' ? "/" : "/menu"} style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
+                    {pathname === '/menu' ? "Home" : "Menu"}
+                </Link>
                 <Link href="/#havens" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
                 <Link href="/#heritage" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
                 <Link href="/#gift" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
