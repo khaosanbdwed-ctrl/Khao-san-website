@@ -3,10 +3,13 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+import { usePathname } from 'next/navigation';
+
 const WHATSAPP_NUMBER = '8801600068193';
 const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
 export default function Header() {
+    const pathname = usePathname();
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [inHero, setInHero] = useState(true);
@@ -23,20 +26,30 @@ export default function Header() {
     /* Hide header while either hero section is in view.
        .hero = top hero (homepage), .menu-hero = top hero (menu page). */
     useEffect(() => {
-        const els = document.querySelectorAll('.hero, .menu-hero');
-        if (!els.length) { setInHero(false); return; }
-        const io = new IntersectionObserver(
-            (entries) => {
-                const any = entries.some(e => e.isIntersecting);
-                // ponytail: only flip state when needed — avoids re-renders
-                setInHero(prev => any || document.querySelectorAll('.hero, .menu-hero')
-                    .length === entries.filter(e => !e.isIntersecting).length ? any : prev);
-            },
-            { threshold: 0.1 }
-        );
-        els.forEach(el => io.observe(el));
-        return () => io.disconnect();
-    }, []);
+        let io: IntersectionObserver | null = null;
+        
+        // Wait briefly for Next.js to finish painting the new page's DOM
+        const timeoutId = setTimeout(() => {
+            const els = document.querySelectorAll('.hero, .menu-hero');
+            if (!els.length) { setInHero(false); return; }
+            
+            io = new IntersectionObserver(
+                (entries) => {
+                    const any = entries.some(e => e.isIntersecting);
+                    // ponytail: only flip state when needed — avoids re-renders
+                    setInHero(prev => any || document.querySelectorAll('.hero, .menu-hero')
+                        .length === entries.filter(e => !e.isIntersecting).length ? any : prev);
+                },
+                { threshold: 0.1 }
+            );
+            els.forEach(el => io.observe(el));
+        }, 50);
+
+        return () => {
+            clearTimeout(timeoutId);
+            if (io) io.disconnect();
+        };
+    }, [pathname]);
 
     useEffect(() => {
         if (menuOpen) {
