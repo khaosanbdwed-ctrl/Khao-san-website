@@ -2405,14 +2405,21 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
 /* The cream outline is invisible on the white card - same treatment as the
    orange field, keyed to the card's own ink. */
 .haven-card .btn-secondary {
-    border-color: rgba(22, 22, 22, 0.22);
-    color: var(--color-text-primary);
+    position: relative;
+    z-index: 2;
+    background-color: transparent;
+    border-color: rgba(22, 35, 61, 0.35);
+    color: #16233d;
 }
 .haven-card .btn-secondary:hover,
 .haven-card .btn-secondary:focus-visible {
-    background-color: var(--color-brand-blue);
-    border-color: var(--color-brand-blue);
+    background-color: #1e417b !important;
+    border-color: #1e417b !important;
     color: #ffffff !important;
+    position: relative;
+    z-index: 10;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(30, 65, 123, 0.4);
 }
 .haven-card:hover {
     transform: translateY(-6px);
