@@ -2407,9 +2407,12 @@ section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
 .haven-card .btn-secondary {
     position: relative;
     z-index: 2;
-    background-color: transparent;
-    border-color: rgba(22, 35, 61, 0.35);
-    color: #16233d;
+    background-color: rgba(30, 65, 123, 0.45);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(30, 65, 123, 0.35);
 }
 .haven-card .btn-secondary:hover,
 .haven-card .btn-secondary:focus-visible {
