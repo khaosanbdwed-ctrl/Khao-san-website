@@ -18,24 +18,30 @@ export default function SectionOverlay({
     className = '',
     blend = false,
 }: SectionOverlayProps) {
+    // The source art (Lotus BG / Landing Page Section backgrounds) is a deep
+    // navy photo/pattern. A translucent orange wash over a dark image blends
+    // to muddy brown at low-to-mid opacity - it needs to be near-opaque to
+    // read as clean brand orange, so the floor is clamped here regardless of
+    // what each call site requests.
+    const effectiveOpacity = Math.max(overlayOpacity, 0.88);
     return (
         <section className={`pattern-overlay ${className}`.trim()} style={{
-            padding: padding, 
-            backgroundImage: `url("${backgroundImage}")`, 
+            padding: padding,
+            backgroundImage: `url("${backgroundImage}")`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             position: 'relative'
         }}>
-            <div 
-                className="hero-overlay" 
-                aria-hidden="true" 
+            <div
+                className="hero-overlay"
+                aria-hidden="true"
                 style={{
-                    position: 'absolute', 
-                    top: 0, 
-                    left: 0, 
-                    width: '100%', 
-                    height: '100%', 
-                    backgroundColor: `rgba(8, 12, 20, ${overlayOpacity})`, 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: `rgba(255, 150, 63, ${effectiveOpacity})`,
                     zIndex: 0
                 }}
             ></div>

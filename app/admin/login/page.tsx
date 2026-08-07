@@ -37,7 +37,7 @@ export default function AdminLogin() {
     };
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-background-base)' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-surface-base)' }}>
             <div style={{ position: 'absolute', inset: 0, opacity: 0.2, zIndex: 0 }}>
                 <Image
                     src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp"
@@ -47,7 +47,7 @@ export default function AdminLogin() {
                 />
             </div>
 
-            <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '420px', padding: '48px', backgroundColor: 'var(--color-surface-base)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }}>
+            <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '420px', padding: '48px', backgroundColor: 'var(--color-surface-base)', borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: '0 24px 64px rgba(30, 41, 59, 0.18)' }}>
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <span className="overline" style={{ color: 'var(--color-primary)', display: 'block', marginBottom: '16px' }}>Khao San Admin</span>
                     <h1 className="display-3" style={{ fontSize: '2.5rem' }}>Log In.</h1>
@@ -66,7 +66,7 @@ export default function AdminLogin() {
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            style={{ width: '100%', padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--color-text-primary)', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }}
+                            style={{ width: '100%', padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.05)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }}
                             placeholder="Enter username"
                             required
                         />
@@ -78,7 +78,7 @@ export default function AdminLogin() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            style={{ width: '100%', padding: '16px', backgroundColor: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: 'var(--color-text-primary)', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }}
+                            style={{ width: '100%', padding: '16px', backgroundColor: 'rgba(30, 41, 59, 0.05)', border: '1px solid var(--color-border)', borderRadius: '8px', color: 'var(--color-text-primary)', fontSize: '1rem', outline: 'none', transition: 'border-color 0.2s' }}
                             placeholder="Enter password"
                             required
                         />

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Montserrat } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import ClientWrapper from "@/components/ClientWrapper";
-import { ReservationProvider } from "@/components/ReservationContext";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -17,6 +17,34 @@ const montserrat = Montserrat({
   weight: ["400", "500", "600", "700"],
   variable: "--font-montserrat",
   display: "swap",
+});
+
+// Client-licensed brand fonts. The source files on disk (app/fonts/) are the
+// vendor's DEMO/PERSONAL-USE builds, not the purchased commercial files —
+// swap them for the licensed files before public launch (same filenames,
+// no code change needed). Camera Obscura and Bellavoir Delight's demo
+// builds have deliberately broken numeral glyphs (render as watermark
+// text), verified by rendering in an earlier pass — `declarations` below
+// excludes U+0030-0039 so digits fall through to the serif fallback
+// instead of rendering broken.
+const cameraObscura = localFont({
+  src: "./fonts/CameraObscura.otf",
+  variable: "--font-camera-obscura",
+  display: "swap",
+  declarations: [{ prop: "unicode-range", value: "U+0000-002F, U+003A-10FFFF" }],
+});
+
+const goodBrush = localFont({
+  src: "./fonts/GoodBrush9.otf",
+  variable: "--font-good-brush",
+  display: "swap",
+});
+
+const bellavoirDelight = localFont({
+  src: "./fonts/BellavoirDelight.otf",
+  variable: "--font-bellavoir",
+  display: "swap",
+  declarations: [{ prop: "unicode-range", value: "U+0000-002F, U+003A-10FFFF" }],
 });
 
 export const metadata: Metadata = {
@@ -56,7 +84,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${playfairDisplay.variable} ${montserrat.variable}`}
+      className={`${playfairDisplay.variable} ${montserrat.variable} ${cameraObscura.variable} ${goodBrush.variable} ${bellavoirDelight.variable}`}
       // data-ignition is deliberately set by an inline script before hydration
       // (see the script below) - same sanctioned pattern as no-flash theme
       // scripts. SSR can't know it, so this attribute intentionally differs
@@ -82,11 +110,9 @@ export default function RootLayout({
           />
       </head>
       <body>
-        <ReservationProvider>
-            <ClientWrapper>
-                {children}
-            </ClientWrapper>
-        </ReservationProvider>
+        <ClientWrapper>
+            {children}
+        </ClientWrapper>
       </body>
     </html>
   );

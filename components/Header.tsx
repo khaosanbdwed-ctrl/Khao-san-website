@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useReservation } from '@/components/ReservationContext';
+
+const WHATSAPP_NUMBER = '8801600068193';
+const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
-    const { openDrawer } = useReservation();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -51,16 +52,23 @@ export default function Header() {
                 z-index: 100;
                 transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
             }
+            /* Resting height is 14 + 50 + 14 = 78px, down from 120px. At the old
+               size the bar covered the top eighth of the hero with a milky
+               blurred slab. It stays translucent rather than going fully
+               transparent because the nav links are near-black and have to
+               stay legible over two very different heroes - dark video on the
+               homepage, orange field on the menu. Keep --header-h in
+               globals.css in step with this. */
             .header-container.top {
-                padding: 28px clamp(24px, 5vw, 64px);
-                background-color: transparent;
-                border-bottom: 1px solid transparent;
+                padding: 14px clamp(20px, 4vw, 56px);
+                background-color: rgba(255, 248, 236, 0.55);
+                backdrop-filter: blur(16px);
             }
             .header-container.scrolled {
-                padding: 16px clamp(24px, 5vw, 64px);
-                background-color: rgba(10, 10, 12, 0.85);
+                padding: 10px clamp(20px, 4vw, 56px);
+                background-color: rgba(255, 248, 236, 0.94);
                 backdrop-filter: blur(20px);
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                border-bottom: 1px solid var(--color-border);
             }
             /* The room arrives once the ember at the logo has bloomed - see
                .ignition-ember in globals.css, which the logo's glow answers. */
@@ -71,6 +79,14 @@ export default function Header() {
             @keyframes khaosanHeaderArrive {
                 from { opacity: 0; transform: translateY(-6px); }
                 to   { opacity: 1; transform: translateY(0); }
+            }
+            /* The site-wide .btn padding (16px/36px) made this 57px tall - taller
+               than the 50px logo - so the CTA, not the mark, was setting the
+               bar's height. Compact here so the logo governs and the header
+               actually measures the --header-h the layout is built around. */
+            .header-right .btn {
+                padding: 12px 24px;
+                font-size: 0.75rem;
             }
             .header-left {
                 /* Takes up 1fr space to balance the grid */
@@ -106,8 +122,15 @@ export default function Header() {
                 /* 44x44 hit area (WCAG 2.5.5) with the icon optically centered */
                 width: 44px;
                 height: 44px;
+                padding: 10px;
                 align-items: center;
                 justify-content: center;
+                border-radius: var(--radius-pill);
+                transition: background-color 0.2s ease;
+            }
+            .mobile-menu-btn:hover,
+            .mobile-menu-btn:focus-visible {
+                background-color: rgba(255, 150, 63, 0.12);
             }
             @media (max-width: 1024px) {
                 .desktop-only {
@@ -115,6 +138,20 @@ export default function Header() {
                 }
                 .mobile-menu-btn {
                     display: flex;
+                }
+                /* The 3-column 1fr/auto/1fr grid is tuned for desktop's
+                   symmetric nav-links-either-side-of-logo layout - once the
+                   side columns collapse to empty/hamburger-only, the 1fr
+                   track math doesn't reliably size .header-right to the
+                   full available width. Flex + space-between sidesteps that
+                   entirely: logo and hamburger position predictably at every
+                   width instead of depending on grid column sizing. */
+                .header-container {
+                    display: flex;
+                    justify-content: space-between;
+                }
+                .header-left {
+                    display: none;
                 }
             }
         `}} />
@@ -127,27 +164,35 @@ export default function Header() {
             {/* Center Column - Nav Links + Logo perfectly centered */}
             <nav className="header-center">
                 <Link href="/menu" className="nav-link desktop-only">Menu</Link>
-                <Link href="/locations" className="nav-link desktop-only">Locations</Link>
-                
+                <Link href="/#havens" className="nav-link desktop-only">Locations</Link>
+
                 {/* Logo */}
-                <Link href="/" onClick={closeMenu} style={{ display: 'inline-block', position: 'relative', height: scrolled ? '48px' : '64px', width: scrolled ? '48px' : '64px', transition: 'all 0.4s ease' }}>
-                    <Image 
-                        src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp" 
-                        alt="Khao San Logo" 
+                <Link href="/" onClick={closeMenu} style={{ display: 'inline-block', position: 'relative', height: scrolled ? '42px' : '50px', width: scrolled ? '42px' : '50px', transition: 'all 0.4s ease' }}>
+                    {/* unoptimized for the same reason as the hero and footer marks:
+                        this logo depends on its alpha channel (it sits on a
+                        translucent bar over video). The optimiser flattens that
+                        alpha to a black ground. This placement happens to render
+                        today, but it is the same asset through the same pipeline -
+                        pinning it to the original file keeps all three logo
+                        placements consistent and immune to that re-encode. */}
+                    <Image
+                        src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
+                        alt="Khao San Logo"
                         fill
                         style={{ objectFit: 'contain' }}
                         sizes="100px"
                         priority
+                        unoptimized
                     />
                 </Link>
 
-                <Link href="/about" className="nav-link desktop-only">Our Story</Link>
-                <Link href="/giftcards" className="nav-link desktop-only">Gift Cards</Link>
+                <Link href="/#heritage" className="nav-link desktop-only">Our Story</Link>
+                <Link href="/#gift" className="nav-link desktop-only">Gift Cards</Link>
             </nav>
 
             {/* Right Column - Reserve Button & Mobile Hamburger */}
             <div className="header-right">
-                <button onClick={openDrawer} className="btn btn-primary desktop-only">Reserve</button>
+                <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" className="btn btn-primary desktop-only">Reserve</a>
                 
                 {/* Mobile Hamburger */}
                 <button 
@@ -161,24 +206,33 @@ export default function Header() {
                         display: 'block',
                         width: '24px',
                         height: '2px',
-                        backgroundColor: menuOpen ? 'transparent' : '#fdfbf7',
+                        backgroundColor: menuOpen ? 'transparent' : 'var(--color-text-primary)',
                         position: 'relative',
                         transition: 'all 0.3s ease'
                     }}>
+                        {/* left:0 is load-bearing. These bars are absolutely
+                            positioned but only set top/bottom, so their horizontal
+                            placement fell back to the CSS "static position" - which
+                            the inherited centre text-alignment resolved to the middle
+                            of the 24px track, offsetting both outer bars 12px right
+                            of the middle bar. The icon rendered as a zigzag rather
+                            than three stacked rules. */}
                         <span style={{
                             position: 'absolute',
+                            left: 0,
                             width: '24px',
                             height: '2px',
-                            backgroundColor: '#fdfbf7',
+                            backgroundColor: 'var(--color-text-primary)',
                             top: menuOpen ? '0' : '-8px',
                             transform: menuOpen ? 'rotate(45deg)' : 'none',
                             transition: 'all 0.3s ease'
                         }}></span>
                         <span style={{
                             position: 'absolute',
+                            left: 0,
                             width: '24px',
                             height: '2px',
-                            backgroundColor: '#fdfbf7',
+                            backgroundColor: 'var(--color-text-primary)',
                             bottom: menuOpen ? '0' : '-8px',
                             transform: menuOpen ? 'rotate(-45deg)' : 'none',
                             transition: 'all 0.3s ease'
@@ -199,7 +253,7 @@ export default function Header() {
                     right: 0,
                     width: '100%',
                     height: '100vh',
-                    backgroundColor: 'rgba(10, 10, 12, 0.98)',
+                    backgroundColor: 'rgba(255, 248, 236, 0.98)',
                     backdropFilter: 'blur(20px)',
                     display: 'flex',
                     flexDirection: 'column',
@@ -214,11 +268,11 @@ export default function Header() {
                     zIndex: 99
                 }}
             >
-                <Link href="/menu" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fdfbf7', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Menu</Link>
-                <Link href="/locations" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fdfbf7', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
-                <Link href="/about" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fdfbf7', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
-                <Link href="/giftcards" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fdfbf7', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
-                <button onClick={() => { closeMenu(); openDrawer(); }} className="btn btn-primary" style={{marginTop: '24px'}}>Reserve Table</button>
+                <Link href="/menu" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Menu</Link>
+                <Link href="/#havens" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
+                <Link href="/#heritage" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
+                <Link href="/#gift" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
+                <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Reserve a Table</a>
             </nav>
         </header>
         </>

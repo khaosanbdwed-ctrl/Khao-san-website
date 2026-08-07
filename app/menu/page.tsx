@@ -3,7 +3,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import MenuCard, { MenuBadge } from '@/components/ui/menu-card';
-import SectionBlend from '@/components/ui/section-blend';
 
 interface RawMenuItem {
     number: number;
@@ -327,7 +326,7 @@ export default function Menu() {
     return (
         <>
         {/*  Menu Hero - one dramatic dish under a warm spotlight, immersive  */}
-        <section className="menu-hero bg-lattice">
+        <section className="menu-hero bg-orange-field">
             <div className="menu-hero-glow" aria-hidden="true"></div>
             <div className="menu-hero-inner">
                 <div className="reveal-hidden menu-hero-copy">
@@ -362,7 +361,6 @@ export default function Menu() {
             <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 3, textAlign: 'center', opacity: 0.6 }}>
                 <div className="ember-drift-track"><div className="ember-drift-dot"></div></div>
             </div>
-            <SectionBlend />
         </section>
 
         {/*  Category Navigation  */}
@@ -392,7 +390,7 @@ export default function Menu() {
                     style={{
                         backgroundColor: 'var(--color-surface-elevated)', // elevated brand color
                         border: '1px solid var(--color-border)',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                        boxShadow: '0 10px 30px rgba(141, 54, 31, 0.35)',
                         borderRadius: '40px',
                         padding: '8px',
                         display: 'flex',
@@ -435,7 +433,10 @@ export default function Menu() {
                                 whiteSpace: 'nowrap',
                                 textDecoration: 'none',
                                 padding: '10px 24px',
-                                color: activeIndex === index ? '#ffffff' : 'var(--color-text-secondary)',
+                                /* White-on-orange measures 2.17:1 and fails AA outright - the same
+                                   pairing globals.css explicitly forbids everywhere else on the site.
+                                   Navy matches .btn-primary's own orange-fill solution (7.25:1). */
+                                color: activeIndex === index ? '#16233d' : 'var(--color-text-secondary)',
                                 fontWeight: activeIndex === index ? 600 : 400,
                                 transition: 'color 0.3s ease, font-weight 0.3s ease',
                                 fontSize: '0.8rem',
@@ -463,10 +464,13 @@ export default function Menu() {
                         right: 50% !important;
                         margin-left: -50vw !important;
                         margin-right: -50vw !important;
-                        background-color: rgba(5, 7, 10, 0.88) !important;
+                        /* Was rgba(60,40,20,0.88), a leftover near-black bar from the old dark
+                           theme - inactive labels (warm-brown ink) measured 2.11:1 on it, failing
+                           AA. Matches the header's own light-glass treatment instead. */
+                        background-color: rgba(255, 248, 236, 0.94) !important;
                         backdrop-filter: blur(12px) !important;
                         -webkit-backdrop-filter: blur(12px) !important;
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+                        border-bottom: 1px solid var(--color-border) !important;
                     }
                     .menu-nav-section > div {
                         justify-content: flex-start !important;
@@ -571,12 +575,17 @@ export default function Menu() {
         </>,
         document.body)}
 
-        {/* Menu Sections - continuous scroll */}
-        <div className="menu-sections bg-lattice" style={{backgroundColor: 'var(--color-surface-base)', paddingTop: 'clamp(56px, 7vw, 104px)', paddingBottom: '80px'}}>
+        {/* Menu Sections - continuous scroll.
+            Category spacing tightened: was --space-macro (120px) below each
+            section plus another 40px of heading padding-bottom on top of a
+            rule and 80px marginBottom on the heading - ~240px of empty orange
+            between the end of one category and the first plate of the next.
+            Halved to --space-layout, and the rule under the heading is gone. */}
+        <div className="menu-sections bg-orange-field--quiet" style={{paddingTop: 'clamp(56px, 7vw, 104px)', paddingBottom: '80px'}}>
             {MENU_DATA.map((category) => (
-                <section key={category.id} id={category.id} className="menu-category" style={{marginBottom: 'var(--space-macro)'}}>
+                <section key={category.id} id={category.id} className="menu-category" style={{marginBottom: 'var(--space-layout)'}}>
                     <div className="container">
-                        <h2 className="display-2" style={{borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '40px', marginBottom: '80px', fontSize: 'clamp(3rem, 6vw, 4.5rem)'}}>
+                        <h2 className="display-2" style={{marginBottom: '48px', fontSize: 'clamp(3rem, 6vw, 4.5rem)'}}>
                             {category.name}
                         </h2>
                         <div className="menu-grid" style={{ columnGap: '8vw' }}>
@@ -584,7 +593,6 @@ export default function Menu() {
                                 <MenuCard
                                     key={item.number}
                                     index={index}
-                                    number={item.number}
                                     title={item.title}
                                     imageSrc={item.imageSrc}
                                     price={item.price}
@@ -618,7 +626,6 @@ export default function Menu() {
 
         {/* Menu terms & legend - sourced from the printed menu's closing page */}
         <section style={{ backgroundColor: 'var(--color-surface-elevated)', padding: '56px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-            <SectionBlend />
             <div className="container">
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
                     <span style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>🌶️ Spicy</span>

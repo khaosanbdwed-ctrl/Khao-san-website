@@ -18,10 +18,10 @@ export default function PrivacyPage() {
           <p>Khao San (&ldquo;we&rdquo; or &ldquo;us&rdquo; or &ldquo;our&rdquo;) operates the https://www.khaosandhaka.com website (the &ldquo;Site&rdquo;).</p>
 
           <h2 style={{ fontSize: '1.5rem', marginTop: '40px', marginBottom: '24px', color: 'var(--color-text-primary)' }}>Information We Collect</h2>
-          <p>We collect information you voluntarily provide, such as when you make a reservation or contact us. This may include your name, email, phone number, and dining preferences.</p>
+          <p>We collect information you voluntarily provide when you contact us, such as through WhatsApp or Facebook. This may include your name, phone number, and the details of your inquiry.</p>
 
           <h2 style={{ fontSize: '1.5rem', marginTop: '40px', marginBottom: '24px', color: 'var(--color-text-primary)' }}>How We Use Your Information</h2>
-          <p>We use the information we collect to process reservations, communicate with you about your bookings, and improve our service.</p>
+          <p>We use the information we collect to respond to your inquiries, arrange reservations and gift card purchases, and improve our service.</p>
 
           <h2 style={{ fontSize: '1.5rem', marginTop: '40px', marginBottom: '24px', color: 'var(--color-text-primary)' }}>Data Protection</h2>
           <p>We implement appropriate security measures to protect your personal information against unauthorized access or disclosure.</p>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           <h2 style={{ fontSize: '1.5rem', marginTop: '40px', marginBottom: '24px', color: 'var(--color-text-primary)' }}>Contact Us</h2>
           <p>If you have any questions about this privacy policy, please reach us on WhatsApp at +88 01600-068193 or message us on <a href="https://www.facebook.com/KhaoSanDhaka" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-primary)' }}>Facebook</a>.</p>
 
-          <p style={{ marginTop: '60px', fontSize: '0.9rem', opacity: 0.6 }}>Last updated: July 12, 2026</p>
+          <p style={{ marginTop: '60px', fontSize: '0.9rem', opacity: 0.6 }}>Last updated: August 6, 2026</p>
         </div>
       </div>
     </main>

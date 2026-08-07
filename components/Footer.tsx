@@ -2,26 +2,34 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
-import { useReservation } from '@/components/ReservationContext';
+
+const WHATSAPP_NUMBER = '8801600068193';
+const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
 export default function Footer() {
-    const { openDrawer } = useReservation();
     return (
         <footer className="site-footer">
             <div className="container site-footer__inner">
                 <div className="footer-top">
                     <div className="footer-brand">
+                        {/* unoptimized: see the same note on the hero mark in
+                            app/page.tsx - the optimiser strips this WebP's alpha
+                            channel, which silently defeats the cream knock-out
+                            filter and renders the mark invisible on the blue
+                            footer. Alpha must survive for the knock-out to work. */}
                         <Image
                             className="footer-logo"
                             src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
                             alt="Khao San"
                             width={200}
                             height={174}
+                            loading="eager"
+                            unoptimized
                         />
                         <p className="footer-tagline">
                             Bangkok street craft, quietly elevated &mdash; three rooms across Dhaka.
                         </p>
-                        <button onClick={openDrawer} className="footer-reserve">Reserve a Table</button>
+                        <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" className="footer-reserve">Reserve a Table</a>
                         <p className="footer-outlets">Gulshan &middot; Dhanmondi &middot; Uttara</p>
                     </div>
 
@@ -29,9 +37,9 @@ export default function Footer() {
                         <h4>Explore</h4>
                         <ul>
                             <li><Link href="/menu" className="footer-link">Menu</Link></li>
-                            <li><Link href="/locations" className="footer-link">Locations</Link></li>
-                            <li><Link href="/about" className="footer-link">Our Story</Link></li>
-                            <li><Link href="/giftcards" className="footer-link">Gift Cards</Link></li>
+                            <li><Link href="/#havens" className="footer-link">Locations</Link></li>
+                            <li><Link href="/#heritage" className="footer-link">Our Story</Link></li>
+                            <li><Link href="/#gift" className="footer-link">Gift Cards</Link></li>
                         </ul>
                     </div>
 

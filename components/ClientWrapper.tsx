@@ -66,12 +66,13 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
 
     return (
         <>
+            {!isAdmin && <a href="#main-content" className="skip-link">Skip to main content</a>}
             {!isAdmin && <IgnitionVeil />}
             {!isAdmin && <Header />}
             {isAdmin ? (
                 children
             ) : (
-                <main className="page-transition">{children}</main>
+                <main id="main-content" className="page-transition">{children}</main>
             )}
             {!isAdmin && <Footer />}
         </>

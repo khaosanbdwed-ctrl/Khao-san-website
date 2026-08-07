@@ -1,15 +1,22 @@
 @import "tailwindcss";
 
 :root {
-    --color-primary: #f08b43;
-    --color-secondary: #D76F30; /* Burnt Saffron */
-    --color-accent: #f08b43;
-    --color-surface-base: #090D14;
-    --color-surface-elevated: #101520;
-    --color-surface-alt: #f08b43;
-    --color-text-primary: #E1DCD3;
-    --color-text-secondary: #AFA89D;
-    --color-border: rgba(255, 255, 255, 0.06);
+    --color-brand-orange: #ff964f;
+    --color-brand-blue: #1e417b;
+    --color-brand-butter: #f9eb9b;
+    --color-brand-powder: #cadbe9;
+    --color-brand-white: #ffffff;
+    --color-brand-black: #161616;
+
+    --color-primary: #ff964f;
+    --color-secondary: #1e417b;
+    --color-accent: #ff964f;
+    --color-surface-base: #FFF8EC;
+    --color-surface-elevated: #FFFFFF;
+    --color-surface-alt: #ff964f;
+    --color-text-primary: #161616;
+    --color-text-secondary: #6B5A46;
+    --color-border: rgba(22, 22, 22, 0.08);
 
     /* Brand Accent Colors */
     --color-burnt-saffron: #D76F30;
@@ -23,10 +30,34 @@
     --space-layout: 48px;
     --space-macro: 120px;
 
-    --font-display: var(--font-playfair-display), serif;
+    /* Measured height of the fixed header in its resting (top) state:
+       14px padding + 50px logo + 14px padding (see Header.tsx - keep in step).
+       Any section that is first on a page must clear this, or its opening line
+       sits under the nav bar. */
+    --header-h: 78px;
+
+    /* Camera Obscura is registered with a unicode-range that excludes U+0030-0039
+       (its demo build ships sabotaged numerals - see app/layout.tsx), so every
+       digit inside a display heading resolves to the NEXT font in this chain.
+       That fallback used to be Playfair Display, a high-contrast Didone whose
+       hairline numerals sat visibly wrong beside Camera Obscura's heavy deco
+       caps - "Gulshan 1" and "(4pcs)" read as two different typefaces mid-word.
+       Montserrat is the brand's own geometric sans and already sets every price
+       on the site, so digits now match the established numeral voice and the
+       weight mismatch disappears. Revisit once licensed font files land. */
+    --font-display: var(--font-camera-obscura), var(--font-montserrat), sans-serif;
     --font-sans: var(--font-montserrat), sans-serif;
-    --font-heading: var(--font-playfair-display), serif;
+    --font-heading: var(--font-camera-obscura), var(--font-montserrat), sans-serif;
     --font-body: var(--font-playfair-display), serif;
+    --font-script: var(--font-good-brush), var(--font-playfair-display), cursive;
+    /* NOTE: no rule references this token any more - both former users
+       (.heritage-quote, .haven-card-tagline) were moved off the Bellavoir
+       Delight demo build for legibility and licensing reasons. It is kept only
+       so any future "quote" styling has a safe, licensed default instead of
+       reaching for the demo font again. Bellavoir is now unreferenced in CSS
+       and can be dropped from app/layout.tsx and app/fonts/ entirely - which
+       removes one of the two personal-use-licence blockers before launch. */
+    --font-quote: var(--font-playfair-display), serif;
 
     /* Unified corner-radius system - one language across buttons, cards,
        media, inputs, and modals instead of mixed ad-hoc values. */
@@ -34,10 +65,12 @@
     --radius-md: 14px;
     --radius-lg: 22px;
     --radius-pill: 9999px;
-    --shadow-float: 0 24px 48px rgba(0, 0, 0, 0.5);
+    --shadow-float: 0 20px 40px rgba(141, 54, 31, 0.22);
 
-    /* Hero-only text shadow - never used outside a hero. */
-    --hero-text-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 1px 4px rgba(0, 0, 0, 0.35);
+    /* Hero-only text shadow - never used outside a hero. Just enough to
+       separate text from busy video/photo behind it; should not read as a
+       visible glow. */
+    --hero-text-shadow: 0 2px 8px rgba(141, 54, 31, 0.25), 0 1px 2px rgba(141, 54, 31, 0.18);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -135,13 +168,12 @@ body::after {
 }
 
 
-/* Global Typography Depth (High Readability) */
-h1, h2, h3, h4, h5, h6 {
-    text-shadow: 0 4px 16px rgba(0,0,0,0.9), 0 1px 3px rgba(0,0,0,0.9);
-}
-p, span, li, a {
-    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-}
+/* Text-shadow-for-legibility was a universal rule under the old dark theme,
+   where most text sat on varied dark photography. Under the bright theme,
+   text mostly sits on flat, light-to-medium color fields where a shadow only
+   hazes/doubles the glyph edges. The opt-in `.hero-text-shadow` class (used
+   on hero copy, location cards, and other text-directly-over-photography
+   spots) covers the cases that still need separation from busy imagery. */
 
 
 
@@ -166,11 +198,21 @@ p, span, li, a {
     font-family: var(--font-sans);
     cursor: pointer;
 }
+/* Pinned to the literal brand orange rather than --color-primary. The colour
+   fields below re-point --color-primary to whatever accent reads on that
+   background (see "Field ink scales"), and the CTA must not drift with it -
+   it keeps one identity site-wide. Only the orange field, where an orange
+   button on orange would vanish, overrides it deliberately.
+
+   The label is deep navy, not white: white on brand orange measures 2.16:1,
+   which fails AA outright and was the single worst contrast pair on the site.
+   Navy on the same fill is 7.25:1, and it matches the dark-on-orange treatment
+   the .haven-card-type badge already uses. The text-shadow went with the white
+   label - it only muddies dark type. */
 .btn-primary {
-    background-color: var(--color-primary);
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--color-primary);
+    background-color: var(--color-brand-orange);
+    color: #16233d;
+    border: 1px solid var(--color-brand-orange);
     box-shadow: 0 8px 22px rgba(240, 139, 67, 0.32);
     font-weight: 700;
 }
@@ -179,8 +221,7 @@ p, span, li, a {
     border-color: #ffab5e;
     transform: translateY(-2px);
     box-shadow: 0 18px 38px rgba(240, 139, 67, 0.5);
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color: #16233d;
 }
 .btn-primary:active {
     transform: translateY(0) scale(0.97);
@@ -195,23 +236,100 @@ p, span, li, a {
     border: 1.5px solid rgba(253, 251, 247, 0.5);
 }
 .btn-secondary:hover, .btn-secondary:focus-visible {
-    background-color: var(--color-text-primary);
+    background-color: var(--color-surface-elevated);
     color: #0a0c14 !important;
-    border-color: var(--color-text-primary);
+    border-color: var(--color-surface-elevated);
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 24px rgba(141, 54, 31, 0.18);
 }
 .btn-secondary:active {
     transform: translateY(0) scale(0.97);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 10px rgba(141, 54, 31, 0.16);
 }
 
-/* Hero Section */
+/* Hero Section
+   The hero is a full-viewport, flex-centred block, so its top and bottom
+   padding must match or the copy sits visibly below the optical centre. Both
+   sides are set to the fixed header's resting height: the headline clears the
+   nav bar, and the composition stays centred. */
 .hero {
-    padding-top: calc(var(--space-macro) + 96px);
-    padding-bottom: var(--space-macro);
+    padding-top: var(--header-h);
+    padding-bottom: var(--header-h);
     position: relative;
     overflow: hidden;
+
+    /* The hero is the one place on the site where type sits directly on
+       full-bleed footage, so it runs an inverted ink scale: cream on film
+       rather than the near-black used on the flat colour fields. Scoping the
+       tokens here re-points every `var(--color-text-*)` reference inside the
+       hero without touching a single call site. */
+    --color-text-primary: #FFF8EC;
+    --color-text-secondary: rgba(255, 248, 236, 0.86);
+    --hero-text-shadow: 0 2px 14px rgba(8, 14, 28, 0.55), 0 1px 3px rgba(8, 14, 28, 0.45);
+}
+
+/* Hero lockup - mark and wordmark on one line, the overline stacked above the
+   wordmark, mirroring the brand's printed "Reinventing / The Thai Way" lockup.
+   The mark is optically centred against the two-line text block, not the
+   wordmark alone, so the pair reads as one unit. */
+.hero-lockup {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(18px, 2.6vw, 40px);
+    margin-bottom: 34px;
+}
+.hero-lockup-text {
+    text-align: left;
+}
+
+/* The source asset is solid brand blue on transparent, which disappears
+   against dark footage - knocked out to cream so it reads as an engraved mark
+   rather than a pasted-on logo. */
+.hero-mark {
+    display: block;
+    flex: none;
+    width: clamp(92px, 10.5vw, 152px);
+    height: auto;
+    filter: brightness(0) invert(1) drop-shadow(0 3px 12px rgba(8, 14, 28, 0.5));
+    opacity: 0.96;
+}
+
+.hero-eyebrow {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: clamp(0.78rem, 1.1vw, 1rem);
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+    margin-bottom: clamp(6px, 0.8vw, 12px);
+    /* Optically aligns the overline's left edge with the brush glyphs below,
+       which carry no left side bearing of their own. */
+    padding-left: 0.18em;
+}
+
+/* Good Brush - the hand-painted face the brand sets this phrase in. Tight
+   leading because the brush strokes already carry their own vertical air. */
+.hero-title {
+    font-family: var(--font-script);
+    font-size: clamp(2.9rem, 7.2vw, 6.25rem);
+    line-height: 0.92;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--color-text-primary);
+    margin: 0;
+    text-wrap: balance;
+}
+
+@media (max-width: 640px) {
+    .hero-lockup {
+        flex-direction: column;
+        gap: 18px;
+    }
+    .hero-lockup-text { text-align: center; }
+    .hero-eyebrow { padding-left: 0; }
 }
 
 .hero-overlay {
@@ -232,22 +350,47 @@ p, span, li, a {
    lifts a warm key light behind the headline so the eye lands on the type.
    This is the HOMEPAGE HERO's signature treatment only - do not reuse it on
    other media (see the brief: hero lighting is unique). */
+/* Three layers only, each doing one job, so the footage stays the subject:
+   a soft pool that sits *behind the copy* to carry the type, a short band at
+   the very top for the fixed header to rest on, and a base gradient that
+   grounds the frame. The previous version stacked seven full-frame washes -
+   four of them edge-to-edge - which closed over the whole video and read as
+   fog rather than lighting. Nothing here covers the mid-frame at full
+   strength, so the room, the neon and the movement all stay legible. */
 .hero-cinematic-light {
     position: absolute;
     inset: 0;
     z-index: 1;
     pointer-events: none;
     background:
-        radial-gradient(ellipse 52% 46% at 50% 44%, rgba(255, 193, 133, 0.22) 0%, rgba(255, 193, 133, 0) 62%),
-        linear-gradient(to bottom, rgba(5, 7, 10, 0.72) 0%, rgba(5, 7, 10, 0) 24%),
-        linear-gradient(to top, rgba(5, 7, 10, 0.96) 0%, rgba(5, 7, 10, 0) 42%),
-        linear-gradient(to right, rgba(5, 7, 10, 0.62) 0%, rgba(5, 7, 10, 0) 28%),
-        linear-gradient(to left, rgba(5, 7, 10, 0.62) 0%, rgba(5, 7, 10, 0) 28%),
-        radial-gradient(circle at 100% 0%, rgba(5, 7, 10, 0.8) 0%, rgba(5, 7, 10, 0) 35%),
-        radial-gradient(circle at 0% 100%, rgba(5, 7, 10, 0.8) 0%, rgba(5, 7, 10, 0) 35%);
+        radial-gradient(ellipse 44% 40% at 50% 50%, rgba(10, 16, 32, 0.56) 0%, rgba(10, 16, 32, 0.30) 48%, rgba(10, 16, 32, 0) 74%),
+        linear-gradient(to bottom, rgba(10, 16, 32, 0.30) 0%, rgba(10, 16, 32, 0) 14%),
+        linear-gradient(to top, rgba(10, 16, 32, 0.42) 0%, rgba(10, 16, 32, 0) 30%);
 }
 .hero-text-shadow {
     text-shadow: var(--hero-text-shadow);
+}
+
+/* Closing chapter ("The Invitation") lighting. Same principle as the hero
+   treatment above - a pool of shade behind the copy rather than a blanket wash
+   over the whole frame - but a separate, gentler composition, because the hero's
+   is its own signature and the two chapters should not look identical.
+
+   Why it exists: this chapter's footage is a bright, near-white drink shot, and
+   the previous flat `to bottom` gradient started at only 0.25 opacity exactly
+   where the headline sits. That left the type floating on near-white highlights
+   with nothing to hold it. A pool concentrated behind the centred copy fixes the
+   legibility without closing over the footage - the client specifically asked
+   for the video to stay visible, so the frame edges are left comparatively open. */
+.invitation-light {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 48% 54% at 50% 48%, rgba(12, 20, 38, 0.66) 0%, rgba(12, 20, 38, 0.38) 52%, rgba(12, 20, 38, 0) 78%),
+        linear-gradient(to bottom, rgba(12, 20, 38, 0.34) 0%, rgba(12, 20, 38, 0) 20%),
+        linear-gradient(to top, rgba(12, 20, 38, 0.44) 0%, rgba(12, 20, 38, 0) 28%);
 }
 
 /* Subtle cinematic drift on the homepage hero footage - barely perceptible. */
@@ -344,7 +487,10 @@ html[data-ignition="igniting"] .ignition-reveal-4 { animation-delay: 0.7s; }
     line-height: 1.8;
     max-width: 48ch;
     margin-bottom: var(--space-layout);
-    color: rgba(253, 251, 247, 0.75);
+    /* Was a hard-coded cream left over from the old dark theme, which left any
+       .body-large without an inline colour nearly invisible on the light
+       fields. Deferring to the token means it inverts correctly per section. */
+    color: var(--color-text-secondary);
 }
 
 /* Accessibility Focus States */
@@ -357,6 +503,29 @@ textarea:focus-visible {
     border-radius: 4px;
 }
 
+/* Keyboard-only skip link - off-screen until focused, then docked above the
+   fixed header so the first Tab stop on any page jumps straight to content. */
+.skip-link {
+    position: fixed;
+    top: -60px;
+    left: 16px;
+    z-index: 999;
+    background-color: var(--color-brand-blue);
+    color: #ffffff;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: top 0.25s ease;
+}
+.skip-link:focus-visible {
+    top: 16px;
+    box-shadow: 0 0 0 3px rgba(240, 139, 67, 0.4), 0 0 12px rgba(240, 139, 67, 0.8);
+}
+
 /* Typography Classes */
 .display-2 {
     font-family: var(--font-display);
@@ -367,6 +536,29 @@ textarea:focus-visible {
     margin-bottom: var(--space-component);
     letter-spacing: -0.02em;
     text-wrap: balance;
+}
+
+/* Brush display - the brand's own hand-lettering (Good Brush), for a heading
+   that should be SPOKEN rather than set.
+
+   Deliberately rare. Good Brush is caps-only, so it forces any phrase up into a
+   raised voice: that suits heat, fire and street energy, and is exactly wrong
+   for an intimate line (an "An evening, GIFTED." reads as shouting a present at
+   someone). Use it only where the copy genuinely wants volume.
+
+   Currently: the hero's "The Thai Way" and the closing "Taste the fire." - so
+   the site opens and closes in the brand's own hand. That bookend is the point;
+   scattering this class through the middle chapters would destroy it.
+
+   Pair with .display-2 (which supplies size/colour/margin); this only overrides
+   the face and the metrics the brush needs - it carries its own vertical air, so
+   the leading tightens and the negative tracking of the deco face is dropped. */
+.display-brush {
+    font-family: var(--font-script);
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
 }
 
 /* Opt-in pretty-wrap for body copy and longer paragraphs: avoids typographic
@@ -454,9 +646,16 @@ textarea:focus-visible {
     text-align: center;
 }
 .menu-category {
+    /* Was layout/macro (48/120px). Combined with the marginBottom on the
+       section itself and the space between category headings, that stacked
+       to ~240px of empty field between categories. Now the heading itself
+       is the divider - but it needs to sit BELOW the section's top shadow
+       band (~40px deep), or the type reads as being crowded by the blend.
+       --space-layout (48px) is the smallest gap that leaves the type feeling
+       properly anchored rather than pinned to the top edge. */
     padding-top: var(--space-layout);
-    padding-bottom: var(--space-macro);
-    background-color: var(--color-surface-base);
+    padding-bottom: var(--space-layout);
+    background-color: transparent;
 }
 
 /* Phase 14: Premium Reservation Form Styles */
@@ -510,16 +709,23 @@ select.premium-input {
     align-items: center;
     overflow: hidden;
     background-color: var(--color-surface-base);
-    padding-top: 96px;
+    /* Was 96px, which is less than the header's 120px resting height - the top
+       of the copy column tucked under the nav bar. Clears it with a margin,
+       and matches at the bottom so the flex-centred content stays centred. */
+    padding-top: calc(var(--header-h) + 32px);
+    padding-bottom: calc(var(--header-h) + 32px);
 }
+/* A warm key light behind the dish cluster, and a soft edge fall-off. The
+   fall-off was a near-black 0.72 vignette from the old dark theme, which on the
+   orange field read as dirt in the corners rather than as light. */
 .menu-hero-glow {
     position: absolute;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     background:
-        radial-gradient(ellipse 50% 60% at 68% 46%, rgba(240, 139, 67, 0.20) 0%, rgba(240, 139, 67, 0) 60%),
-        radial-gradient(ellipse 90% 90% at 50% 50%, rgba(8, 12, 20, 0) 44%, rgba(8, 12, 20, 0.72) 100%);
+        radial-gradient(ellipse 50% 60% at 68% 46%, rgba(255, 236, 214, 0.28) 0%, rgba(255, 236, 214, 0) 60%),
+        radial-gradient(ellipse 92% 92% at 50% 50%, rgba(141, 54, 31, 0) 52%, rgba(141, 54, 31, 0.16) 100%);
 }
 .menu-hero-inner {
     position: relative;
@@ -577,17 +783,20 @@ select.premium-input {
    three cut-outs on one plane. */
 .menu-hero-cluster .mh-dish--sat-b .dish-img {
     filter:
-        drop-shadow(0 18px 26px rgba(0, 0, 0, 0.42))
+        drop-shadow(0 14px 20px rgba(141, 54, 31, 0.2))
         brightness(0.86) saturate(0.92);
 }
 .menu-hero-cluster .mh-dish--sat-a .dish-img {
     filter:
         drop-shadow(0 2px 1px rgba(255, 246, 232, 0.28))
-        drop-shadow(0 22px 26px rgba(0, 0, 0, 0.5))
-        drop-shadow(0 8px 12px rgba(0, 0, 0, 0.4));
+        drop-shadow(0 16px 20px rgba(141, 54, 31, 0.22))
+        drop-shadow(0 6px 10px rgba(141, 54, 31, 0.18));
 }
 @media (max-width: 860px) {
-    .menu-hero { min-height: 0; padding-top: 128px; padding-bottom: 48px; }
+    /* The header keeps its full 120px resting height below 860px (the 1024px
+       breakpoint only reflows it to flex), so this must stay keyed to the
+       token rather than to a literal that can drift out of step with it. */
+    .menu-hero { min-height: 0; padding-top: calc(var(--header-h) + 16px); padding-bottom: 48px; }
     .menu-hero-inner { grid-template-columns: 1fr; gap: 8px; }
     .menu-hero-stage { order: -1; }
     .menu-hero-cluster { max-width: 380px; margin: 0 auto; aspect-ratio: 4 / 3; }
@@ -782,7 +991,7 @@ select.premium-input {
     right: 26%;
     bottom: 5%;
     height: 4%;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.38) 35%, rgba(0, 0, 0, 0) 78%);
+    background: radial-gradient(ellipse at center, rgba(141, 54, 31, 0.34) 0%, rgba(141, 54, 31, 0.16) 35%, rgba(141, 54, 31, 0) 78%);
     filter: blur(5px);
     z-index: 0;
     pointer-events: none;
@@ -798,8 +1007,8 @@ select.premium-input {
        depth without any artificial glow. */
     filter:
         drop-shadow(0 1px 0 rgba(255, 246, 232, 0.25))
-        drop-shadow(0 14px 18px rgba(0, 0, 0, 0.4))
-        drop-shadow(0 30px 46px rgba(0, 0, 0, 0.26));
+        drop-shadow(0 10px 14px rgba(141, 54, 31, 0.18))
+        drop-shadow(0 22px 32px rgba(141, 54, 31, 0.12));
     transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
 }
 .dish:hover > img,
@@ -828,6 +1037,72 @@ select.premium-input {
     .dish--angled .dish-img { transform: none; }
 }
 
+/* Corner-bracket framing for menu dishes - the client wanted dishes "framed"
+   without wrapping them in a traditional rectangular card, which would fight
+   the floating/feathered presentation already established. Two opposite
+   corner brackets (not four - a card outline reads as a box; two diagonal
+   marks read as a museum-label/plated-presentation frame) plus a small
+   accent tick beneath, echoing a specimen label rather than a UI card. */
+/* Weight: these were 22px long at a 1.5px stroke, which worked when the field
+   behind them was flat orange. Now that the field carries the brand's lotus
+   lattice, a hairline mark that size simply dissolves into the pattern - it
+   read as a stray artefact rather than a deliberate frame. Roughly doubled in
+   length and stroke so the bracket is unambiguously a drawn mark sitting ON the
+   pattern, not part of it. Still only two opposite corners: the point is a
+   museum-label crop, not a box. */
+.dish-frame {
+    position: relative;
+    padding: 18px;
+}
+.dish-frame::before,
+.dish-frame::after {
+    content: "";
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    pointer-events: none;
+    transition: width 0.35s ease, height 0.35s ease;
+}
+.dish-frame::before {
+    top: 0;
+    left: 0;
+    border-top: 3px solid var(--color-primary);
+    border-left: 3px solid var(--color-primary);
+}
+.dish-frame::after {
+    bottom: 0;
+    right: 0;
+    border-bottom: 3px solid var(--color-primary);
+    border-right: 3px solid var(--color-primary);
+}
+.menu-card:hover .dish-frame::before,
+.menu-card:hover .dish-frame::after {
+    width: 60px;
+    height: 60px;
+}
+.dish-frame-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 18px;
+    margin-top: -6px;
+    margin-bottom: 14px;
+}
+/* Was a 1px rule in --color-border (near-black at 0.08 alpha) - invisible on
+   orange even before the pattern arrived. It now uses the field's own accent
+   and fades out to the right, so it reads as the underline of a specimen label
+   rather than a full-width divider competing with the brackets above it. */
+.dish-frame-mark span {
+    flex: 1;
+    height: 2px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(to right,
+        var(--color-primary) 0%,
+        var(--color-primary) 38%,
+        transparent 100%);
+    opacity: 0.5;
+}
+
 /* Floating presentation - for dishes suspended in space (the menu hero), not
    resting on a surface. The tight contact shadow becomes a soft shadow cast
    well below to imply suspension, and a wider ambient glow lifts the plate off
@@ -837,7 +1112,7 @@ select.premium-input {
     right: 24%;
     bottom: 1%;
     height: 8%;
-    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.24) 42%, rgba(0, 0, 0, 0) 80%);
+    background: radial-gradient(ellipse at center, rgba(141, 54, 31, 0.28) 0%, rgba(141, 54, 31, 0.11) 42%, rgba(141, 54, 31, 0) 80%);
     filter: blur(12px);
 }
 .dish--float::before {
@@ -850,8 +1125,8 @@ select.premium-input {
 .dish--float .dish-img {
     filter:
         drop-shadow(0 2px 1px rgba(255, 246, 232, 0.24))
-        drop-shadow(0 24px 30px rgba(0, 0, 0, 0.46))
-        drop-shadow(0 10px 16px rgba(0, 0, 0, 0.34));
+        drop-shadow(0 18px 22px rgba(141, 54, 31, 0.2))
+        drop-shadow(0 8px 12px rgba(141, 54, 31, 0.15));
 }
 
 /* Signature spreads - an editorial two-up, deliberately off-centre. The plate
@@ -917,7 +1192,7 @@ select.premium-input {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 12px 24px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 12px 24px rgba(141,54,31,0.15));
     transition: transform 0.4s ease;
 }
 .menu-card:hover .menu-card-visual img {
@@ -969,101 +1244,135 @@ select.premium-input {
     background: var(--color-primary);
     display: inline-block;
 }
+/* Set in the display face, not the copperplate script it used to use. Three
+   reasons, in order of weight: (1) at display size the script's thin, highly
+   looped letterforms made the section's emotional centrepiece the hardest line
+   on the page to read; (2) an elegant copperplate is the wrong voice for a
+   brand built on hand-painted brush lettering and heavy deco caps - it read as
+   borrowed, not Khao San; (3) that face is the vendor's PERSONAL-USE-ONLY demo
+   build, and this was one of only two places it appeared. Good Brush remains
+   the brand's script and still carries "The Thai Way" in the hero, which is the
+   phrase the brand actually sets in script. */
 .heritage-quote {
     font-family: var(--font-display);
     font-size: clamp(2rem, 3.6vw, 3.4rem);
     line-height: 1.14;
     color: var(--color-text-primary);
     font-weight: 600;
-    font-style: italic;
+    font-style: normal;
     margin: 0;
     text-wrap: balance;
 }
-.heritage-quote em { color: var(--color-primary); font-style: italic; }
+/* The accent has to actually differ from the surrounding ink to be an accent.
+   On the orange field the quote resolves to #16233d and --color-primary to the
+   brand blue #1e417b - 1.56:1 apart, i.e. the same colour to the eye, so the
+   emphasis on "quietly elevated" did nothing at all. Terracotta is the warm
+   accent this palette already uses for marks on light ground, and it separates
+   clearly from the near-navy quote while still reading as brand. */
+.heritage-quote em {
+    color: var(--color-deep-terracotta);
+    font-style: italic;
+}
 
-/* The mosaic: a 3-column editorial grid. One tall feature, one portrait
-   supporting crop, one wide crop, and a text block set into the negative
-   space - each a different scale, so the wall reads as curated, not tiled. */
-.heritage-mosaic {
+/* The gallery: three equal portrait plates of the room itself. This chapter is
+   about the place, not the plates - the dish photography already carries the
+   Exhibition chapter directly below, and repeating it here made the two read
+   as one long food grid. Equal weight, not a feature/supporting mosaic: these
+   are three rooms, and no one of them outranks the others. */
+.heritage-gallery {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
-    gap: 24px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(20px, 2.4vw, 32px);
 }
-.hm {
+/* Wrapper exists so the accent rule can sit *outside* the card's
+   overflow:hidden, which is what clips the image to its rounded corners. */
+.hg {
     position: relative;
-    overflow: hidden;
+    padding-bottom: 14px;
+}
+.hg::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    /* Field-scoped accent: brand blue on the orange field, butter on blue -
+       so the rule always separates from the background it is drawn on. */
+    background: var(--color-primary);
+    transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1), right 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hg:hover::after {
+    left: 2%;
+    right: 2%;
+}
+.hg-card {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-float);
+    overflow: hidden;
+    box-shadow: 0 26px 52px rgba(141, 54, 31, 0.30);
 }
-.hm img { 
+/* No .img-feather here on purpose: a soft-edged mask reads as an unfinished
+   crop inside a hard-cornered card. These want a crisp edge. */
+.hg-card img {
     object-fit: cover;
-    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.hm:hover img {
-    transform: scale(1.04);
+.hg:hover .hg-card img {
+    transform: scale(1.05);
 }
-.hm--feature { grid-column: 1; grid-row: 1 / 3; min-height: 460px; }
-.hm--tall    { grid-column: 2; grid-row: 1; min-height: 300px; }
-.hm--wide    { grid-column: 3; grid-row: 1; min-height: 300px; }
-/* The caption sits as a horizontal band beneath the two supporting rooms,
-   spanning both right columns - text and its link on one line, not a cramped
-   paragraph. */
-.hm--note {
-    grid-column: 2 / 4;
-    grid-row: 2;
+/* Bottom-weighted so the caption has something to sit on while the top two
+   thirds of the room stay untouched. */
+.hg-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(8, 12, 20, 0.72) 0%, rgba(8, 12, 20, 0.28) 26%, rgba(8, 12, 20, 0) 55%);
+}
+.hg-cap {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 20px;
+    z-index: 2;
+    color: #ffffff;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-shadow: 0 2px 10px rgba(8, 12, 20, 0.6);
+}
+/* The closing note sits under the gallery on its own line rather than inside
+   the grid, so the three plates stay a clean uninterrupted row. */
+.heritage-note {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    padding-top: 16px;
+    gap: 32px;
+    margin-top: clamp(40px, 5vw, 64px);
 }
-.hm--note p {
+.heritage-note p {
     color: var(--color-text-secondary);
     line-height: 1.8;
-    max-width: 55ch;
+    max-width: 58ch;
     font-size: 1.05rem;
 }
-
-/* Interior caption for images */
-.hm-cap {
-    position: absolute;
-    bottom: 24px;
-    left: 24px;
-    color: #fdfbf7;
-    font-weight: 500;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-    z-index: 2;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+@media (max-width: 900px) {
+    .heritage-gallery { grid-template-columns: repeat(2, 1fr); }
+    /* Third plate spans the full width rather than leaving a half-empty row. */
+    .hg:last-child { grid-column: 1 / -1; }
+    .hg:last-child .hg-card { aspect-ratio: 16 / 9; }
 }
-.hm-scrim {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(160deg, rgba(8, 12, 20, 0.04) 0%, rgba(8, 12, 20, 0.55) 100%);
-    z-index: 1;
-    pointer-events: none;
-    transition: background 0.6s ease;
-}
-.hm:hover .hm-scrim {
-    background: linear-gradient(160deg, rgba(8, 12, 20, 0.0) 0%, rgba(8, 12, 20, 0.35) 100%);
-}
-@media (max-width: 1024px) {
-    .heritage-mosaic { grid-template-columns: 1fr 1fr; }
-    .hm--feature { grid-column: 1 / 3; grid-row: 1; min-height: 340px; }
-    .hm--tall    { grid-column: 1; grid-row: 2; min-height: 240px; }
-    .hm--wide    { grid-column: 2; grid-row: 2; min-height: 240px; }
-    .hm--note    { grid-column: 1 / 3; grid-row: 3; padding: 8px 0; }
-}
-@media (max-width: 768px) {
-    .heritage-mosaic { grid-template-columns: 1fr; }
-    .hm--feature, .hm--tall, .hm--wide, .hm--note {
-        grid-column: 1 !important;
-        grid-row: auto !important;
-    }
-    .hm--feature { min-height: 300px; }
-    .hm--note { flex-direction: column; align-items: flex-start; gap: 20px; }
+@media (max-width: 560px) {
+    .heritage-gallery { grid-template-columns: 1fr; }
+    .hg:last-child .hg-card { aspect-ratio: 3 / 4; }
+    .heritage-note { flex-direction: column; align-items: flex-start; gap: 24px; }
 }
 
 /* Gift card stack hover - replaces inline JS onMouseEnter/Leave */
@@ -1109,6 +1418,41 @@ select.premium-input {
     transform: translateY(0) rotate(0deg) scale(1);
 }
 
+/* ============================================================
+   WHERE THE BRUSH STROKE CAN AND CANNOT GO
+   (established by prototyping, so the next person doesn't re-derive it)
+
+   The stroke asset's entire value is its texture - impasto ridges, bristle
+   drag, splatter. That imposes hard constraints:
+
+   1. It must be LARGE. Below roughly 300px the texture is gone and it reads as
+      a rough smudge - worse than a clean rule. This is why the brush is NOT
+      used as an eyebrow underline or a thin divider, and why the existing
+      hairline rules (.heritage-eyebrow::before, .dish-frame-mark) stay as they
+      are.
+   2. It must sit BEHIND content, never clip it. Masking photography INTO the
+      brush silhouette was prototyped and rejected twice over: the full
+      silhouette made the subject unrecognisable, and a torn-edge variant read
+      as grunge/compression artefacts, which fights the brand's own "quietly
+      elevated" positioning.
+   3. It must NOT sit behind light type. White/cream on saffron measures
+      2.16:1 - the pairing forbidden throughout this file. A saffron mark behind
+      a white heading either goes so faint it turns muddy grey, or stays strong
+      and breaks the heading. A centred heading leaves nowhere for it to dodge
+      to except an edge, where it reads as a stain. This was tried on the Havens
+      chapter and removed.
+
+   Net: the stroke has exactly two homes, both of which satisfy all three -
+   the once-only chapter seam (components/ui/brush-transition.tsx) and the gift
+   chapter backdrop, where it is large, behind CARDS rather than type, and on a
+   cream ground it can actually fight.
+
+   To add more brush PRESENCE, reach for the brand's brush LETTERING
+   (.display-brush) instead of more copies of the stroke. It is the same
+   identity, carries no contrast or scale constraints, and self-limits because
+   the face is caps-only.
+   ============================================================ */
+
 /* Chapter transition: a brush stroke marking the seam between sections,
    swept once as the next chapter arrives (see components/ui/brush-transition.tsx) */
 .brush-sweep {
@@ -1125,7 +1469,7 @@ select.premium-input {
     max-width: none;
     transform: translate(-130vw, 0);
     animation: brushSweep 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    filter: drop-shadow(0 24px 36px rgba(0, 0, 0, 0.45));
+    filter: drop-shadow(0 20px 30px rgba(141, 54, 31, 0.22));
 }
 @keyframes brushSweep {
     to { transform: translate(130vw, 0); }
@@ -1147,10 +1491,13 @@ select.premium-input {
     background-size: contain;
     opacity: 0.05;
 }
-/* A single lotus, drifted to a corner - for feature sections. */
+/* A single lotus, drifted to a corner - for feature sections. Brightness
+   pulled down from the old near-black-surface value (1.6) so the mark reads
+   as a faint darker texture on the new light/bright surfaces instead of
+   washing out to near-invisible white-on-white. */
 .motif--lotus {
     background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp');
-    filter: grayscale(1) brightness(1.6);
+    filter: grayscale(1) brightness(0.8);
 }
 /* A quiet repeating lotus - the actual brand motif (Lotus Single White),
    tiled at very low opacity for an atmospheric field rather than a loud
@@ -1169,42 +1516,340 @@ select.premium-input {
 
 /* ============================================================
    Designed section backgrounds
-   Real brand artwork (the deep-navy Thai lattice + lotus line-work) behind a
-   dark scrim, so a section reads as near-black with the pattern quietly
-   emerging - richer than a flat fill, still cinematic and legible. Used to
-   replace solid-colour sections; varied per section so nothing repeats.
+   Bright brand-colour fields (orange / blue) with the same Thai lattice +
+   lotus line-work art bled through as a faint darker texture, instead of the
+   old near-black scrim. Used to replace solid-colour sections; varied per
+   section so nothing repeats.
+
+   CONTRAST RULE: text on .bg-orange-field MUST be var(--color-text-primary)
+   (near-black) or var(--color-brand-blue) - NEVER white/cream (contrast
+   fails, verified 2.16:1). Text on .bg-blue-field should be white or
+   var(--color-brand-butter).
    ============================================================ */
-.bg-lattice {
-    background-color: var(--color-surface-base);
+.bg-orange-field {
+    background-color: var(--color-brand-orange);
     background-image:
-        linear-gradient(rgba(8, 12, 20, 0.52), rgba(8, 12, 20, 0.65)),
+        linear-gradient(rgba(255, 150, 63, 0.84), rgba(255, 150, 63, 0.90)),
         url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
     background-size: cover, cover;
     background-position: center, center;
     background-repeat: no-repeat, no-repeat;
 }
 
-/* Corner-florals variant - lotus blooms anchored in the corners over the
-   lattice, for hero-scale sections where the centre must stay clear for copy. */
-.bg-lotus-corners {
-    background-color: var(--color-surface-base);
+/* Menu-page dish field.
+
+   `Lotus Single.webp` is a genuinely good asset: a perfectly seamless Thai
+   lotus lattice - a quatrefoil medallion whose corner elements resolve into
+   diamonds where four tiles meet. Tiled once, on its own, it is a clean,
+   confident, on-brand ornamented ground.
+
+   It was previously being painted THREE ways at once, which destroyed it:
+     1. the same tile repeated at ~340-480px, AND
+     2. the same tile repeated again at ~160-230px, at an unrelated offset, AND
+     3. a navy, naturalistic, hatched corner bloom (Lotus Crop Transparent)
+        layered on top.
+   Two grids of one motif at different scales are never in phase, so the small
+   medallions landed arbitrarily across the large ones and both patterns'
+   geometry collapsed into visual mush - not a lattice, just noise. The corner
+   bloom then added a second, incompatible visual language on the same surface
+   (flat geometric quatrefoil vs engraved botanical line-art).
+
+   Collapsing that to a single grid fixed the noise, but the motif itself was
+   still wrong for the job: `Lotus Single.webp` is a set of large, soft, SOLID
+   medallions that float as isolated blobs with empty diamonds between them.
+   At background scale that reads as bubbly wallpaper, not Thai ornament.
+
+   The pattern used now is the client's OWN. It was recovered from their brand
+   artwork (`Brand_Asset/433075883_*.jpg` - the elephant logo sitting on their
+   orange pattern) by measuring the tile period off the unoccluded strips by
+   autocorrelation (245px horizontally, 244px vertically, correlation 0.95/0.96)
+   and cutting exactly one period from a clean corner, then converting it to a
+   white-on-transparent soft-alpha mask so it tints to any brand colour at any
+   opacity. It tiles seamlessly because it is a true single period of a pattern
+   that was already seamless.
+
+   Structurally it is what the old tile was missing: a continuous woven 45°
+   diamond lattice with a quatrefoil lotus medallion at each intersection,
+   drawn in fine outlined strokes rather than heavy solid shapes. Fine line-work
+   at small scale is what makes a background read as texture instead of
+   wallpaper - and it is literally the brand's own pattern rather than an
+   approximation of it.
+
+   NOTE: do NOT reach for `Background/thai-lotus-flower-pattern-vector-*.avif`
+   as an alternative - it is watermarked VectorStock comp art
+   (VectorStock.com/16429254 is baked into the pixels) and is not licensed.
+
+   Wash 0.90/0.92 with a fine tile: the tracery is dense, so the wash carries
+   more of the load than it did with sparse medallions. Dish titles/descriptions
+   on this field still measure 7.25:1 and 4.80:1. */
+.bg-orange-field--quiet {
+    background-color: var(--color-brand-orange);
     background-image:
-        linear-gradient(rgba(8, 12, 20, 0.55), rgba(8, 12, 20, 0.70)),
+        linear-gradient(rgba(255, 150, 63, 0.90), rgba(255, 150, 63, 0.92)),
+        url('/assets/patterns/thai-lotus-lattice.png');
+    background-size:
+        auto,
+        clamp(118px, 11vw, 168px);
+    background-position:
+        0 0,
+        center top;
+    background-repeat:
+        no-repeat,
+        repeat;
+}
+
+/* Corner-florals art (lotus blooms anchored in the corners over the
+   lattice) on a deep brand-blue field - for structural, hero-scale sections
+   where the centre must stay clear for copy. */
+.bg-blue-field {
+    background-color: var(--color-brand-blue);
+    background-image:
+        linear-gradient(rgba(30, 65, 123, 0.86), rgba(30, 65, 123, 0.92)),
         url('/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp');
     background-size: cover, cover;
     background-position: center, center;
     background-repeat: no-repeat, no-repeat;
 }
-/* Deeper scrim for text-dense sections where the pattern should read but stay
-   quiet under long-form copy. */
-.bg-lattice--quiet {
+/* Clean warm-white surface for text-dense sections - no art overlay so
+   long-form copy stays fully legible. */
+.bg-warm-white {
+    background-color: var(--color-surface-base);
+}
+
+/* Gift chapter field.
+
+   Deliberately cream rather than orange, and deliberately NOT the menu page's
+   repeating lattice - it needs to be its own surface on both counts:
+
+   - The two gift cards are dark, premium objects and the saffron brush behind
+     them is the section's energy. Both need a PALE ground to read: on the
+     orange field the orange brush stroke disappeared into the background
+     entirely, and the dark cards lost their sense of sitting on a surface.
+   - A large single engraved bloom is a different lotus language from the
+     menu's fine repeating lattice, so the two sections don't read as the same
+     wallpaper twice.
+   - It also paces the page: ... blue Havens -> cream gift -> dark video ...
+     gives a breath before the close, and rhymes with the kraft-paper footer.
+
+   The bloom is `Lotus.webp` (navy botanical line-art) held under a cream wash.
+   It is a CORNER FLOURISH, not a backdrop: anchored low-left and bleeding off
+   both edges, so it fills the empty cream under the CTA and counterweights the
+   brush and cards on the right - without ever sitting behind the copy. A first
+   pass had it centred-left at 58vw and 6% presence, which put a full spread of
+   leaves directly behind the heading and body text and read as clutter rather
+   than as a watermark. Smaller and fainter does more here. */
+.gift-field {
     background-color: var(--color-surface-base);
     background-image:
-        linear-gradient(rgba(8, 12, 20, 0.68), rgba(8, 12, 20, 0.75)),
-        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
-    background-size: cover, cover;
-    background-position: center, center;
+        linear-gradient(rgba(255, 248, 236, 0.955), rgba(255, 248, 236, 0.955)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp');
+    background-size: auto, clamp(340px, 32vw, 520px);
+    background-position: 0 0, -9% 104%;
     background-repeat: no-repeat, no-repeat;
+
+    /* Cream ink scale: brand orange as text on cream is 1.9:1 and fails
+       outright; terracotta reaches 6.8:1. Same rule as .bg-warm-white. */
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+
+/* ============================================================
+   Field ink scales
+
+   The colour fields above are painted backgrounds, but the type on them was
+   still resolving the :root ink scale - which is tuned for the cream surface.
+   That put warm-brown body copy (#6B5A46) on orange and an orange accent
+   (--color-primary) on orange, so eyebrows and every .display-1/.display-2
+   that inherited the accent were effectively invisible against their own
+   background.
+
+   Re-declaring the tokens on the field itself fixes all of it in one place:
+   inline `var(--color-text-secondary)` / `var(--color-primary)` references
+   scattered through the pages inherit the corrected value automatically, with
+   no call-site edits. Any elevated surface sitting *inside* a field (cards,
+   panels) must reset the scale back - see .haven-card below.
+
+   Ratios below are against the field's own flattened colour.
+   ============================================================ */
+
+/* Orange field (#ff964f): dark ink only, per the contrast rule above.
+   Ratios measured in-page against the flattened field colour.
+
+   --quiet is included so the menu page (which wraps all 14 dish categories
+   in .bg-orange-field--quiet) picks up the same ink scale. Without it, the
+   menu dish descriptions and prices were inheriting the root tokens (warm
+   brown, brand orange) and rendering at ~3:1 on the orange field - a real
+   AA failure hidden by the fact that the .bg-orange-field--quiet wrapper
+   shares nothing with the .bg-orange-field selector at the CSS level. */
+.bg-orange-field,
+.bg-orange-field--quiet {
+    --color-text-primary: #16233d;              /* 7.25:1 */
+    --color-text-secondary: #33405c;            /* 4.80:1 */
+    --color-primary: var(--color-brand-blue);   /* 4.64:1 - was orange-on-orange */
+    --color-accent: var(--color-brand-blue);
+}
+/* An orange CTA on an orange field reads as a flat shape with no edge, so the
+   field flips it to the brand's other primary. The label goes back to white,
+   which on brand blue is 10.01:1. */
+.bg-orange-field .btn-primary {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    color: #ffffff;
+    box-shadow: 0 8px 22px rgba(30, 65, 123, 0.30);
+}
+.bg-orange-field .btn-primary:hover,
+.bg-orange-field .btn-primary:focus-visible {
+    background-color: #2a5296;
+    border-color: #2a5296;
+    color: #ffffff;
+    box-shadow: 0 18px 38px rgba(30, 65, 123, 0.45);
+}
+/* The default cream outline all but disappears on orange - the outline picks
+   up the ink colour instead, and fills to solid blue on hover. */
+.bg-orange-field .btn-secondary {
+    border-color: rgba(22, 35, 61, 0.45);
+    color: var(--color-text-primary);
+}
+.bg-orange-field .btn-secondary:hover,
+.bg-orange-field .btn-secondary:focus-visible {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    color: #ffffff !important;
+}
+
+/* Blue field (#1e417b): light ink only. */
+.bg-blue-field {
+    --color-text-primary: #ffffff;                /* 10.01:1 */
+    --color-text-secondary: rgba(255, 255, 255, 0.84);
+    --color-primary: var(--color-brand-butter);   /*  8.29:1 */
+    --color-accent: var(--color-brand-butter);
+}
+
+/* The reservation chapter is type over dark footage - same inverted scale as
+   the hero, so the copy is never warm-brown on a night-lit video.
+
+   --color-primary was left out of this scale, which meant the closing headline
+   ("Taste the fire.") kept the root brand orange and rendered at 2.16:1 against
+   the pale highlights in the footage behind it - the same white-on-orange-class
+   failure this file forbids everywhere else. The chapter's footage is a bright,
+   near-white drink shot, so no single ink colour can survive it unaided; the
+   headline takes the cream ink and the scrim below gives it a ground to sit on. */
+.section-reservation {
+    --color-text-primary: #FFF8EC;
+    --color-text-secondary: rgba(255, 248, 236, 0.84);
+    --color-primary: #FFF8EC;
+    --color-accent: var(--color-brand-butter);
+
+    /* Same cool, deep shadow the hero uses, not the root's warm terracotta one:
+       this is the other place on the site where light type sits directly on
+       photography, and the root shadow is tuned to lift dark type off a cream
+       page. Measured, the scrim alone carries the headline at 6.7:1 median and
+       4.3:1 at the 95th percentile of its ground - comfortably past the 3:1
+       large-text floor - but the glass's specular highlight leaves a thin
+       brightest-1% sliver where cream-on-near-white would still collapse. This
+       shadow closes that last gap without darkening the footage any further,
+       which matters because the client asked for the video to stay visible. */
+    --hero-text-shadow: 0 2px 14px rgba(8, 14, 28, 0.55), 0 1px 3px rgba(8, 14, 28, 0.45);
+}
+
+/* Cream surfaces (#FFF8EC). Brand orange as *text* on cream is 1.9:1 - it
+   fails outright, terracotta reaches 6.8:1. Buttons are unaffected:
+   .btn-primary is pinned to the literal brand orange, not to this token.
+
+   .menu-category is deliberately NOT in this rule: each menu-category sits
+   inside .bg-orange-field--quiet, whose ink scale re-points --color-primary
+   to brand blue for legible contrast on orange. A per-category terracotta
+   override here would beat the parent scale (higher specificity) and drop
+   the accent back to 3.6:1 - the price line, the category heading and the
+   add-on note would all fail AA on the orange field.
+
+   #gift was removed from this rule for exactly the same reason once the gift
+   chapter became an orange field. An ID selector scores 100 against
+   .bg-orange-field's 10, so leaving it here would have silently beaten the
+   field's own ink scale and forced terracotta (3.48:1) back onto orange -
+   the "Gifted." accent and every bullet marker would have failed AA while the
+   CSS still looked correct. */
+.bg-warm-white {
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+
+/* Two consecutive sections on the same field have no colour change to mark
+   where one ends and the next begins, so the join needs a mark, not just
+   space. Collapsing the padding to zero (the previous attempt) removed the
+   gap but left the two chapters reading as one continuous block. Instead the
+   second section keeps a real top gap and opens with .section-seam. */
+.bg-orange-field + .bg-orange-field,
+.bg-blue-field + .bg-blue-field {
+    padding-top: var(--space-layout);
+}
+
+/* Section blend shadow - a soft top shadow at every chapter break, so the
+   eye reads seams as depth rather than hard cuts. Applied to every <section>
+   automatically, with two role-based exemptions:
+
+   - .hero / .menu-hero: these open the page against the fixed header. A
+     shadow at their top would clip against the header rather than blend into
+     anything.
+   - .menu-nav-section: a sticky pill nav that floats above content, not a
+     chapter break. A shadow above it would read as pasted-on.
+
+   Every other <section> - including each of the 14 menu-category sections
+   and the reservation, gift, havens and heritage chapters on the homepage -
+   picks up the blend without needing a class. The old opt-in .section-blend
+   class remains harmless where it's already applied; it's no longer required. */
+section {
+    position: relative;
+}
+section:not(.hero):not(.menu-hero):not(.menu-nav-section) {
+    /* Inset box-shadow instead of a `::before` overlay:
+       - Renders in the section's own paint stack, BEHIND content, so type at
+         the top of a section can never sit inside the dark band.
+       - Pure black at 0.4 opacity so the shadow reads on every field. Navy at
+         0.2 composited to near-invisible on the blue field (only ~3% darker
+         than the base), which is why the homepage transitions still read as
+         straight cuts. Black at 0.4 darkens blue, orange and cream all
+         clearly - roughly 25-30% darker at the very edge, fading fast.
+       - Layered: a tight dense band at the immediate edge (12px offset, 20px
+         blur) plus a wider softer wash below (28px offset, 44px blur) so the
+         transition reads as depth, not a hairline. */
+    box-shadow:
+        inset 0 12px 20px -4px rgba(0, 0, 0, 0.40),
+        inset 0 28px 44px -18px rgba(0, 0, 0, 0.28);
+}
+
+/* Chapter seam - two tapered hairlines meeting a lattice diamond, echoing the
+   brand's Thai lattice motif rather than a plain <hr>. Lives inside the second
+   section (an element *between* two sections would sit on the page's cream
+   body colour and cut a pale band through the field). */
+.section-seam {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    max-width: 1280px;
+    margin: 0 auto var(--space-layout);
+    padding: 0 max(8vw, 24px);
+    color: var(--color-primary);
+}
+.section-seam::before,
+.section-seam::after {
+    content: "";
+    flex: 1;
+    max-width: 220px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.4;
+}
+.section-seam::before { background: linear-gradient(to right, transparent, currentColor); }
+.section-seam::after  { background: linear-gradient(to left,  transparent, currentColor); }
+.section-seam-mark {
+    width: 9px;
+    height: 9px;
+    flex: none;
+    transform: rotate(45deg);
+    border: 1.5px solid currentColor;
+    opacity: 0.75;
 }
 
 
@@ -1272,12 +1917,20 @@ select.premium-input {
     }
 }
 
-/* Homepage gift card section - 3-child grid, same clean pattern as giftcard hero */
+/* Homepage gift card section - 3-child grid, same clean pattern as giftcard hero.
+   The column gap is deliberately generous: the saffron brush sits behind the
+   cards and bleeds left, so the copy column needs real distance from it or the
+   stroke reads as encroaching on the text rather than as the cards' backdrop.
+
+   The copy column is NOT squeezed to buy that gap, though - at 0.68fr the
+   heading dropped to three lines ("An" / "evening," / "Gifted."), which is a
+   worse outcome than a slightly tighter gap. 0.82fr keeps "An evening," on one
+   line at its clamp ceiling while still leaving the cards a wide column. */
 .landing-gift-grid {
     display: grid;
-    grid-template-columns: 0.72fr 1.28fr;
+    grid-template-columns: 0.82fr 1.18fr;
     grid-template-rows: auto auto;
-    gap: clamp(28px, 5vw, 72px);
+    gap: clamp(32px, 5vw, 80px);
     align-items: start;
     max-width: 1440px;
     margin: 0 auto;
@@ -1293,6 +1946,9 @@ select.premium-input {
 .landing-gift-cards {
     grid-column: 2;
     grid-row: 1 / 3;
+    /* Nudged right so the brush has open cream to its left instead of running
+       straight into the copy column. */
+    padding-left: clamp(0px, 4vw, 64px);
 }
 @media (max-width: 768px) {
     .landing-gift-grid {
@@ -1335,7 +1991,7 @@ select.premium-input {
     mask-composite: intersect;
 }
 .media-soft {
-    box-shadow: 0 40px 90px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 30px 60px rgba(141, 54, 31, 0.22);
 }
 
 /* ============================================================
@@ -1393,29 +2049,51 @@ select.premium-input {
 }
 
 /* ============================================================
-   Footer - compact, dark, gradient-free. A restrained sign-off: a small
-   wordmark, a line of intent, structured nav, and a thin rule. No glow, no
-   giant watermark - deliberately contained in height.
+   Footer - a kraft-paper sign-off.
+
+   The footer used to be a navy block. It now carries the brand's own kraft
+   paper texture (Background/Footer/Footer.webp) as its actual surface, which
+   suits a street-food brand - takeaway paper - and gives the page a warm,
+   tactile close rather than another flat colour field.
+
+   CONTRAST RULE FOR THIS SURFACE (measured against the real asset, whose mean
+   is rgb(206,165,128) and which ranges rgb(196,147,108)-rgb(216,178,144)):
+     near-black #161616 .... 8.03:1 mean / 6.67:1 worst   <- body copy, links
+     brand navy #1e417b .... 4.44:1 mean / 3.69:1 worst   <- headings only
+     terracotta #8D361F .... 3.48:1 mean / 2.89:1 worst   <- large text only
+     brand orange #ff964f .. 1.04:1                       <- NEVER. Invisible.
+     white ................. 2.25:1                       <- NEVER.
+   The whole footer previously used white and orange ink, both of which are
+   unreadable here, so every colour below was re-inked deliberately. A cream
+   wash sits over the paper to lift and even out its luminance, which is what
+   lets navy clear 4.5:1 for the small column headings.
    ============================================================ */
 .site-footer {
     position: relative;
     overflow: hidden;
-    background: #0A0401;
-    border-top: 1px solid rgba(255, 255, 255, 0.04);
-    padding: clamp(44px, 5vw, 68px) 0 22px;
-}
-/* Faint lotus/lattice texture so the footer reads as a designed close, not a
-   flat dull band. No gradient - a solid low-opacity image wash. */
-.site-footer::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp');
+    background-color: #cfa382;                 /* paper's own tone, if the image fails */
+    /* The paper and nothing else - no wash, no pattern layered over it. The
+       texture IS the design here. Contrast is handled entirely in the ink
+       below rather than by tinting the surface. */
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Footer/Footer.webp');
     background-size: cover;
     background-position: center;
-    opacity: 0.05;
-    pointer-events: none;
-    z-index: 0;
+    background-repeat: no-repeat;
+    border-top: 1px solid rgba(22, 22, 22, 0.10);
+    padding: clamp(44px, 5vw, 68px) 0 22px;
+
+    /* Light warm surface - re-point the ink scale rather than overriding a
+       dozen individual colours. Measured against the untinted paper (mean
+       rgb(206,165,128), darkest rgb(196,147,108)):
+         #161616 -> 8.03:1 mean / 6.67:1 worst   body, links
+         #16233d -> 6.99:1 mean / 5.82:1 worst   headings (deep navy)
+         #4a3a2c -> 4.83:1 mean / 4.02:1 worst   secondary
+       Brand orange (1.04:1) and white (2.25:1) are unusable here and are not
+       used anywhere in this footer. */
+    --color-text-primary: #161616;
+    --color-text-secondary: #4a3a2c;
+    --color-primary: #16233d;
+    --color-accent: #16233d;
 }
 .site-footer__inner { position: relative; z-index: 2; }
 .footer-top {
@@ -1428,12 +2106,14 @@ select.premium-input {
     height: 50px;
     width: auto;
     margin-bottom: 18px;
-    /* recolour the navy mark to warm cream so it reads on the dark ground */
-    filter: brightness(0) invert(1);
-    opacity: 0.9;
+    /* No knock-out filter any more. The source mark is solid brand navy, which
+       is exactly right on kraft paper (4.44:1) - it is the brand's own printed
+       lockup. Inverting it to cream here would leave it at 2.25:1, i.e. barely
+       visible, which is what the dark footer needed and this one does not. */
+    opacity: 1;
 }
 .footer-tagline {
-    color: rgba(253, 251, 247, 0.6);
+    color: var(--color-text-secondary);
     font-size: 0.96rem;
     line-height: 1.55;
     max-width: 32ch;
@@ -1445,22 +2125,22 @@ select.premium-input {
     color: var(--color-primary);
     font-family: var(--font-sans);
     font-size: 0.82rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-decoration: none;
     padding: 8px 0;
     border: none;
-    border-bottom: 1px solid rgba(240, 139, 67, 0.4);
+    border-bottom: 1.5px solid rgba(22, 35, 61, 0.5);
     background: none;
     cursor: pointer;
     transition: color 0.3s ease, border-color 0.3s ease;
 }
 .footer-reserve:hover,
-.footer-reserve:focus-visible { color: #ffab5e; border-color: #ffab5e; }
+.footer-reserve:focus-visible { color: #000000; border-color: #000000; }
 .footer-outlets {
     margin-top: 22px;
-    color: rgba(253, 251, 247, 0.5);
+    color: var(--color-text-secondary);
     font-size: 0.76rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -1476,7 +2156,7 @@ select.premium-input {
 }
 .footer-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
 .footer-link {
-    color: rgba(253, 251, 247, 0.78);
+    color: var(--color-text-primary);
     text-decoration: none;
     font-size: 0.95rem;
     display: inline-block;
@@ -1485,8 +2165,8 @@ select.premium-input {
 }
 .footer-link:hover,
 .footer-link:focus-visible { color: var(--color-primary); }
-.footer-hours { color: rgba(253, 251, 247, 0.66); font-size: 0.92rem; display: inline-block; padding: 4px 0; }
-.footer-divider { height: 1px; background: var(--color-border); }
+.footer-hours { color: var(--color-text-secondary); font-size: 0.92rem; display: inline-block; padding: 4px 0; }
+.footer-divider { height: 1px; background: rgba(22, 22, 22, 0.16); }
 .footer-bottom {
     display: flex;
     justify-content: space-between;
@@ -1494,7 +2174,11 @@ select.premium-input {
     flex-wrap: wrap;
     gap: 14px;
     padding-top: 22px;
-    color: rgba(253, 251, 247, 0.45);
+    /* Legal/copyright is exactly the copy people need to be able to read on
+       demand, so it should never be the least legible thing on the page. A warm
+       mid-brown keeps it visibly quieter than the nav links while still sitting
+       comfortably above the 4.5:1 floor on the paper. */
+    color: #5c4835;
     font-size: 0.8rem;
 }
 .footer-legal { display: flex; gap: 24px; }
@@ -1505,7 +2189,7 @@ select.premium-input {
     transition: color 0.3s ease;
 }
 .footer-legal a:hover,
-.footer-legal a:focus-visible { color: rgba(253, 251, 247, 0.8); }
+.footer-legal a:focus-visible { color: var(--color-primary); }
 @media (max-width: 900px) {
     .footer-top { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
     .footer-brand { grid-column: 1 / 3; }
@@ -1674,3 +2358,260 @@ select.premium-input {
         transform: translate(-50%, -18px) !important;
     }
 }
+
+/* ============================================================
+   Havens - compact location card grid (replaces the old 3x
+   full-viewport stacked panels, which made the homepage very long)
+   ============================================================ */
+.havens-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(20px, 2.4vw, 32px);
+    max-width: 1160px;
+    margin: 0 auto;
+}
+/* The flagship runs the full width as a horizontal plate - photo on one side,
+   the label on the other - so it reads as the lead entry rather than just a
+   taller version of the same card. */
+/* Scoped under .havens-grid purely for specificity: the base .haven-card rule
+   below sets `display: flex` at equal specificity and later in the file, which
+   would otherwise win and stack this card instead of splitting it. */
+.havens-grid .haven-card--feature {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    align-items: stretch;
+}
+@media (max-width: 900px) {
+    .havens-grid { grid-template-columns: 1fr; max-width: 480px; }
+    .havens-grid .haven-card--feature { grid-column: 1; grid-template-columns: 1fr; }
+}
+
+/* Deliberately NOT the Heritage card's language. Heritage is a bare photo with
+   the caption set inside it and a rule beneath - no surface at all. These are
+   museum labels: a warm panel carrying a photo and a typographic block, marked
+   by a vertical brand rule down the label's edge and a lattice diamond at the
+   category. Same family, different object. */
+.haven-card {
+    background: var(--color-surface-base);
+    border: 1px solid rgba(30, 65, 123, 0.10);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 22px 46px rgba(10, 24, 52, 0.26);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+
+    /* A cream surface sitting inside the blue field, so it must opt back out of
+       the field's light-ink scale - otherwise the address and hours inherit
+       white-on-cream. --color-primary becomes terracotta rather than the brand
+       orange, which at this label's size manages only 2.1:1 here. */
+    --color-text-primary: #161616;
+    --color-text-secondary: #6B5A46;
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+/* The cream outline is invisible on the white card - same treatment as the
+   orange field, keyed to the card's own ink. */
+.haven-card .btn-secondary {
+    border-color: rgba(22, 22, 22, 0.22);
+    color: var(--color-text-primary);
+}
+.haven-card .btn-secondary:hover,
+.haven-card .btn-secondary:focus-visible {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    color: #ffffff !important;
+}
+.haven-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 34px 60px rgba(10, 24, 52, 0.34);
+}
+.haven-card-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+}
+.haven-card-image img {
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.haven-card:hover .haven-card-image img {
+    transform: scale(1.05);
+}
+/* The photo dissolves into the label rather than butting against it with a
+   hard horizontal cut - the same edge language as .img-feather elsewhere. */
+.haven-card-image::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 -1px 0;
+    height: 32%;
+    background: linear-gradient(to top, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+    pointer-events: none;
+}
+.haven-card--feature .haven-card-image {
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 340px;
+}
+/* On the horizontal flagship the dissolve runs sideways into the label. */
+.haven-card--feature .haven-card-image::after {
+    inset: 0 -1px 0 auto;
+    width: 22%;
+    height: auto;
+    background: linear-gradient(to left, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+}
+@media (max-width: 900px) {
+    .haven-card--feature .haven-card-image {
+        aspect-ratio: 16/10;
+        height: auto;
+        min-height: 0;
+    }
+    .haven-card--feature .haven-card-image::after {
+        inset: auto 0 -1px 0;
+        width: auto;
+        height: 32%;
+        background: linear-gradient(to top, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+    }
+}
+
+.haven-card-body {
+    position: relative;
+    padding: 26px 26px 24px 30px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.haven-card--feature .haven-card-body {
+    padding: clamp(28px, 3vw, 44px) clamp(28px, 3vw, 44px) clamp(28px, 3vw, 40px) clamp(30px, 3vw, 46px);
+    justify-content: center;
+}
+/* The signature mark: a brand rule down the label's leading edge, orange
+   running into blue. It extends on hover. */
+.haven-card-body::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 30px;
+    bottom: 30px;
+    width: 3px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(to bottom, var(--color-brand-orange), var(--color-brand-blue));
+    transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.haven-card:hover .haven-card-body::before {
+    top: 12px;
+    bottom: 12px;
+}
+/* Faint lotus watermark, so the label carries the brand's own line art rather
+   than reading as a generic listing block. */
+.haven-card-body::after {
+    content: "";
+    position: absolute;
+    right: -4%;
+    bottom: -6%;
+    width: 38%;
+    aspect-ratio: 1;
+    background: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp') no-repeat bottom right / contain;
+    opacity: 0.07;
+    pointer-events: none;
+}
+.haven-card-body > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Category marker - a lattice diamond and a label, echoing .section-seam.
+   Was an orange pill floating on the photograph. */
+.haven-card-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-primary);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+}
+.haven-card-type::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    flex: none;
+    transform: rotate(45deg);
+    border: 1.5px solid currentColor;
+}
+.haven-card-body h3 {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 12px;
+    line-height: 1.12;
+}
+.haven-card--feature .haven-card-body h3 {
+    font-size: clamp(2rem, 3vw, 2.6rem);
+}
+/* Was the copperplate script at 1.08rem - a looped display face set at body
+   size, which is where that kind of face fails hardest. The flagship card's one
+   line of editorial voice was effectively decorative rather than readable. The
+   sans italic keeps it distinct from the address block below without costing
+   legibility. (See .heritage-quote for the fuller note.) */
+.haven-card-tagline {
+    font-family: var(--font-sans);
+    font-style: italic;
+    color: var(--color-text-secondary);
+    font-size: 1.08rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    max-width: 42ch;
+}
+/* Address and hours read as one spec block, separated by a hairline, instead
+   of two loose paragraphs. */
+.haven-card-meta {
+    border-top: 1px solid rgba(22, 22, 22, 0.10);
+    padding-top: 16px;
+    margin-bottom: 24px;
+}
+.haven-card-address {
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 10px;
+}
+.haven-card-hours {
+    color: var(--color-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.haven-card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+.haven-card--feature .haven-card-actions {
+    margin-top: 0;
+}
+.haven-card-actions .btn {
+    flex: 1 1 auto;
+    min-width: 130px;
+    text-align: center;
+    padding: 13px 18px;
+    font-size: 0.78rem;
+}
+
+
+
+
+
+
+
+
+
+
+
+
