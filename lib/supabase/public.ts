@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { requireEnv } from './env'
 
 /**
  * Anon client with no cookie binding, for public content only.
@@ -14,7 +15,7 @@ import { createClient } from '@supabase/supabase-js'
  */
 export const createPublicClient = () =>
   createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    requireEnv('NEXT_PUBLIC_SUPABASE_URL'),
+    requireEnv('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'),
     { auth: { persistSession: false } },
   )

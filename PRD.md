@@ -1210,3 +1210,42 @@ Turbopack's persistent cache mid-write (`Failed to restore task data`,
 `Unable to open SST file`) and left every route returning 500. Stop the server
 first, then clear, then start. Round 3's note says to clear `.next`; it does not
 say the server must be stopped, so it is recorded here.
+
+### 15.4 Deploy build failure — missing environment variables
+
+`npm run build` on the deploy host failed:
+
+```
+Error occurred prerendering page "/menu"
+Error: supabaseUrl is required.
+```
+
+**Cause, not a code bug.** `/menu` is ISR (`revalidate = 3600`), so Next
+prerenders it at build time, which runs the Supabase query during the build.
+The credentials live in `.env.local`, which is correctly gitignored — so a
+deploy host has none of them unless they are set in the platform. The three
+Supabase clients used `process.env.X!`; the non-null assertion satisfies
+TypeScript and does nothing at runtime, so `undefined` travelled into
+supabase-js and surfaced as a message naming neither the variable nor the fact
+that it was a configuration problem.
+
+**The actual fix is on the host:** set all five variables (see `.env.example`,
+now committed) in the hosting platform, for Production, Preview *and*
+Development, then redeploy.
+
+| Variable | Scope |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | public |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | public |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only — never NEXT_PUBLIC_** |
+| `ADMIN_USERNAME` | server only |
+| `ADMIN_PASSWORD` | server only |
+
+**Code change:** all three clients now go through `requireEnv()`
+(`lib/supabase/env.ts`), which throws a message naming the missing variable and
+where to set it. It still throws rather than degrading — a menu that silently
+builds with zero dishes is worse than a build that stops.
+
+Verified by reproducing the failure (`NEXT_PUBLIC_SUPABASE_URL= npm run build`)
+and confirming the new message replaces `supabaseUrl is required`; a normal
+build passes 15/15 static pages with `/menu` prerendered at 1h revalidate.
