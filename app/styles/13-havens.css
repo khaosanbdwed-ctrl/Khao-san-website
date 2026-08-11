@@ -1,0 +1,342 @@
+.location-card-gradient {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+}
+
+.location-card-gradient.align-left {
+    background: linear-gradient(to right, rgba(5, 7, 10, 0.98) 0%, rgba(5, 7, 10, 0.7) 45%, rgba(5, 7, 10, 0) 100%);
+}
+
+.location-card-gradient.align-right {
+    background: linear-gradient(to left, rgba(5, 7, 10, 0.98) 0%, rgba(5, 7, 10, 0.7) 45%, rgba(5, 7, 10, 0) 100%);
+}
+
+.section-reservation {
+    position: relative;
+    overflow: hidden;
+    padding: 160px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    /* Compress Reservation Section to a cinematic wide crop on mobile */
+    .section-reservation {
+        padding: 64px 0;
+    }
+    
+    /* Rebuild LocationCard for Portrait Screens */
+    .location-card-container {
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        height: auto;
+        min-height: auto;
+    }
+    
+    /* The photo takes the top portion, preserving aspect ratio */
+    .location-card-image-wrapper {
+        position: relative;
+        height: 60vh;
+        width: 100vw;
+    }
+
+    /* Gradient now serves as a soft floor fading up */
+    .location-card-gradient,
+    .location-card-gradient.align-left,
+    .location-card-gradient.align-right {
+        top: auto;
+        bottom: 0;
+        height: 50vh;
+        background: linear-gradient(to top, rgba(5, 7, 10, 1) 0%, rgba(5, 7, 10, 0.95) 40%, rgba(5, 7, 10, 0) 100%);
+    }
+
+    .location-card-content {
+        text-align: left !important;
+        padding: 48px 24px;
+        background-color: rgba(5, 7, 10, 1);
+        margin-top: -120px; /* pull up over the gradient */
+    }
+    
+    .location-card-content p,
+    .location-card-content div {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+}
+
+/* Phase 8: Responsive Adaptation */
+
+/* Tablet (max-width: 1024px) */
+@media (max-width: 1024px) {
+    :root {
+        --space-macro: 72px;
+        --space-layout: 40px;
+    }
+    .container {
+        grid-template-columns: repeat(8, 1fr);
+        gap: 20px;
+        padding: 0 48px;
+    }
+}
+
+/* Mobile (max-width: 768px) */
+@media (max-width: 768px) {
+    :root {
+        --space-macro: 48px;
+        --space-layout: 24px;
+    }
+    .container {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        padding: 0 24px;
+    }
+
+    .display-1 {
+        font-size: 3rem;
+    }
+    .display-2 {
+        font-size: 2.25rem;
+    }
+}
+
+/* Respect user motion preferences (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    /* Ensure scroll-revealed content is never left hidden */
+    .reveal-hidden,
+    .reveal-toss {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    .reveal-clip {
+        clip-path: none !important;
+    }
+    .ember-drift-dot {
+        animation: none !important;
+        opacity: 0.5 !important;
+        transform: translate(-50%, -18px) !important;
+    }
+}
+
+/* ============================================================
+   Havens - compact location card grid (replaces the old 3x
+   full-viewport stacked panels, which made the homepage very long)
+   ============================================================ */
+/* One column of full-width horizontal plates. The flagship's layout - photo on
+   one side, label on the other - is now the base structure for every location,
+   per the client's note that the first card's design should carry across all of
+   them. The old arrangement (one wide feature card above a 2-up row of smaller
+   ones) gave Gulshan a visual rank the other two outlets did not have. */
+.havens-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(20px, 2.4vw, 32px);
+    max-width: 1160px;
+    margin: 0 auto;
+}
+@media (max-width: 900px) {
+    .havens-grid { max-width: 480px; }
+}
+
+/* Deliberately NOT the Heritage card's language. Heritage is a bare photo with
+   the caption set inside it and a rule beneath - no surface at all. These are
+   museum labels: a warm panel carrying a photo and a typographic block, marked
+   by a vertical brand rule down the label's edge and a lattice diamond at the
+   category. Same family, different object. */
+.haven-card {
+    background: var(--color-surface-base);
+    border: 1px solid rgba(30, 65, 123, 0.10);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 22px 46px rgba(10, 24, 52, 0.26);
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    align-items: stretch;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease;
+
+    /* A cream surface sitting inside the blue field, so it must opt back out of
+       the field's light-ink scale - otherwise the address and hours inherit
+       white-on-cream. --color-primary becomes terracotta rather than the brand
+       orange, which at this label's size manages only 2.1:1 here. */
+    --color-text-primary: #161616;
+    --color-text-secondary: #6B5A46;
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+/* The cream outline is invisible on the white card - same treatment as the
+   orange field, keyed to the card's own ink. */
+/* Directions sits on the cream haven card, where the old translucent navy
+   flattened to rgb(154,166,185) and carried white text at ~2.4:1 - failing
+   AA, and reading as a *disabled* control next to the solid orange Reserve.
+   Outlined navy instead: 10.0:1 label on cream, and the pairing now states
+   the hierarchy correctly (solid orange = primary, outline = secondary). */
+.haven-card .btn-directions,
+.btn-directions {
+    position: relative !important;
+    z-index: 2 !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--color-brand-blue) !important;
+    border: 2px solid var(--color-brand-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(30, 65, 123, 0.30) !important;
+}
+.haven-card .btn-directions:hover,
+.haven-card .btn-directions:focus-visible,
+.btn-directions:hover,
+.btn-directions:focus-visible {
+    background-color: var(--color-brand-blue-deep) !important;
+    border-color: var(--color-brand-blue-deep) !important;
+    color: #ffffff !important;
+    position: relative !important;
+    z-index: 10 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 30px rgba(30, 65, 123, 0.45) !important;
+}
+.haven-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 34px 60px rgba(10, 24, 52, 0.34);
+}
+.haven-card-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 340px;
+    overflow: hidden;
+}
+.haven-card-image img {
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.haven-card:hover .haven-card-image img {
+    transform: scale(1.05);
+}
+/* The photo dissolves sideways into the label rather than butting against it
+   with a hard cut - the same edge language as .img-feather elsewhere. */
+.haven-card-image::after {
+    content: "";
+    position: absolute;
+    inset: 0 -1px 0 auto;
+    width: 22%;
+    background: linear-gradient(to left, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+    pointer-events: none;
+}
+/* Below 900px the plate stacks, so the dissolve turns to run downward. */
+@media (max-width: 900px) {
+    .haven-card {
+        grid-template-columns: 1fr;
+    }
+    .haven-card-image {
+        aspect-ratio: 16/10;
+        height: auto;
+        min-height: 0;
+    }
+    .haven-card-image::after {
+        inset: auto 0 -1px 0;
+        width: auto;
+        height: 32%;
+        background: linear-gradient(to top, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+    }
+}
+
+.haven-card-body {
+    position: relative;
+    padding: clamp(28px, 3vw, 44px) clamp(28px, 3vw, 44px) clamp(28px, 3vw, 40px) clamp(30px, 3vw, 46px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+}
+/* The signature mark: a brand rule down the label's leading edge, orange
+   running into blue. It extends on hover. */
+.haven-card-body::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 30px;
+    bottom: 30px;
+    width: 3px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(to bottom, var(--color-brand-orange), var(--color-brand-blue));
+    transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.haven-card:hover .haven-card-body::before {
+    top: 12px;
+    bottom: 12px;
+}
+/* Faint lotus watermark, so the label carries the brand's own line art rather
+   than reading as a generic listing block. */
+.haven-card-body::after {
+    content: "";
+    position: absolute;
+    right: -4%;
+    bottom: -6%;
+    width: 38%;
+    aspect-ratio: 1;
+    background: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp') no-repeat bottom right / contain;
+    opacity: 0.07;
+    pointer-events: none;
+}
+.haven-card-body > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* .haven-card-type and .haven-card-tagline were removed with the Flagship /
+   Original / Sanctuary descriptors and the Gulshan strapline - the name is now
+   the card's only heading. */
+.haven-card-body h3 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin-bottom: 12px;
+    line-height: 1.12;
+}
+/* Address and hours read as one spec block, separated by a hairline, instead
+   of two loose paragraphs. */
+.haven-card-meta {
+    border-top: 1px solid rgba(22, 22, 22, 0.10);
+    padding-top: 16px;
+    margin-bottom: 24px;
+}
+.haven-card-address {
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    margin-bottom: 10px;
+}
+.haven-card-hours {
+    color: var(--color-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.haven-card-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 0;
+    flex-wrap: wrap;
+}
+.haven-card-actions .btn {
+    flex: 1 1 auto;
+    min-width: 130px;
+    text-align: center;
+    padding: 13px 18px;
+    font-size: 0.78rem;
+}

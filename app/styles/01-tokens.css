@@ -1,0 +1,143 @@
+:root {
+    --color-brand-orange: #ff964f;
+    --color-brand-blue: #1e417b;
+    --color-brand-butter: #f9eb9b;
+    --color-brand-powder: #cadbe9;
+    --color-brand-white: #ffffff;
+    --color-brand-black: #161616;
+
+    /* Pressed/hover shades.
+       Every interactive surface used to get BRIGHTER on hover - orange
+       lightened, navy lightened, outlined buttons flipped to solid white.
+       Backwards twice over: buttons looked inert until touched, and the
+       hovered state became the loudest thing on screen rather than the most
+       clearly selected. Buttons are filled and bright at rest so they read as
+       clickable, and DEEPEN on hover. Ratios are against each fill's label. */
+    --color-brand-blue-deep:   #152e58;  /* white label 13.47:1 */
+    --color-brand-powder-deep: #a8c3d9;  /* navy label   8.64:1 */
+    /* Butter stays the accent on the BLUE field and in the footer, where a
+       warm light tone is the opposing hue and reads correctly. It is only
+       wrong on the orange fields, where it is analogous to the ground. */
+    --color-brand-butter-deep: #e6d271;  /* on dark grounds */
+
+    /* ------------------------------------------------------------------
+       INK ON ORANGE - why it is navy and not black.
+
+       Contrast is not one axis. WCAG measures only relative luminance, and
+       near-black on this orange passes it comfortably (6-8:1). But perceived
+       separation also depends on HUE and CHROMA, and near-black shares the
+       field's warm, low-lightness character - it is a dark warm on a mid
+       warm. The eye reads that as muddy even though the maths says "pass",
+       which is exactly the complaint the client raised: "in orange bg, black
+       text is not quite contrasted as they are both deep colors."
+
+       Orange's complement is blue. Deep navy on orange therefore separates on
+       BOTH axes at once - a large lightness drop AND an opposed hue - so it
+       reads crisp rather than heavy, and it is the brand's own documented
+       orange/blue lockup rather than an invented colour.
+
+       The other half of the fix is the field itself: the menu dish field was
+       #E07B30, deep enough that dark ink had nowhere to fall. Lightening it
+       widens the value gap without leaving the orange family (see
+       --color-dish-field below), which also serves the client's "bright and
+       colorful" direction better than a deep burnt ground did.
+       ------------------------------------------------------------------ */
+    --ink-on-orange:           #16233d;  /* 7.33:1 main field / 6.65:1 dish field */
+    --ink-on-orange-secondary: #26364f;  /* 5.60:1 main field / 5.07:1 dish field */
+
+    --color-primary: #ff964f;
+    --color-secondary: #1e417b;
+    --color-accent: #ff964f;
+    --color-surface-base: #FFF8EC;
+    --color-surface-elevated: #FFFFFF;
+    --color-surface-alt: #ff964f;
+    --color-text-primary: #161616;
+    --color-text-secondary: #6B5A46;
+    --color-border: rgba(22, 22, 22, 0.08);
+
+    /* Brand Accent Colors */
+    --color-burnt-saffron: #D76F30;
+    --color-temple-gold: #C59B27;
+    --color-deep-terracotta: #8D361F;
+    --color-warm-clay: #A96F5C;
+    --color-muted-ochre: #B07C30;
+    /* Lightened from #E07B30. That value sat at 0.30 relative luminance - a
+       deep, saturated ground where dark ink had nowhere to fall and light ink
+       failed AA outright, i.e. the one lightness band where nothing works.
+       #F0913F is 0.39, still unmistakably the brand orange, and it opens the
+       gap to navy ink from 5.31:1 to 6.65:1 while reading brighter. */
+    --color-dish-field: #F0913F;
+
+    --space-micro: 8px;
+    --space-component: 24px;
+    --space-layout: 48px;
+    --space-macro: 120px;
+
+    /* Measured height of the fixed header in its resting (top) state:
+       14px padding + 50px logo + 14px padding (see Header.tsx - keep in step).
+       Any section that is first on a page must clear this, or its opening line
+       sits under the nav bar. */
+    --header-h: 78px;
+
+    /* Camera Obscura is registered with a unicode-range that excludes U+0030-0039
+       (its demo build ships sabotaged numerals - see app/layout.tsx), so every
+       digit inside a display heading resolves to the NEXT font in this chain.
+       That fallback used to be Playfair Display, a high-contrast Didone whose
+       hairline numerals sat visibly wrong beside Camera Obscura's heavy deco
+       caps - "Gulshan 1" and "(4pcs)" read as two different typefaces mid-word.
+       Montserrat is the brand's own geometric sans and already sets every price
+       on the site, so digits now match the established numeral voice and the
+       weight mismatch disappears. Revisit once licensed font files land. */
+    /* Three faces, and only three. --font-body and --font-quote used to exist
+       here pointing at Playfair Display; no rule ever referenced either, and
+       Playfair itself was loaded in eight weight/style combinations for a face
+       nothing set. Both tokens and the font are gone - if a future "quote"
+       style is needed, give it --font-display or --font-sans italic rather
+       than reintroducing a fourth family. */
+    --font-display: var(--font-camera-obscura), var(--font-montserrat), sans-serif;
+    --font-sans: var(--font-montserrat), sans-serif;
+    --font-heading: var(--font-camera-obscura), var(--font-montserrat), sans-serif;
+    --font-script: var(--font-good-brush), var(--font-montserrat), cursive;
+
+    /* Unified corner-radius system - one language across buttons, cards,
+       media, inputs, and modals instead of mixed ad-hoc values. */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-pill: 9999px;
+    --shadow-float: 0 20px 40px rgba(141, 54, 31, 0.22);
+
+    /* Hero-only text shadow - never used outside a hero. Just enough to
+       separate text from busy video/photo behind it; should not read as a
+       visible glow. */
+    --hero-text-shadow: 0 2px 6px rgba(141, 54, 31, 0.12), 0 1px 2px rgba(141, 54, 31, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+.party-size-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+@media (max-width: 420px) {
+    .party-size-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.btn-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(5, 7, 10, 0.3);
+    border-top-color: #05070A;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+}
+@keyframes btnSpin {
+    to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .btn-spinner { animation-duration: 1.4s; }
+}

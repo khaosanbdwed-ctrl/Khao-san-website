@@ -1,0 +1,136 @@
+/* Keyboard-only skip link - off-screen until focused, then docked above the
+   fixed header so the first Tab stop on any page jumps straight to content. */
+.skip-link {
+    position: fixed;
+    top: -60px;
+    left: 16px;
+    z-index: 999;
+    background-color: var(--color-brand-blue);
+    color: #ffffff;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: top 0.25s ease;
+}
+.skip-link:focus-visible {
+    top: 16px;
+    box-shadow: 0 0 0 3px rgba(240, 139, 67, 0.4), 0 0 12px rgba(240, 139, 67, 0.8);
+}
+
+/* Typography Classes */
+/* Positive tracking - see the note on .display-1 in 05-motion.css. */
+.display-2 {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.14;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: var(--space-component);
+    letter-spacing: 0.014em;
+    text-wrap: balance;
+}
+
+/* Brush display - the brand's own hand-lettering (Good Brush), for a heading
+   that should be SPOKEN rather than set.
+
+   Deliberately rare. Good Brush is caps-only, so it forces any phrase up into a
+   raised voice: that suits heat, fire and street energy, and is exactly wrong
+   for an intimate line (an "An evening, GIFTED." reads as shouting a present at
+   someone). Use it only where the copy genuinely wants volume.
+
+   Currently: the hero's "The Thai Way" and the closing "Taste the fire." - so
+   the site opens and closes in the brand's own hand. That bookend is the point;
+   scattering this class through the middle chapters would destroy it.
+
+   Pair with .display-2 (which supplies size/colour/margin); this only overrides
+   the face and the metrics the brush needs - it carries its own vertical air, so
+   the leading tightens and the negative tracking of the deco face is dropped. */
+.display-brush {
+    font-family: var(--font-script);
+    font-weight: 400;
+    line-height: 0.94;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+}
+
+/* Opt-in pretty-wrap for body copy and longer paragraphs: avoids typographic
+   orphans (a single short word on the last line) without the tighter
+   line-count balancing that suits headings. */
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+.overline {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--color-accent);
+    display: block;
+    margin-bottom: var(--space-micro);
+}
+
+.pattern-overlay {
+    position: relative;
+    z-index: 1;
+}
+.pattern-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single White.svg');
+    background-size: 150px;
+    background-repeat: repeat;
+    opacity: 0.04;
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Phase 14: Global Micro-interactions */
+.page-transition {
+    animation: fadeUpIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes fadeUpIn {
+    0% {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* Scroll cue: a small ember drifting upward and fading, looping - carries
+   the fire motif established by the ignition sequence into ordinary use. */
+.ember-drift-track {
+    position: relative;
+    width: 1px;
+    height: 40px;
+    margin: 0 auto;
+    background: rgba(240, 139, 67, 0.15);
+    overflow: visible;
+}
+.ember-drift-dot {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    box-shadow: 0 0 6px 2px rgba(240, 139, 67, 0.6);
+    transform: translate(-50%, 0);
+    animation: emberDrift 2.4s ease-in-out infinite;
+}
+@keyframes emberDrift {
+    0%   { transform: translate(-50%, 0); opacity: 0; }
+    18%  { opacity: 1; }
+    82%  { opacity: 0.15; }
+    100% { transform: translate(-50%, -40px); opacity: 0; }
+}

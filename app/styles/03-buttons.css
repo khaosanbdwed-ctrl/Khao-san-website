@@ -1,0 +1,99 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 36px;
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+    font-size: 0.85rem;
+    font-family: var(--font-sans);
+    cursor: pointer;
+}
+/* Pinned to the literal brand orange rather than --color-primary. The colour
+   fields below re-point --color-primary to whatever accent reads on that
+   background (see "Field ink scales"), and the CTA must not drift with it -
+   it keeps one identity site-wide. Only the orange field, where an orange
+   button on orange would vanish, overrides it deliberately.
+
+   The label was deep navy for a while, on contrast grounds - see the note on
+   .btn-primary below for why it is white again. */
+/* White label on the orange fill, per the client: a dark label on the orange
+   button read as black-on-orange and they want the button copy white.
+   ⚠ Measured 2.16:1, which is below the 4.5:1 AA floor for a label this size.
+   This is a deliberate, client-directed choice, not an oversight - the fill is
+   the brand orange and they are happy with it. If the ratio ever needs to
+   pass, deepen the FILL rather than darkening the label back: white needs a
+   fill around #B4551A or deeper. Buttons sitting ON an orange field are
+   unaffected - 10-backgrounds.css already flips those to navy/white. */
+.btn-primary {
+    background-color: var(--color-brand-orange);
+    color: #ffffff;
+    border: 1px solid var(--color-brand-orange);
+    box-shadow: 0 8px 22px rgba(240, 139, 67, 0.32);
+    font-weight: 700;
+}
+/* Hover moves to brand navy rather than a darker orange. A deeper shade of the
+   same hue is the conventional pressed state, but on this palette it just
+   reads as a second, muddier orange - and orange is the site's surface colour,
+   so tinting a control with it weakens the surface/control distinction. Moving
+   to the brand's opposing anchor makes the state change unmistakable, keeps
+   the button in-brand, and lifts the label from 7.25:1 to 10.01:1. */
+.btn-primary:hover, .btn-primary:focus-visible {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(30, 65, 123, 0.42);
+    color: #ffffff;
+}
+.btn-primary:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 4px 12px rgba(240, 139, 67, 0.32);
+}
+/* Secondary button.
+
+   ⚠ Two failed treatments preceded this one, and both are worth remembering.
+
+   1. Translucent brand navy (rgba(30,65,123,0.45)). Over a coloured field a
+      translucent tint does not stay that colour - it MIXES. Over orange it
+      flattened to rgb(129,89,90), a mauve-brown found nowhere in the brand
+      palette; on the cream Havens cards the same wash read as a *disabled*
+      control at ~2.4:1.
+
+   2. A transparent outline. That fixed the mud and the contrast, but it made
+      the button nearly invisible until hovered - and it still inverted to a
+      solid WHITE fill on hover, i.e. it went from barely-there to the
+      brightest object on the page.
+
+   The rule now: a button is a solid, saturated brand fill AT REST, so it
+   announces itself as clickable, and DEEPENS on hover so the pointer's target
+   is unmistakable. Never the reverse.
+
+   Secondary takes POWDER BLUE, not butter. Butter was tried first and is a
+   brand colour, but it is a pale warm yellow - analogous to orange, not
+   opposed to it. On the orange fields it read as "a lighter shade of the
+   background" rather than as a separate control, which is precisely the note
+   the client raised about orange-family buttons. Powder blue sits on the cool
+   side with the navy ink, so every actionable thing on a warm field is cool
+   and every warm thing is surface. Navy label on powder is 11.17:1. */
+.btn-secondary {
+    background-color: var(--color-brand-powder);
+    color: var(--ink-on-orange);
+    border: 1.5px solid var(--color-brand-powder);
+    box-shadow: 0 8px 22px rgba(12, 20, 36, 0.26);
+    font-weight: 700;
+}
+.btn-secondary:hover, .btn-secondary:focus-visible {
+    background-color: var(--color-brand-powder-deep) !important;
+    border-color: var(--color-brand-powder-deep) !important;
+    color: var(--ink-on-orange) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 18px 34px rgba(12, 20, 36, 0.34);
+}
+.btn-secondary:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 4px 12px rgba(30, 65, 123, 0.3);
+}

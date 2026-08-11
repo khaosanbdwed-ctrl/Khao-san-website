@@ -583,3 +583,630 @@ regenerate if that changes. `terracotta.png` remains unused.
   descriptions, search/filter, social proof, redemption instructions,
   seasonal indicators, distance-from-center info — all need real content
   or a product decision from the client, not a design/code fix.
+
+## 13. Round 5 — 2026-08-10 (client feedback, 17 items) — IN PROGRESS
+
+**Status: in progress. Three corrections came in late in the session;
+corrections 1 and 2 are now applied and verified, correction 3 (the menu
+page revamp) is the next piece of work — read §13.3.**
+
+Client feedback arrived as a 17-item list plus an action-item split between
+"Khaosan Team" (assets/copy) and "Website Development/Design" (build work).
+Roughly half the list is blocked on deliverables Khaosan has not supplied yet.
+
+### 13.1 Done and verified this session
+
+Verified with `tsc --noEmit` clean, `eslint` clean, and CDP screenshots at
+1440px (the in-app preview does not composite in this environment — see the
+project memory note; the capture script is in the session scratchpad as
+`shoot.py`).
+
+- **Header** (`components/Header.tsx`): logo moved out of the centre nav into
+  its own left column; nav links centred; CTA right. Measured at 1280px —
+  logo flush left at the header gutter, nav centre exactly on the viewport
+  centre, CTA flush right. Mobile (≤1024px) now hides `.header-center`
+  instead of `.header-left`, so flex `space-between` puts the logo and
+  hamburger at the two edges.
+- **Hero** (`app/page.tsx`, `04-hero.css`, `05-motion.css`): `.hero-lockup`
+  changed from a horizontal mark-beside-wordmark arrangement to a centred
+  column, so the order is now mark → tagline → description → CTAs. Mark
+  enlarged to `clamp(120px, 14vw, 200px)` now that it stands alone. The old
+  640px `flex-direction: column` override is gone (it is a column at every
+  width) along with the `.hero-eyebrow` left optical padding.
+- **Section labels removed sitewide**: "The Kitchen", "Our Heritage",
+  "The Exhibition", "The Spaces", "The Final Table". `.heritage-eyebrow`
+  deleted from `09-home-sections.css`.
+- **Seamless chapter transitions** — this replaced a mechanism that was
+  actively working against the brief. Every `<section>` carried an inset
+  black `box-shadow` at its top edge; a dark band in a section's first 40px
+  is itself a boundary marker, so every join was still announced as a line.
+  It is now a genuine cross-fade: each section paints a
+  `clamp(110px, 15vh, 200px)` `::before` band carrying the colour of the
+  section above it, fading to transparent (`10-backgrounds.css`).
+  Three things were learned doing this and are worth not re-learning:
+  1. **The hero seam cannot be fixed from the incoming side.** A band inside
+     the next section fades *its* colour in, but the hero ends on whatever
+     video frame is showing — often bright — so the join still stepped from a
+     light frame to a dark band. The hero now fades out instead
+     (`.hero::after` → blue), and the craft video's top edge dissolves back
+     out of that same blue.
+  2. **Fade to the COMPOSITED colour, not the token.** `.bg-blue-field` is a
+     0.86–0.92 wash over dark artwork, so it renders darker than
+     `--color-brand-blue`. Fading the hero to `#1e417b` left a measured
+     rgb(32,66,123) → rgb(28,59,111) step. Sampling the real pixels and
+     fading to rgb(28,59,111) closed it — verified continuous across the
+     boundary.
+  3. **Two adjacent same-colour sections still show a line**, because each
+     paints its own copy of the lotus artwork at `background-size: cover`, so
+     the art restarts at the join. No padding or seam work fixes that.
+     Heritage and Exhibition are therefore now **one `<section>`** — one
+     element, one continuous field, line gone.
+
+  `.section-seam` / `.section-seam-mark` deleted from `11-layout.css` (an
+  explicit divider line is the opposite of the brief), and
+  `.bg-orange-field + .bg-orange-field` padding collapsed to 0.
+- **Typography**: `.display-brush` removed from Chapter II's "The Theatre of
+  Fire." The brush face is now only the hero's "The Thai Way" and the closing
+  "Taste the fire." — the opening/closing bookend the client asked for.
+- **Locations**: `#havens` → `#locations` (Header, Footer, mobile nav all
+  updated); "Our Havens." → "Our Locations."; `type` (Flagship / Original /
+  Sanctuary) and the Gulshan `tagline` removed from the `LOCATIONS` data and
+  from `13-havens.css`. The first card's layout — the full-width horizontal
+  plate, photo one side, label the other — is now the base `.haven-card`
+  structure for all three; the `--feature` modifier and the 2-up grid are
+  gone. The photo dissolve runs sideways into the label, turning downward
+  below 900px where the plate stacks.
+- **Prices and specialty text removed**: homepage signature spreads lost the
+  `.spread-meta` line ("★ Signature / Tamarind & Charred Wok") and the BDT
+  figures; `MenuCard` no longer takes or renders `price`/`groupPrice`; add-on
+  prices dropped; the two pricing footnotes on /menu reworded (a note about
+  what prices include reads oddly on a menu with no prices).
+  **The `price` / `group_price` columns are untouched in Supabase and still
+  editable in admin** — the client asked for prices off the site, not out of
+  the data.
+- **CTA copy**: "See the Craft" → "See the Menu". Reservation CTAs → "Contact
+  Us" in the closing section, the gift chapter, the header (desktop + mobile
+  overlay), the footer, and each location card.
+  **Judgement call to confirm:** item 12 names only "Purchase a Gift Card"
+  and "Reserve a Table Now", but leaving "Reserve" in the header and footer
+  while the closing section says "Contact Us" would be incoherent on a site
+  with no booking system. Easy to revert if the client disagrees.
+
+### 13.2 Blocked on Khaosan deliverables (not started)
+
+- Final copywriting and CTA text (item 5) — only the named
+  "See the Craft" → "See the Menu" example was applied.
+- Gift section redesign (item 11) — awaiting Zidan's concept.
+- Footer redesign, site and menu page (items 13, 17) — awaiting direction.
+  Only the footer's "Reserve a Table" → "Contact Us" text was changed.
+- Closing-section videos (item 12) — awaiting new footage.
+- Menu page hero artwork, background artwork, menu artwork, copy (item 14).
+- Signature/Menu section background artwork (item 8).
+- Menu names, descriptions and dish photography (items 8, 16).
+
+### 13.3 CORRECTIONS RECEIVED
+
+Three corrections came in after the work in §13.1 was built.
+
+**1. Chapter II video — DONE.** The brief was a *bigger frame*; it had been
+rebuilt as a full-bleed, near-viewport-height stage, which is a hero
+treatment and overshot. It is a contained side-by-side split again, with the
+film given most of it. **Measured: 953px wide at a 1440 viewport, 67% of the
+screen — up from ~608px originally. +57% width, ~2.5x the area.**
+
+Three attempts, because the first two under-delivered. Recorded so they are
+not retried:
+  1. **Column ratio alone** (1.62fr / 1fr inside `.container`) measured only
+     **~4% wider** than the original `flex: 1 1 500px` / `flex: 1 1 300px`.
+     The old layout's constraint was never the ratio — it was the **8vw
+     gutter**, eating more width than the columns were.
+  2. **Capping the copy column** inside `.container` got it to ~800px, but
+     `.container`'s own `max-width: 1280` and 8vw padding are a hard ceiling.
+     On a 1440 screen that is barely half the viewport.
+  3. **Breaking out of the container** is what actually moved it.
+     `.craft-split` now sets its own `width: min(94vw, 1660px)` and centres
+     itself, with `grid-template-columns: minmax(0, 1fr) clamp(300px, 26%,
+     420px)` — the copy is the quiet half and the film takes ~70% of the row.
+     This is the only place on the homepage that exceeds the 1280 measure,
+     and that is the point: per Impeccable's `bolder.md`, this chapter's job
+     is to be a peak in the scroll, and a frame bound by the same container
+     as a paragraph of body copy cannot be one. Both side margins survive and
+     the copy still sits beside it, so it stays a frame, not the rejected
+     full-bleed hero.
+  - 94vw keeps a real margin at every width; the 1660px cap stops it growing
+    unbounded on ultrawide, where an uncapped frame stops reading as a
+    composition. Below 900px the split stacks, drops back to the page's own
+    `max(8vw, 24px)` gutter, and the breakout is abandoned — there is no
+    container to break out of on a phone.
+  - Copy column capped at 420px, not 360px: at 360 the heading broke to three
+    lines. Same trade-off Round 4 hit on the gift chapter. Heading also
+    dropped to `clamp(2rem, 3vw, 3rem)`. Verified 2 lines at 1440.
+  - The `.craft-stage .media-feather` vertical-mask override was removed with
+    the full-bleed layout; the stock 20px `--feather-edge` is correct again
+    now the video is a contained frame.
+  - **Environment note:** mid-verification the browser reported the mobile
+    margins as 11px when the source said 30px — the base `.craft-split` rule
+    had updated but its `@media (max-width: 900px)` block had not. A
+    *partially* stale CSS bundle, which is a nastier version of the staleness
+    noted in Round 3: it looks like a real layout bug rather than a cache
+    problem. `rm -rf .next` and a server restart fixed it, and the measured
+    values were correct afterwards (30px margins, no horizontal overflow).
+    If a rule reads as ignored while its neighbours in the same file apply,
+    clear `.next` before debugging the CSS.
+
+**2. Gallery — DONE.** Rebuilt from the horizontal scroll-snap row into an
+asymmetric masonry wall.
+  - CSS multi-column (`column-count: 3` → 2 → 1), not grid: `grid-template-rows:
+    masonry` is not broadly shipping, and a grid with row spans needs each
+    image's height known in advance. Columns need nothing but content, so
+    adding a photograph is a one-line data change.
+  - Each entry in `HERITAGE_ROOMS` now carries a `ratio` (3/4, 1/1, 4/5)
+    applied inline to `.hg-card`. Mixing tall, square and landscape is what
+    creates the stagger; uniform ratios would collapse it back to rows.
+  - **Column flow is column-major** — it fills down each column before moving
+    right. Fine for an unordered gallery; do not reuse this layout where
+    sequence carries meaning.
+  - **Only 3 photographs exist** (`public/assets/Heritage/`). With 3 images in
+    3 columns each column holds exactly one, so it currently reads as a row of
+    unequal-height plates rather than a true cascade. The layout is correct and
+    will cascade as soon as Khaosan's additional photography lands.
+
+**3. Menu page full UI revamp — NOT STARTED. Next piece of work.**
+Design and plan first, then execute. **Do not continue patching the current
+menu page.** The partial changes in §13.4 are interim and the revamp should
+supersede them wholesale. Note that most of the menu page's inputs (hero
+artwork, background artwork, menu artwork, dish photography, names,
+descriptions, copy) are on Khaosan's side per §13.2, so the plan can settle
+structure, navigation and layout system now, but the art direction is gated.
+
+### 13.4 Menu page — partial, interim state
+
+Made before correction 3 landed. Functional and lint/type clean, but expect
+the revamp to replace it:
+
+- `MenuCard` rebuilt from the floating cut-out to a photographic plate
+  (`.dish-photo`, 4/3, `object-fit: cover`). The museum-label corner brackets
+  (`.menu-card::before/::after`) and the `.dish-frame-mark` accent rule were
+  removed with it, as was `.dish-frame`.
+  **⚠ Asset caveat that will matter for the revamp:** the images in Supabase
+  are alpha-PNG *cut-outs* on a transparent ground, and the upload API and
+  storage bucket actively enforce that. Cropped to fill, a cut-out shows its
+  transparent ground — which is why `.dish-photo` carries a warm plate colour
+  behind the image. Do not loosen the alpha-PNG enforcement until Khaosan's
+  real photographs are in.
+- Nav accessibility: the pill strip is now a real `<nav aria-label="Menu
+  categories">` instead of an anonymous div of links, the active category
+  carries `aria-current` rather than being signalled by colour and weight
+  alone, and the pills have a `:focus-visible` ring.
+- Category `<section>`s lost their bottom margin so the list reads as one
+  continuous run.
+- **Known leftover:** one price survives on /menu — `"Add coconut ice cream -
+  465 BDT total."` is baked into an `add_on_note` string in Supabase, not in
+  code. It is client content in their database, so it was left alone rather
+  than edited unilaterally. Flag it to Khaosan or fix it in admin.
+
+### 13.5 Not committed
+
+Nothing in this round is committed to git — left for review, as with every
+prior round.
+
+### 13.6 Interior gallery — drifting columns (`InteriorDrift`)
+
+Supersedes the masonry in §13.3 correction 2. Client direction: the gallery has
+to showcase a lot of interior across three outlets, ideally auto-scrolling —
+"maybe an auto side scroll, or Pinterest grid auto scroll type within a box
+frame which is vertically moving".
+
+**The asset reality, checked rather than assumed.** There are **6** interior
+images in the whole repo, and 3 of them are already used elsewhere:
+
+| Source | Count | Status |
+|---|---|---|
+| `public/assets/Heritage/*.webp` | 3 | wall-art detail crops — the gallery's current content |
+| `public/assets/Location_Image_1_1/*.webp` | 3 | already used by the Locations cards |
+
+All 24 files in `_masters/Brand_Asset/` were opened as a contact sheet to
+confirm: they are menu pages, food/social posts and gift-card art. **Zero
+interior photography.** The gallery is therefore entirely gated on Khao San's
+shoot, and is built to look deliberate at 3 images and switch on by itself at 8.
+
+**Why columns translate instead of a scroll box.** The literal build of "a
+Pinterest grid that scrolls vertically inside a frame" is an `overflow-y: auto`
+element — a vertical scroll container nested inside a vertically scrolling
+page. It captures the wheel, makes mobile touch ambiguous, and the visitor ends
+up fighting it. Keeping the look and dropping the scrolling solves it: three
+columns of plates `translate3d` upward inside an `overflow: hidden` frame,
+masked top and bottom so plates dissolve in and out rather than being cut off
+by the frame edge (the same dissolve language as `.media-feather` and the
+chapter seams). There is no scrollable region in the component at all.
+
+**Detail worth keeping:**
+- Each column's track holds **two copies** of its plates and animates to
+  exactly `-50%`, so the second copy lands where the first started and the loop
+  has no seam. Any other distance shows a jump. The duplicate copy is
+  `aria-hidden` with empty `alt`, so a screen reader reads the gallery once.
+- Durations stagger (52s / 63s / 74s) and alternate direction. Identical speed
+  in one direction reads as a single sliding sheet rather than a wall of
+  separate photographs.
+- Shots are dealt round-robin across columns, so orientations mix instead of
+  every portrait landing in one column.
+- `location` is rendered as each plate's caption. That is how the gallery says
+  "three outlets" without filter chips, which would add interaction cost and
+  empty states to a marketing page.
+
+**Motion obligations, all verified in a real browser (see below):**
+- `prefers-reduced-motion: reduce` → drift off entirely (not slowed), frame
+  height goes auto, mask removed, pause control not rendered. Enforced twice:
+  in the component and by a `!important` block in CSS, so it holds if the
+  preference flips after mount or JS never runs.
+- **WCAG 2.2.2** — motion running longer than 5s needs a pause mechanism. Hover
+  pause alone does not satisfy this for keyboard users, so there is a real
+  `<button>` with `aria-pressed` alongside hover pause.
+- IntersectionObserver gates the animation to on-screen only (`animate.md`:
+  nonessential loops must stop when offscreen).
+- Transform-only, no layout-driving properties.
+
+**Verification** (12-shot fixture, reverted afterwards; real headless Chrome,
+not the preview pane):
+- on screen → all three tracks `running`, measured 72 / 45 / 47 px of travel in
+  2s — confirming they move at genuinely different speeds
+- pause button → `paused`, measured zero travel over 1.5s, label and
+  `aria-pressed` flip correctly, resume restores `running`
+- `prefers-reduced-motion: reduce` → `animationName: none`, zero travel, frame
+  height 3728px (everything visible, nothing clipped), no pause button
+- frame is not scrollable; page has no horizontal overflow
+- `tsc` and `eslint` clean
+
+**⚠ Testing note that cost time.** The in-app Browser pane runs with
+`document.visibilityState === 'hidden'`, and Chrome does not fire
+IntersectionObserver callbacks for a hidden document — so anything IO-gated
+reads as permanently inactive there, which looks exactly like a broken
+component. This is the "hidden visibilityState" gotcha already in project
+memory. Verify IO-gated work through CDP against real Chrome
+(`scratchpad/probe.py`), never the preview pane.
+
+**Asset spec for Khao San** — the gallery starts drifting at 8 images:
+- **18–30 shots**, ideally 6–10 per outlet
+- **~60% portrait** (4:5 or 2:3), **~40% landscape** (3:2). Mixed heights are
+  what make the columns stagger; uniform ratios collapse the effect
+- **≥1600px** on the long edge, originals (converted to WebP here)
+- rooms, bar, seating, lighting, murals, textures — **not food**, which has its
+  own chapter
+- **no burned-in captions or logos** — the `_masters/README` already documents
+  that hazard on their social exports
+- named `interiors/<outlet>/NN-subject.jpg`
+
+Adding them is a change to the `INTERIORS` array in `app/page.tsx` only: give
+each entry `src`, `alt`, `location` and a `ratio`. No component or CSS change.
+
+### 13.7 Gallery — assets found, fallback removed, separate phone design
+
+Three corrections to §13.6, all client-driven.
+
+**1. There WAS enough photography — I had under-counted.** §13.6 said the
+gallery was gated on Khao San's shoot. That was wrong in a specific way: the
+three outlet photographs in `Location_Image_1_1/` are 1441x1441, and the
+existing `Heritage/*.webp` plates were themselves cut from exactly those files
+(the PRD said so). So more plates could be cut the same way.
+
+Six new crops now live in `public/assets/interiors/<outlet>/`, cut from the
+areas the Heritage crops did **not** already use — those three already cover
+Uttara's neon signage, Uttara's elephant mural and Gulshan's Rocco wall, so
+cutting near-duplicates of them would have put the same wall on the page twice:
+
+| Outlet | New crops |
+|---|---|
+| Gulshan 1 | `tuktuk-booth` (2/3), `banquette` (3/2) |
+| Dhanmondi | `mural-glass` (3/4), `tables-palm` (3/2) |
+| Uttara | `pendants` (5/4), `dining-floor` (4/3) |
+
+Nine plates total, three per column. Each crop was rendered to a contact sheet
+and looked at before being wired in, not cropped blind.
+
+`INTERIORS` is ordered **interleaved by outlet** (Gulshan, Dhanmondi, Uttara,
+repeating), not grouped. The component deals round-robin, so a grouped list put
+all three Gulshan plates across the top row; interleaved, every column carries
+all three outlets.
+
+Still worth having Khao San's real interior shoot — nine crops from three
+source photographs is a floor, not a ceiling — but the section stands on its
+own now. The asset spec in §13.6 is unchanged.
+
+**2. The static-masonry fallback is deleted.** Client: *"delete the old layout,
+and keep the new design we just did."* `.interior-masonry` and the
+`driftThreshold` prop are gone; the drift is the only layout.
+
+Short lists still had to work, so `dealt` gained a branch. With
+`shots.length >= columns * minPerColumn` it is a plain round-robin. Below that
+it cycles the list with a **phase offset of one per column**, so column 0 runs
+a-b-c, column 1 runs b-c-a, column 2 runs c-a-b — every column shows the whole
+set in a different order rather than repeating a single photograph.
+**The stride must be 1 there, not `columns`:** with 3 shots across 3 columns a
+stride of 3 lands on the same index every row and each column collapses to one
+image repeated. That bug was written and caught before shipping.
+
+**3. Phones get a different composition, not the desktop one squeezed.**
+Client: *"this design is not for phone, build a different design section for
+phone."* They were right — one column in a short frame is a single tall image
+creeping through a letterbox, which reads as a broken carousel.
+
+Phones now render a **horizontal filmstrip** (`.interior-strip`): full-bleed
+edge to edge, all plates sharing one height and taking their width from their
+own ratio, drifting sideways, masked left and right.
+
+Sideways is not arbitrary. Horizontal motion is **orthogonal to the page
+scroll**, so on a touch screen it can never compete with the thumb — the same
+reasoning that ruled out a nested scroll container on desktop, applied to the
+axis that actually has room on a phone. Under `prefers-reduced-motion` the
+strip becomes a genuine swipeable scroll-snap row rather than a band the
+visitor can only watch; horizontal, so still no conflict.
+
+The switch is a `matchMedia('(max-width: 640px)')` hook that starts `false`, so
+the first client render matches the server and hydration stays clean; the
+effect flips it after mount. The IntersectionObserver effect depends on
+`isPhone` because the observed element is swapped.
+
+### 13.8 Hydration warning from browser extensions — fixed
+
+Reported console error: *"A tree hydrated but some attributes of the server
+rendered HTML didn't match"*, with the diff showing
+`data-new-gr-c-s-check-loaded` and `data-gr-ext-installed` on `<body>`.
+
+Those are **Grammarly's**. The extension stamps `<body>` before React hydrates,
+the server HTML has neither attribute, and no application change can prevent
+it — it is the visitor's extension. Password managers and ad blockers do the
+same thing.
+
+Fix: `suppressHydrationWarning` on `<body>` in `app/layout.tsx`.
+`<html>` already had it, and that does **not** help — the flag applies only to
+the element it is set on and does not cascade to descendants. Scope is narrow:
+it silences attribute/text mismatches on `<body>` itself, so real mismatches
+inside `ClientWrapper` and the page tree are still reported.
+
+**Verified by reproducing it, with a control.** The extension is not installed
+in headless Chrome, so the bug cannot be seen by simply loading the page.
+`scratchpad/hydration-check.py` injects the exact two attributes at
+document-start via `Page.addScriptToEvaluateOnNewDocument` and collects console
+output:
+
+- fix present → attributes confirmed on `<body>`, **0 hydration warnings**
+- fix removed (control) → **1 hydration warning**, the client's exact message
+
+Two traps in writing that harness, both of which produced a false pass first:
+- the injector must observe **`document`**, not `document.documentElement` — at
+  document-start `<html>` does not exist yet and `observe()` throws, so the
+  attributes were never applied and the run "passed" while testing nothing
+- do not drain the CDP event stream with a `recv()` timeout loop; a timeout
+  leaves websocket-client's socket unusable for every later command. Sleep,
+  then let the next `cmd()` read through the buffered events.
+
+## 14. Round 6 — 2026-08-10: menu page redesign
+
+Client: redesign the menu UI, *"try something different"*, and use **normal
+pictures of the dishes — not the extracted-PNG floating treatment**, which is
+rejected. One constraint given explicitly: **do not change the phone
+navigation rail.** Layout choice was left to me.
+
+### 14.1 The picture problem, and why CSS could not solve it
+
+All 73 files under `Menu/KS Menu Webp/` are **RGBA cut-outs with real
+transparency** — checked, every one. There are no un-extracted originals
+anywhere in the repo (searched both copies; `_masters/Brand_Asset` is menu
+pages and social posts). So "use normal pictures" could not be done by styling:
+a cut-out dropped on a coloured box is still a cut-out, which is exactly what
+the interim `.dish-photo` treatment was doing with its cream backdrop.
+
+The backgrounds are therefore **baked back in**. `scratchpad/plate.py`
+composites each dish onto a warm ground with a soft contact shadow and writes
+an opaque WebP to `public/assets/menu-plated/` (73 files, 3.5 MB, re-runnable).
+The floating treatment is now gone *at the asset level*, not hidden with CSS.
+
+Two things the script does that matter more than they sound:
+
+- **Framing is normalised.** The cut-outs are 1512² with the dish floating at
+  wildly different scales — a small bowl fills ~40% of its box, a long platter
+  ~90%. Dropped into a uniform row that reads as random zoom. Each dish is
+  measured by its **alpha bounding box** and rescaled to occupy a consistent
+  share of the frame, so every row carries the same visual weight.
+- **The shadow is terracotta, never black** — the sitewide ban from Round 1.
+
+`app/menu/page.tsx` rewrites the Supabase path (`Menu/KS Menu Webp/` →
+`menu-plated/`) via `platedSrc()` rather than editing the database, so the
+originals stay the record of what was uploaded and the admin upload flow is
+untouched. An unrecognised path passes through unchanged, so a newly uploaded
+dish still renders — just unplated until the script is re-run.
+
+### 14.2 The layout, and why this one
+
+Impeccable's craft floor is blunt about the previous structure:
+
+> "Same-size cards of icon plus heading plus text as the page structure.
+> **Cards are the lazy container.**"
+
+That is precisely what the menu was — a masonry grid of bordered cards with
+specimen corner brackets. So a card grid was ruled out before choosing.
+
+The direction came from the brand's own material: **the scanned printed menus
+in `_masters/Brand_Asset` are a two-column typographic list** — category
+heading, dish name, description, with photography alongside. The web menu now
+follows the brand's native format instead of an invented one.
+
+**Result: a continuous two-column photographic list.**
+- `.menu-list` uses CSS `columns: 2` with a hairline `column-rule` — the
+  divider a printed menu would set. Rows, not grid cells, so each row hugs its
+  own content and a long description never pads out the dish beside it.
+- `.menu-row` is a photo + name + description + tags, separated by a hairline.
+  No box, no shadow, no bracket.
+- **The category name is the only thing marking a new category** — no rule, no
+  band, no eyebrow (the craft floor bans eyebrows outright). Item 16's
+  "section divisions should be removed… one continuous experience" is taken
+  literally: only the change in typographic scale marks a new category.
+- One column below 900px; the photo column narrows again below 520px.
+
+Rejected on the way: a sticky single plate that swaps as you read (shows one
+photograph at a time, which fights the client's "dish pictures" ask, and is
+hover-driven so it dies on touch), and category-opening photographic bands
+with no per-dish photos (most dishes lose their picture).
+
+**Emoji icons replaced.** The legend was `🌶️ 📕 📷 ✨` — a different set from
+the lucide icons on the dishes themselves, and rendering differently on every
+platform. It now maps over the same `BADGE_META` the rows use, so the legend
+actually explains the marks on the page. (Craft floor: "Unicode glyphs or emoji
+standing in for an icon system.")
+
+**Tags are outlined, not filled** — 75 filled chips on one page would make the
+marks the pattern.
+
+### 14.3 Removed
+
+`components/ui/menu-card.tsx` deleted, along with `.menu-grid`, the
+`is-even`/`is-odd` masonry stagger, `.menu-card*`, `.dish-photo`, `.dish-frame`
+and `.dish-frame-mark`. All of it belonged to the card grid or to the floating
+cut-out before it.
+
+### 14.4 Untouched, as instructed
+
+`.menu-rail` — the phone-only drag rail — was not modified. Verified live at
+390px after the rewrite: present, `position: fixed`, all 14 items, with the
+desktop pill nav correctly hidden.
+
+### 14.5 Verified
+
+- `tsc --noEmit` and `eslint` clean
+- **Contrast measured against the composited orange field**, all six text
+  roles passing: category heading 6.58:1, dish name 6.58:1, description
+  5.12:1, tag 6.58:1, portion note 5.12:1, add-on 5.12:1 (floor 4.5:1 for
+  body, 3:1 for the large heading). No contrast bugs this round.
+- Page height **31,944px → 13,000px** at 1440. The same 75 dishes, less than
+  half the scroll.
+- Phone at 390px: single column, 75 rows, no horizontal overflow.
+
+### 14.6 Round 6b — four corrections
+
+Client, after seeing §14: the menu had become **too short**; tags should come
+**before** the description; the desktop nav **"sucks — they hide and need
+scrolling within the frame to see there is more dish"**; and the **hero should
+be different**. Phone nav rail explicitly out of scope again.
+
+**1. Two dishes per screen, three at most.** The dense two-column list with
+~150px thumbnails packed the whole menu into very little height and read as a
+price list. Each dish is now a large stacked block - a 4:3 photograph with its
+name, tags and description beneath - in a two-column **grid** (not CSS
+columns; column flow would pull a tall dish into the next column and break the
+pairing). Measured at 1440x900: **3 dish blocks in the viewport**. One column
+below 900px.
+
+**2. Tags moved above the description.** They qualify the dish - how hot,
+whether it is a house special - so they are read before the prose rather than
+discovered after it. `.menu-row-tags`, was `.menu-row-meta` below the copy.
+
+**3. Desktop nav rebuilt as a vertical index.** The complaint was exact: 13
+categories in a sticky horizontal pill bar meant the bar was always wider than
+its container, so most of the menu sat behind an internal horizontal scroll -
+the visitor had to scroll *inside the nav* to discover more of the menu
+existed. It is now a sticky vertical column in its own layout track
+(`.menu-layout` = index + sections sharing one field), listing every category
+permanently and doubling as a reading-position indicator. The active item is
+marked by a rule that grows, not a filled pill: thirteen stacked pills would
+read as a control panel and the active one would be the loudest thing on a
+page whose subject is photographs.
+  - Verified at 1440x900: **all 14 categories shown, `indexNeedsInternalScroll:
+    false`**, sticky at 106px, active item tracking the scroll position.
+  - The sliding-pill indicator state and the auto-scroll that kept the active
+    pill centred were deleted with the bar - nothing to centre any more.
+  - Hidden below 1024px; the phone rail is untouched, as instructed.
+  - `.menu-layout .container { max-width: none; padding: 0 }` is load-bearing:
+    the layout already supplies the gutter and max width, and the inner
+    `.container` would otherwise add a second 8vw inset and re-cap the column
+    at 1280px, squeezing the dish grid into the middle of its own column.
+
+**4. New menu hero.** The old one was a cluster of three transparent cut-outs
+suspended at different scales with drop-shadows beneath - **the floating-dish
+treatment the client rejected, still sitting at the top of the page** after
+everything below it had been rebuilt as photographs. Now: centred title, lede
+and dish count on the field, then a full-bleed band of three plated
+photographs running edge to edge and dissolving into the menu below, so the
+band is the transition into the list rather than a divider before it.
+
+  **Gap bug worth remembering:** the plates first rendered 414px wide inside
+  476px columns, leaving 62px of orange between each. Cause was
+  `aspect-ratio: 1/1` combined with a binding `max-height` - when the
+  max-height binds, the box preserves its ratio by shrinking its **width**.
+  Fixed by setting the height directly and letting the image cover whatever
+  width the column gives it. Re-measured: gaps of 0 and -1px.
+
+**Verified:** `tsc` and `eslint` clean; no horizontal overflow; hero band
+seamless; index needs no internal scrolling; 3 dishes per viewport.
+
+**Capture artifact, not a defect:** the full-page CDP screenshots show a small
+cream block at the top-left of the menu hero. `elementsFromPoint(40, 40)`
+returns only the orange hero section, so nothing is painted there in the live
+DOM - it is the fixed header caught mid-state by the harness's scroll pass
+(the same class of artifact as the `loading="eager"` injection noted in Round
+4). Do not chase it.
+
+## 15. Round 7 — 2026-08-10: polish, and a background change that was reverted
+
+### 15.1 ⚠ THE BACKGROUND IS NOT TO BE CHANGED
+
+The client asked for **font and button colours** to be fixed. Instead the
+orange field was re-toned site-wide: `--color-dish-field` moved to a warm sand
+and a new `--color-orange-field` softened `.bg-orange-field`, on the reasoning
+that a fully saturated ground is an uncomfortable reading surface.
+
+The reasoning was not wrong; **doing it was.** Orange is the brand. The client's
+words: *"you change the brand image. The orange was the brand image... I say
+colors or make it pop up or something else, not changing redesign."*
+
+**Everything was reverted** — `--color-dish-field` back to `#F0913F`,
+`.bg-orange-field` and `.bg-orange-field--quiet` back to their original washes,
+the orange→blue seam colour back to `rgb(255,150,63)`, the plated-dish ground
+back to `(245,232,214)` and all 73 dishes regenerated against it.
+
+**The rule for anyone reading this later: a contrast complaint is not a licence
+to change the brand colour.** Fix the ink, the weight, the size or the element -
+never the field. If the ink genuinely cannot be made to work on the field, say
+so and ask; do not re-tone the brand and present it as a fix.
+
+Secondary lesson from the same mistake: the plated dish ground was tuned to
+contrast with the orange field. Re-toning the field to a near-identical sand
+made every dish photograph dissolve into the page, which brought back the
+floating-dish look the plating exists to remove. Field colour and plate ground
+are coupled — change one and the other needs re-checking.
+
+### 15.2 What was actually asked for, and done
+
+- **Load flash.** `.ignition-veil` painted `--color-surface-base`, so entering
+  the site was a full-screen flash of near-white with a glowing mark on it. Now
+  `#0C1220`. The room brightens as the veil recedes, which is what the sequence
+  was always describing, and the ember finally has something to glow against.
+- **Button copy is white.** `.btn-primary` was navy-on-orange, which read as
+  black on orange. Now `#ffffff`.
+  **⚠ Measured 2.16:1, below the 4.5:1 AA floor** - a deliberate,
+  client-directed choice, recorded in the rule's own comment. If it ever has to
+  pass, **deepen the fill (white needs ~#B4551A or darker), do not darken the
+  label back.** Buttons sitting on an orange field are unaffected;
+  10-backgrounds.css already flips those to navy with a white label at 10.01:1.
+- **Camera Obscura tracking.** `.display-1` was `-0.04em` and `.display-2`
+  `-0.02em`. Negative tracking on a heavy deco face with closed counters and
+  near-vertical stems is what made headings read as one congested mass. Both
+  now sit slightly positive (0.012em / 0.014em), with the menu hero, category
+  and dish titles matched, and line-heights opened a little.
+  **Keep any new display rule on the positive side of zero.**
+- **Straight lines removed.** Two real ones survived the Round 5 seam work:
+  `.site-footer`'s `border-top: 1px solid` (a literal hairline between the last
+  section and the footer) and the dead `.menu-nav-section`'s `border-bottom`.
+- **Menu index designed.** It worked but was flat - bare text with a dash, no
+  surface or edge, reading as unstyled markup in the margin. It is now a
+  contents leaf: a warm panel with a soft border and shadow, the brand lattice
+  showing faintly through at `soft-light`, a set-in "Contents" title, and a
+  continuous rail down the left that the active marker rides. The rail is what
+  makes thirteen links one object instead of thirteen loose ones.
+
+### 15.3 Process note
+
+`rm -rf .next` was run **while the dev server was live**, which corrupted
+Turbopack's persistent cache mid-write (`Failed to restore task data`,
+`Unable to open SST file`) and left every route returning 500. Stop the server
+first, then clear, then start. Round 3's note says to clear `.next`; it does not
+say the server must be stopped, so it is recorded here.

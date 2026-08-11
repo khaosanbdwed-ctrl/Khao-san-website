@@ -1,0 +1,512 @@
+/* ============================================================
+   CHAPTER II - The Theatre of Fire
+
+   The footage was a 16/9 box occupying one half of a two-column split - about
+   a third of the viewport, reading as an embedded clip rather than a scene.
+   It is now the section: full-bleed edge to edge, near-viewport height, with
+   the copy set beneath it.
+
+   Copy below the film rather than over it, deliberately. Type on this footage
+   would need a scrim, and the client's standing note from Round 2 is that the
+   video must stay visible - a scrim strong enough to carry a paragraph is
+   exactly what dulled it last time. Underneath, the blue field carries the
+   text at its documented 10:1 and the film stays untouched.
+   ============================================================ */
+/* The split is weighted, not even. It was `flex: 1 1 500px` against
+   `flex: 1 1 300px` with an 8vw gutter, which in practice gave the film only
+   about half the row and a third of the viewport - it read as an embedded clip
+   rather than a scene. The video column now takes roughly 62% and the gutter
+   is tighter, so the frame is materially bigger while the section keeps the
+   contained side-by-side composition it always had. */
+/* The film breaks out past the page's 1280 measure. This is the one place on
+   the homepage that does, and it is deliberate: this chapter's job is to be a
+   peak in the scroll, and a frame that obeys the same container as a paragraph
+   of body copy cannot be one.
+
+   Two earlier attempts under-delivered and are worth recording so they are not
+   retried:
+     1. A column ratio alone (1.62fr / 1fr inside .container) measured only
+        ~4% wider than the original `flex: 1 1 500px` / `flex: 1 1 300px`. The
+        old layout's real constraint was never the ratio - it was the 8vw
+        gutter, which ate more width than the columns did.
+     2. Capping the copy column inside .container got the frame to ~800px, but
+        .container's own max-width: 1280 and 8vw padding put a hard ceiling on
+        it. On a 1440 screen that is barely half the viewport.
+   Escaping the container is what actually moves it: ~1080px of film at 1440,
+   ~1240px at 1920. Still a frame - both side margins are intact and the copy
+   sits beside it - not the full-bleed hero treatment that was rejected.
+
+   94vw keeps a real margin at every width; 1660px stops it growing without
+   limit on ultrawide displays, where an unbounded frame stops reading as a
+   composition. */
+.craft-split {
+    width: min(94vw, 1660px);
+    margin-inline: auto;
+    display: grid;
+    /* The copy is the quiet half. Capped at 420px so the film takes ~70% of
+       the row; 420 rather than 360 because at 360 the heading broke to three
+       lines ("The / Theatre / of Fire."), the same trade-off Round 4 hit on
+       the gift chapter. */
+    grid-template-columns: minmax(0, 1fr) clamp(300px, 26%, 420px);
+    align-items: center;
+    gap: clamp(32px, 3.4vw, 64px);
+}
+.craft-stage {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+.craft-copy {
+    position: relative;
+    z-index: 2;
+}
+@media (max-width: 900px) {
+    /* Stacked, film first - at this width a 70/30 split leaves the copy column
+       too narrow to set a paragraph in. Back to the page's own gutter too: a
+       breakout only means something when there is a container to break out of,
+       and on a phone there effectively isn't. */
+    .craft-split {
+        width: auto;
+        margin-inline: max(8vw, 24px);
+        grid-template-columns: 1fr;
+        gap: clamp(28px, 5vw, 48px);
+    }
+}
+
+/* CHAPTER III - Heritage: an art-directed mosaic, not an image-plus-paragraph
+   band. A large feature room anchors the composition; supporting rooms at
+   different scales stagger around it; the signature line sits in its own
+   negative space above. Stays dark - part of the Editorial Nocturne. */
+.heritage {
+    position: relative;
+    background-color: var(--color-surface-base);
+    padding: var(--space-macro) 0;
+    overflow: hidden;
+}
+.heritage-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 max(8vw, 24px);
+}
+.heritage-head {
+    max-width: 800px;
+    margin-bottom: 56px;
+}
+/* .heritage-eyebrow removed with the rest of the section labels ("Our
+   Heritage", "The Kitchen", "The Exhibition", "The Spaces", "The Final
+   Table") - the client's direction is that sections carry no label. */
+/* Set in the display face, not the copperplate script it used to use. Three
+   reasons, in order of weight: (1) at display size the script's thin, highly
+   looped letterforms made the section's emotional centrepiece the hardest line
+   on the page to read; (2) an elegant copperplate is the wrong voice for a
+   brand built on hand-painted brush lettering and heavy deco caps - it read as
+   borrowed, not Khao San; (3) that face is the vendor's PERSONAL-USE-ONLY demo
+   build, and this was one of only two places it appeared. Good Brush remains
+   the brand's script and still carries "The Thai Way" in the hero, which is the
+   phrase the brand actually sets in script. */
+.heritage-quote {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.6vw, 3.4rem);
+    line-height: 1.14;
+    color: var(--color-text-primary);
+    font-weight: 600;
+    font-style: normal;
+    margin: 0;
+    text-wrap: balance;
+}
+/* The accent has to actually differ from the surrounding ink to be an accent.
+   On the orange field the quote resolves to #16233d and --color-primary to the
+   brand blue #1e417b - 1.56:1 apart, i.e. the same colour to the eye, so the
+   emphasis on "quietly elevated" did nothing at all. Terracotta is the warm
+   accent this palette already uses for marks on light ground, and it separates
+   clearly from the near-navy quote while still reading as brand. */
+/* Butter on orange measures 1.79:1 - invisible, and the emphasis it was
+   meant to carry did nothing. Brand blue on orange is the client's own
+   documented lockup and the only accent that survives this ground.
+
+   Measured 3.41:1 against the REAL composited field (rgb(218,130,60) once the
+   lotus wash is applied) - not the 4.64:1 the flat #ff964f token implies. This
+   line is 51.8px display type, so the applicable floor is 3:1 and it passes,
+   but the headroom is thin: do not reuse this pairing at body size. The
+   deeper #16233d would measure better, but it is so close to the near-black
+   headline beside it that the emphasis would read as no emphasis at all. */
+.heritage-quote em {
+    color: var(--color-brand-blue);   /* 3.41:1 measured - large text only */
+    font-style: italic;
+}
+
+/* The gallery: equal portrait plates of the room itself. This chapter is about
+   the place, not the plates - the dish photography already carries the
+   Exhibition chapter directly below, and repeating it here made the two read
+   as one long food grid. Equal weight, not a feature/supporting mosaic: no one
+   room outranks the others.
+
+   An asymmetric masonry wall, not a row of equal plates. Each figure declares
+   its own aspect ratio (the `ratio` field on HERITAGE_ROOMS), and CSS columns
+   flow them top-to-bottom so the columns end at different heights and no two
+   plates line up - that stagger is the point.
+
+   CSS multi-column rather than grid: `grid-template-rows: masonry` is still
+   not shipping broadly enough to rely on, and a grid with row spans requires
+   knowing each image's height in advance. Columns need nothing but the
+   content, so adding a photograph is genuinely a one-line data change.
+
+   The one thing to know about column flow: it fills DOWN each column before
+   moving to the next, so reading order is column-major, not left-to-right.
+   That is fine for an unordered gallery; do not use this layout for anything
+   where sequence carries meaning. */
+/* --- Drifting columns ---
+   A fixed-height window with columns translating through it. The frame is
+   masked top and bottom so plates dissolve in and out rather than being
+   guillotined by the frame edge - the same dissolve language as
+   .media-feather and the chapter seams. */
+.interior-drift-wrap {
+    position: relative;
+}
+.interior-drift {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(18px, 2.2vw, 30px);
+    height: clamp(520px, 74vh, 860px);
+    overflow: hidden;
+    /* No overflow: auto anywhere in here. See the component's header comment:
+       a nested vertical scroll container inside a vertically scrolling page
+       captures the wheel and fights the visitor. */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 11%, #000 89%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 11%, #000 89%, transparent 100%);
+}
+.interior-drift-col {
+    position: relative;
+    overflow: hidden;
+}
+.interior-drift-track {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 2.2vw, 30px);
+    /* -50% exactly: the track holds two identical copies of the column, so at
+       -50% the second copy sits precisely where the first started and the loop
+       is seamless. Any other distance shows a jump. */
+    animation-name: interiorDrift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+}
+@keyframes interiorDrift {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(0, -50%, 0); }
+}
+.interior-drift-track > .hg {
+    padding-bottom: 0;
+}
+/* The accent rule under each plate is a hover affordance from the static
+   grid; on a plate that is continuously moving it reads as a stray mark. */
+.interior-drift-track > .hg::after {
+    display: none;
+}
+
+/* --- Phone: horizontal filmstrip ---
+   A different composition, not the column grid squeezed. All plates share one
+   height and take their width from their own aspect-ratio, so the band stays
+   level while portrait and landscape still vary the rhythm. Masked left and
+   right rather than top and bottom, because the travel is sideways. */
+.interior-strip {
+    position: relative;
+    width: 100vw;
+    /* Break the section gutter so the strip runs edge to edge - on a phone a
+       band inset by 24px each side wastes a fifth of the screen. */
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+.interior-strip-track {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    height: clamp(300px, 46vh, 420px);
+    width: max-content;
+    animation-name: interiorStrip;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+}
+@keyframes interiorStrip {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(-50%, 0, 0); }
+}
+.interior-strip-track > .hg {
+    height: 100%;
+    padding-bottom: 0;
+    flex: none;
+}
+.interior-strip-track > .hg::after { display: none; }
+/* Height is fixed by the track; aspect-ratio (inline, per shot) then sets the
+   width. This is what keeps the band level with mixed orientations. */
+.interior-strip-track .hg-card {
+    height: 100%;
+    width: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+    .interior-strip-track {
+        animation: none !important;
+        transform: none !important;
+    }
+    /* Nothing is moving, so the strip becomes a swipeable row instead of a
+       band the visitor can only watch. Horizontal, so it still does not
+       compete with the page scroll. */
+    .interior-strip {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+    .interior-strip-track > .hg { scroll-snap-align: center; }
+}
+
+.interior-drift-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 18px;
+    padding: 9px 18px;
+    border: 1.5px solid var(--color-primary);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--color-primary);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.interior-drift-toggle:hover,
+.interior-drift-toggle:focus-visible {
+    background: var(--color-primary);
+    /* The field's ink, not white: --color-primary on .bg-orange-field resolves
+       to brand blue, and white on brand blue is fine, but on the cream fields
+       it resolves to terracotta where white would be marginal. The surface
+       token tracks whichever field the section is on. */
+    color: var(--color-surface-base);
+}
+.interior-drift-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+}
+
+/* Belt and braces alongside the component's own reduced-motion check: if the
+   preference flips after mount, or JS has not run, the drift must not move. */
+@media (prefers-reduced-motion: reduce) {
+    .interior-drift-track {
+        animation: none !important;
+        transform: none !important;
+    }
+    .interior-drift {
+        height: auto;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+/* Wrapper exists so the accent rule can sit *outside* the card's
+   overflow:hidden, which is what clips the image to its rounded corners. */
+.hg {
+    position: relative;
+    padding-bottom: 14px;
+}
+.hg::after {
+    content: "";
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 0;
+    height: 4px;
+    border-radius: var(--radius-pill);
+    /* Field-scoped accent: brand blue on the orange field, butter on blue -
+       so the rule always separates from the background it is drawn on. */
+    background: var(--color-primary);
+    transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1), right 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hg:hover::after {
+    left: 2%;
+    right: 2%;
+}
+/* aspect-ratio comes from the inline `ratio` on each figure - see
+   HERITAGE_ROOMS. 3/4 is only the fallback if one is ever omitted. */
+.hg-card {
+    position: relative;
+    display: block;
+    aspect-ratio: 3 / 4;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 26px 52px rgba(141, 54, 31, 0.30);
+}
+/* No .img-feather here on purpose: a soft-edged mask reads as an unfinished
+   crop inside a hard-cornered card. These want a crisp edge. */
+.hg-card img {
+    object-fit: cover;
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hg:hover .hg-card img {
+    transform: scale(1.05);
+}
+/* Bottom-weighted so the caption has something to sit on while the top two
+   thirds of the room stay untouched. */
+.hg-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(8, 12, 20, 0.72) 0%, rgba(8, 12, 20, 0.28) 26%, rgba(8, 12, 20, 0) 55%);
+}
+.hg-cap {
+    position: absolute;
+    left: 22px;
+    right: 22px;
+    bottom: 20px;
+    z-index: 2;
+    color: #ffffff;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    text-shadow: 0 2px 10px rgba(8, 12, 20, 0.6);
+}
+/* The closing note sits under the gallery on its own line rather than inside
+   the grid, so the three plates stay a clean uninterrupted row. */
+.heritage-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin-top: clamp(40px, 5vw, 64px);
+}
+.heritage-note p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    max-width: 58ch;
+    font-size: 1.05rem;
+}
+@media (max-width: 900px) {
+    .interior-drift {
+        grid-template-columns: repeat(2, 1fr);
+        height: clamp(440px, 62vh, 620px);
+    }
+}
+@media (max-width: 560px) {
+    /* Two columns of phone-width plates are too small for interior
+       photography to carry any detail. One column, and the drift keeps
+       running - a single moving column still reads as a gallery. */
+    .interior-drift {
+        grid-template-columns: 1fr;
+        height: clamp(380px, 56vh, 520px);
+    }
+    .heritage-note { flex-direction: column; align-items: flex-start; gap: 24px; }
+}
+
+/* Gift card stack hover - replaces inline JS onMouseEnter/Leave */
+.gift-card-stack {
+    transition: transform 0.3s ease;
+}
+.gift-card-stack:hover {
+    transform: scale(1.02);
+}
+
+/* Phase 9: Motion Classes */
+.reveal-hidden {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 1000ms cubic-bezier(0.22, 1, 0.36, 1), transform 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-visible.reveal-hidden,
+.reveal-hidden.reveal-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-clip {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.reveal-visible .reveal-clip, .reveal-clip.reveal-visible {
+    clip-path: inset(0 0 0 0);
+}
+
+/* The wok toss: for the two signature-dish images only. A brief arc and
+   settle - a touch of overshoot on landing - rather than a plain fade-up,
+   echoing "the rhythm of the wok" language already on this page. */
+.reveal-toss {
+    opacity: 0;
+    transform: translateY(30px) rotate(-5deg) scale(0.93);
+    transition:
+        opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 900ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+.reveal-toss.reveal-visible {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+}
+
+/* ============================================================
+   WHERE THE BRUSH STROKE CAN AND CANNOT GO
+   (established by prototyping, so the next person doesn't re-derive it)
+
+   The stroke asset's entire value is its texture - impasto ridges, bristle
+   drag, splatter. That imposes hard constraints:
+
+   1. It must be LARGE. Below roughly 300px the texture is gone and it reads as
+      a rough smudge - worse than a clean rule. This is why the brush is NOT
+      used as an eyebrow underline or a thin divider, and why the existing
+      hairline rules (.heritage-eyebrow::before, .dish-frame-mark) stay as they
+      are.
+   2. It must sit BEHIND content, never clip it. Masking photography INTO the
+      brush silhouette was prototyped and rejected twice over: the full
+      silhouette made the subject unrecognisable, and a torn-edge variant read
+      as grunge/compression artefacts, which fights the brand's own "quietly
+      elevated" positioning.
+   3. It must NOT sit behind light type. White/cream on saffron measures
+      2.16:1 - the pairing forbidden throughout this file. A saffron mark behind
+      a white heading either goes so faint it turns muddy grey, or stays strong
+      and breaks the heading. A centred heading leaves nowhere for it to dodge
+      to except an edge, where it reads as a stain. This was tried on the Havens
+      chapter and removed.
+
+   Net: the stroke has exactly two homes, both of which satisfy all three -
+   the once-only chapter seam (components/ui/brush-transition.tsx) and the gift
+   chapter backdrop, where it is large, behind CARDS rather than type, and on a
+   cream ground it can actually fight.
+
+   To add more brush PRESENCE, reach for the brand's brush LETTERING
+   (.display-brush) instead of more copies of the stroke. It is the same
+   identity, carries no contrast or scale constraints, and self-limits because
+   the face is caps-only.
+   ============================================================ */
+
+/* Chapter transition: a brush stroke marking the seam between sections,
+   swept once as the next chapter arrives (see components/ui/brush-transition.tsx) */
+.brush-sweep {
+    z-index: 60;
+    pointer-events: none;
+    overflow: visible;
+}
+.brush-sweep-img {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    transform: translate(-130vw, 0);
+    animation: brushSweep 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    filter: drop-shadow(0 20px 30px rgba(141, 54, 31, 0.22));
+}
+@keyframes brushSweep {
+    to { transform: translate(130vw, 0); }
+}

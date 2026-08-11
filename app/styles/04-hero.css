@@ -1,0 +1,36 @@
+/* Hero Section
+   The hero is a full-viewport, flex-centred block, so its top and bottom
+   padding must match or the copy sits visibly below the optical centre. Both
+   sides are set to the fixed header's resting height: the headline clears the
+   nav bar, and the composition stays centred. */
+.hero {
+    padding-top: var(--header-h);
+    padding-bottom: var(--header-h);
+    position: relative;
+    overflow: hidden;
+
+    /* The hero is the one place on the site where type sits directly on
+       full-bleed footage, so it runs an inverted ink scale: cream on film
+       rather than the near-black used on the flat colour fields. Scoping the
+       tokens here re-points every `var(--color-text-*)` reference inside the
+       hero without touching a single call site. */
+    --color-text-primary: #FFF8EC;
+    --color-text-secondary: rgba(255, 248, 236, 0.86);
+    --hero-text-shadow: 0 2px 10px rgba(8, 14, 28, 0.28), 0 1px 3px rgba(8, 14, 28, 0.18);
+}
+
+/* Hero lockup - the mark sits centred ABOVE the wordmark, not beside it, so the
+   hero reads top-to-bottom as mark -> tagline -> description -> actions. The
+   side-by-side arrangement it replaced put the mark and the copy in competition
+   for the optical centre and pushed the wordmark off-axis. */
+.hero-lockup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(14px, 2vw, 26px);
+    margin-bottom: 34px;
+}
+.hero-lockup-text {
+    text-align: center;
+}

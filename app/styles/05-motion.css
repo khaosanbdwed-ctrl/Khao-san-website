@@ -1,0 +1,257 @@
+/* The source asset is solid brand blue on transparent, which disappears
+   against dark footage - knocked out to cream so it reads as an engraved mark
+   rather than a pasted-on logo. */
+.hero-mark {
+    display: block;
+    flex: none;
+    /* Larger than the old side-by-side lockup allowed: standing alone above the
+       wordmark it is the hero's first beat and has the full column width. */
+    width: clamp(120px, 14vw, 200px);
+    height: auto;
+    filter: brightness(0) invert(1) drop-shadow(0 3px 12px rgba(8, 14, 28, 0.5));
+    opacity: 0.96;
+}
+
+.hero-eyebrow {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: clamp(0.78rem, 1.1vw, 1rem);
+    font-weight: 500;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+    margin-bottom: clamp(6px, 0.8vw, 12px);
+}
+
+/* Good Brush - the hand-painted face the brand sets this phrase in. Tight
+   leading because the brush strokes already carry their own vertical air. */
+.hero-title {
+    font-family: var(--font-script);
+    font-size: clamp(2.9rem, 7.2vw, 6.25rem);
+    line-height: 0.92;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--color-text-primary);
+    margin: 0;
+    text-wrap: balance;
+}
+
+/* The lockup is a centred column at every width now, so the old 640px
+   flex-direction override has nothing left to switch. */
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(5, 7, 10, 0.55) 0%, rgba(5, 7, 10, 0.65) 100%);
+    z-index: 1;
+}
+
+/* Cinematic hero lighting: a vignette that darkens the edges and a soft
+   warm directional glow, so the copy reads as the lit focal point over
+   video/photo - editorial-photography lighting, not a flat scrim. Hero-only. */
+/* Cinematic hero lighting - a single layered composition that darkens the
+   frame edges, keeps the top readable under the nav, pulls the sides in, and
+   lifts a warm key light behind the headline so the eye lands on the type.
+   This is the HOMEPAGE HERO's signature treatment only - do not reuse it on
+   other media (see the brief: hero lighting is unique). */
+/* Three layers only, each doing one job, so the footage stays the subject:
+   a soft pool that sits *behind the copy* to carry the type, a short band at
+   the very top for the fixed header to rest on, and a base gradient that
+   grounds the frame. The previous version stacked seven full-frame washes -
+   four of them edge-to-edge - which closed over the whole video and read as
+   fog rather than lighting. Nothing here covers the mid-frame at full
+   strength, so the room, the neon and the movement all stay legible. */
+.hero-cinematic-light {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 44% 40% at 50% 50%, rgba(10, 16, 32, 0.56) 0%, rgba(10, 16, 32, 0.30) 48%, rgba(10, 16, 32, 0) 74%),
+        linear-gradient(to bottom, rgba(10, 16, 32, 0.30) 0%, rgba(10, 16, 32, 0) 14%),
+        linear-gradient(to top, rgba(10, 16, 32, 0.42) 0%, rgba(10, 16, 32, 0) 30%);
+}
+/* Phone hero.
+
+   The pool above is sized in PERCENTAGES OF THE VIEWPORT, which quietly
+   inverts its behaviour on a phone: 44% of 1440px is a broad ellipse that
+   comfortably contains the centred copy, but 44% of 390px is a 172px-wide
+   ellipse sitting behind a copy block that runs nearly edge to edge. The
+   headline's outer half then had no shade under it at all.
+
+   That is what made the mobile hero unreadable, and it is also why the white
+   logo lockup appeared to collide with the big orange Khao San sign in the
+   footage: with no pool separating them, two bright marks of similar size sat
+   directly on top of one another with nothing between.
+
+   Fixed by widening the pool to span the copy at this size rather than
+   strengthening it (a stronger blanket wash would close over the footage,
+   which the client explicitly asked to keep visible), and by biasing the
+   video's visible window down and left, away from the sign in the frame's
+   top-right. */
+@media (max-width: 768px) {
+    .hero-cinematic-light {
+        background:
+            radial-gradient(ellipse 96% 42% at 50% 46%, rgba(10, 16, 32, 0.62) 0%, rgba(10, 16, 32, 0.40) 54%, rgba(10, 16, 32, 0) 82%),
+            linear-gradient(to bottom, rgba(10, 16, 32, 0.38) 0%, rgba(10, 16, 32, 0) 16%),
+            linear-gradient(to top, rgba(10, 16, 32, 0.46) 0%, rgba(10, 16, 32, 0) 32%);
+    }
+    .hero-ken-burns {
+        object-position: 34% 68%;
+    }
+}
+
+.hero-text-shadow {
+    text-shadow: var(--hero-text-shadow);
+}
+
+/* Closing chapter ("The Invitation") lighting. Same principle as the hero
+   treatment above - a pool of shade behind the copy rather than a blanket wash
+   over the whole frame - but a separate, gentler composition, because the hero's
+   is its own signature and the two chapters should not look identical.
+
+   Why it exists: this chapter's footage is a bright, near-white drink shot, and
+   the previous flat `to bottom` gradient started at only 0.25 opacity exactly
+   where the headline sits. That left the type floating on near-white highlights
+   with nothing to hold it. A pool concentrated behind the centred copy fixes the
+   legibility without closing over the footage - the client specifically asked
+   for the video to stay visible, so the frame edges are left comparatively open. */
+.invitation-light {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 48% 54% at 50% 48%, rgba(12, 20, 38, 0.66) 0%, rgba(12, 20, 38, 0.38) 52%, rgba(12, 20, 38, 0) 78%),
+        linear-gradient(to bottom, rgba(12, 20, 38, 0.34) 0%, rgba(12, 20, 38, 0) 20%),
+        linear-gradient(to top, rgba(12, 20, 38, 0.44) 0%, rgba(12, 20, 38, 0) 28%);
+}
+
+/* Subtle cinematic drift on the homepage hero footage - barely perceptible. */
+@keyframes heroKenBurns {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.08); }
+}
+.hero-ken-burns {
+    animation: heroKenBurns 22s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+    .hero-ken-burns { animation: none; }
+}
+
+/*
+ * The Ignition - the opening ritual (homepage, first visit per session only).
+ * A single ember catches at the flagship's mark and blooms into the room.
+ * Entirely gated behind [data-ignition="igniting"], which app/layout.tsx's
+ * inline head script only ever sets when JS confirms reduced-motion is off -
+ * so nothing here needs its own reduced-motion guard.
+ */
+/* Dark, not cream.
+   The veil used --color-surface-base, so arriving at the site meant a
+   full-screen flash of near-white with a glowing mark on it - the first thing
+   a visitor saw was a bright strobe, which is exactly what an opening ritual
+   should not be. A dark ground also suits the ember: the mark's warm glow
+   (see .ignition-logo-wipe) needs something to glow *against*, and on cream it
+   had nothing. The room brightens as the veil recedes, which is the effect the
+   sequence was always describing. */
+.ignition-veil {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: #0C1220;
+    pointer-events: none;
+}
+html[data-ignition="igniting"] .ignition-veil {
+    display: block;
+    animation: ignitionVeilRecede 1.0s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.ignition-logo-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    will-change: opacity;
+}
+.ignition-logo-wipe {
+    filter: drop-shadow(0 0 24px rgba(240, 139, 67, 0.5)) brightness(1.2) sepia(1) hue-rotate(345deg) saturate(3);
+}
+html[data-ignition="igniting"] .ignition-logo-container {
+    animation: ignitionLogoFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
+}
+html[data-ignition="igniting"] .ignition-logo-wipe {
+    animation: ignitionWipe 0.5s cubic-bezier(0.7, 0, 0.3, 1) 0.1s forwards;
+}
+
+@keyframes ignitionLogoFade {
+    0%, 60% { opacity: 1; }
+    100%    { opacity: 0; }
+}
+@keyframes ignitionWipe {
+    0%   { clip-path: inset(0 100% 0 0); }
+    100% { clip-path: inset(0 0 0 0); }
+}
+@keyframes ignitionVeilRecede {
+    0%, 50%  { opacity: 1; }
+    100%     { opacity: 0; visibility: hidden; }
+}
+
+/* Hero copy arrives with the light, not before it. Fully visible by default -
+   the staggered entrance only happens during the ignition sequence itself. */
+html[data-ignition="igniting"] .ignition-reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: ignitionRevealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html[data-ignition="igniting"] .ignition-reveal-1 { animation-delay: 0.4s; }
+html[data-ignition="igniting"] .ignition-reveal-2 { animation-delay: 0.5s; }
+html[data-ignition="igniting"] .ignition-reveal-3 { animation-delay: 0.6s; }
+html[data-ignition="igniting"] .ignition-reveal-4 { animation-delay: 0.7s; }
+@keyframes ignitionRevealIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tracking is slightly POSITIVE, not negative.
+   Camera Obscura is a heavy deco face with closed counters and near-vertical
+   stems - it is already dense by construction. The -0.04em here (and -0.02em
+   on .display-2) was tuned for a normal serif and made headings read as one
+   congested mass, letters visibly colliding at display sizes. Opening it up a
+   little lets the letterforms breathe without turning into a spaced-out
+   wordmark. Keep any new display rule on the positive side of zero. */
+.display-1 {
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 7.5rem);
+    line-height: 1.08;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: var(--space-component);
+    letter-spacing: 0.012em;
+    /* Balance multi-line headings so a lone word never dangles on its own
+       line - every display heading reads as an intentionally composed block. */
+    text-wrap: balance;
+}
+.body-large {
+    font-size: 1rem;
+    line-height: 1.8;
+    max-width: 48ch;
+    margin-bottom: var(--space-layout);
+    /* Was a hard-coded cream left over from the old dark theme, which left any
+       .body-large without an inline colour nearly invisible on the light
+       fields. Deferring to the token means it inverts correctly per section. */
+    color: var(--color-text-secondary);
+}
+
+/* Accessibility Focus States */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(240, 139, 67, 0.4), 0 0 12px rgba(240, 139, 67, 0.8);
+    border-radius: 4px;
+}

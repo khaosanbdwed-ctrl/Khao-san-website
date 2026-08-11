@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Raw brand masters: ~39MB of source video and social exports. Kept locally,
+# never referenced at runtime (only the derived files under public/assets are),
+# and git history is permanent - so they stay out of a public repo.
+_masters/
+
+# Generated: the graphify knowledge graph output, rebuilt by `graphify .`
+graphify-out/
+
+# Vendored agent tooling, reinstallable with `npx impeccable install`
+.claude/skills/
+.agents/
+.claude/settings.local.json

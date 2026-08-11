@@ -1,0 +1,654 @@
+/* ============================================================
+   Menu hero
+
+   Was a cluster of three transparent cut-outs suspended at different scales
+   with drop-shadows beneath them (.menu-hero-cluster / .mh-dish--hero /
+   --sat-a / --sat-b). That is the floating-dish treatment the client
+   rejected, and it survived at the top of the page after everything below it
+   had been rebuilt as photographs.
+
+   Now: centred title on the field, then a full-bleed band of three plated
+   photographs running edge to edge and dissolving into the menu below. The
+   band is the transition into the list, not a divider before it.
+   ============================================================ */
+.menu-hero {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--color-surface-base);
+    padding-top: calc(var(--header-h) + clamp(48px, 7vw, 104px));
+    text-align: center;
+}
+.menu-hero-copy {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 0 max(6vw, 24px) clamp(40px, 5vw, 72px);
+}
+.menu-hero-title {
+    font-family: var(--font-display);
+    /* Display ceiling is 6rem per the craft floor; this sits under it.
+       Positive tracking - see .display-1 in 05-motion.css. */
+    font-size: clamp(2.6rem, 6vw, 5rem);
+    line-height: 1.06;
+    letter-spacing: 0.012em;
+    color: var(--color-text-primary);
+    margin: 0 0 22px;
+    font-weight: 700;
+    text-wrap: balance;
+}
+.menu-hero-lede {
+    color: var(--color-text-secondary);
+    font-size: clamp(1rem, 1.25vw, 1.2rem);
+    line-height: 1.65;
+    max-width: 52ch;
+    margin: 0 auto 18px;
+}
+.menu-hero-count {
+    color: var(--color-text-primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+/* Three plates, edge to edge. Feathered along the bottom so the band bleeds
+   into the menu field rather than ending on a straight cut - the same seam
+   language as the rest of the site. */
+.menu-hero-band {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    width: 100%;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 62%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0, #000 62%, transparent 100%);
+}
+/* Explicit height, NOT aspect-ratio + max-height. With `aspect-ratio: 1/1`
+   and a max-height that binds, the box keeps the ratio by shrinking its
+   WIDTH - measured 414px plates inside 476px columns, leaving 62px of orange
+   between each. The band is meant to be unbroken, so the height is set
+   directly and the image covers whatever width the column gives it. */
+.menu-hero-plate {
+    position: relative;
+    width: 100%;
+    height: clamp(260px, 38vh, 440px);
+    overflow: hidden;
+}
+@media (max-width: 700px) {
+    /* Two plates on a phone; a third at a third of 390px is a postage stamp. */
+    .menu-hero-band { grid-template-columns: repeat(2, 1fr); }
+    .menu-hero-plate:last-child { display: none; }
+}
+
+/* .menu-nav-section / .menu-nav-item removed with the horizontal pill bar.
+   That block also carried a `border-bottom: 1px solid` - one more literal
+   straight line across the page. */
+.menu-category {
+    scroll-margin-top: calc(var(--header-h) + 32px);
+}
+
+/* Phone-only contextual section rail - a Google-Docs-style document outline.
+   Hidden on desktop (the horizontal pill nav owns that); on phones it's a slim
+   fixed rail of dashes you drag a finger along to magnify sections, releasing
+   (or tapping) to jump. Never a panel/drawer - content stays visible. */
+/* phone-only section rail */
+.menu-rail { display: none; }
+@media (max-width: 768px) {
+    .menu-rail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0;
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 9999;
+        max-height: 80vh;
+        padding: 8px 6px 8px 16px;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .menu-rail-item {
+        all: unset;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 8px 0;
+        min-height: 28px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;
+    }
+    .menu-rail-name {
+        position: absolute;
+        right: calc(100% + 14px);
+        top: 50%;
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        line-height: 1.05;
+        white-space: nowrap;
+        transform-origin: right center;
+        text-shadow: 0 2px 12px rgba(5, 7, 10, 0.96), 0 0 4px rgba(5, 7, 10, 0.98);
+        transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                    color 0.3s ease;
+        pointer-events: none;
+    }
+    .menu-rail-dash {
+        display: block;
+        height: 2px;
+        border-radius: 1px;
+        transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+        flex-shrink: 0;
+    }
+
+    /* Backdrop strip - a dark scrim behind the rail area. At rest it's a subtle
+       edge gradient so white dashes don't vanish against white menu text. On
+       touch it darkens and widens so rail labels sit on a solid readable band. */
+    .menu-rail-backdrop {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 60px;
+        z-index: 9998;
+        pointer-events: none;
+        background: linear-gradient(to left, rgba(18,16,24,0.45), transparent);
+        transition: width 0.3s ease, background 0.3s ease;
+    }
+    .menu-rail-backdrop--active {
+        width: 130px;
+        background: linear-gradient(to left, rgba(18,16,24,0.88), rgba(18,16,24,0.38) 60%, transparent);
+    }
+
+    /* Active rail - labels get a solid pill behind them so they're always
+       readable, no matter what menu content sits behind the rail. */
+    .menu-rail--active .menu-rail-name {
+        background: var(--color-primary);
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        border-radius: var(--radius-sm);
+        padding: 5px 14px;
+        right: calc(100% + 18px);
+        box-shadow: 0 6px 18px rgba(240,139,67,0.3);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .menu-rail-name, .menu-rail-dash { transition: none !important; }
+}
+/* ============================================================
+   Desktop category index
+
+   Replaced a sticky horizontal pill bar. With 13 categories that bar was
+   always wider than its container, so most of the menu sat off-screen behind
+   an internal horizontal scroll - the visitor had to scroll *inside the nav*
+   to find out more of the menu existed. A vertical column shows all thirteen
+   permanently and doubles as a reading position indicator.
+
+   Desktop only. Below 1024px it is hidden and the phone rail (untouched)
+   takes over.
+   ============================================================ */
+.menu-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    gap: clamp(32px, 4vw, 72px);
+    align-items: start;
+    padding: clamp(56px, 7vw, 104px) max(4vw, 24px) 80px;
+    max-width: 1560px;
+    margin: 0 auto;
+}
+/* .menu-layout already supplies the page gutter and the max width, so the
+   inner .container would add a second 8vw inset and re-cap the column at
+   1280px - squeezing the dish grid into the middle of its own column. */
+.menu-layout .container {
+    max-width: none;
+    padding: 0;
+}
+.menu-index {
+    position: sticky;
+    /* Clears the fixed header at its resting height, plus air. */
+    top: calc(var(--header-h) + 28px);
+}
+/* The index is a printed contents leaf, not a list of links.
+
+   The first pass was a bare column of text with a dash beside each item -
+   functional, but with no surface, no edge and no weight it read as unstyled
+   markup sitting in the margin. It now has an actual object: a warm panel with
+   a soft edge, the brand's lotus lattice showing faintly through it, a
+   set-in title, and a continuous rail down the left that the active marker
+   rides. That rail is what turns thirteen links into one composed thing. */
+.menu-index-panel {
+    position: relative;
+    border-radius: var(--radius-lg);
+    padding: clamp(18px, 1.6vw, 26px) clamp(14px, 1.2vw, 20px) clamp(18px, 1.6vw, 24px) clamp(18px, 1.5vw, 24px);
+    background-color: rgba(255, 251, 245, 0.86);
+    background-image: url('/assets/patterns/thai-lotus-lattice.png');
+    background-size: 116px;
+    /* soft-light, not luminosity: the lattice is a texture under the contents,
+       not a pattern competing with thirteen lines of type. */
+    background-blend-mode: soft-light;
+    border: 1px solid rgba(22, 35, 61, 0.10);
+    box-shadow: 0 14px 34px rgba(141, 54, 31, 0.10);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    overflow: hidden;
+}
+.menu-index-title {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin: 0 0 14px;
+}
+.menu-index-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    /* The rail: one continuous hairline the whole column hangs off, so the
+       active marker reads as a position ON something rather than a loose dash. */
+    border-left: 2px solid rgba(22, 35, 61, 0.14);
+    /* Counter-guard: 13 items fit easily, but a future menu with many more
+       categories should scroll the index rather than push it past the fold. */
+    max-height: calc(100vh - var(--header-h) - 160px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+.menu-index-link {
+    position: relative;
+    display: block;
+    padding: 6px 8px 6px 12px;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.35;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+    transition: color 0.25s ease, background-color 0.25s ease;
+}
+/* The marker rides the rail rather than sitting inside the text flow. */
+.menu-index-mark {
+    position: absolute;
+    left: -2px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 0;
+    background: var(--color-brand-orange);
+    border-radius: var(--radius-pill);
+    transition: height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.menu-index-link:hover,
+.menu-index-link:focus-visible {
+    color: var(--color-text-primary);
+    background-color: rgba(22, 35, 61, 0.05);
+}
+.menu-index-link:hover .menu-index-mark {
+    height: 60%;
+    background: rgba(22, 35, 61, 0.35);
+}
+.menu-index-link:focus-visible {
+    outline: 2px solid var(--color-text-primary);
+    outline-offset: -2px;
+}
+.menu-index-link.is-active {
+    color: var(--color-text-primary);
+    font-weight: 700;
+    background-color: rgba(255, 150, 79, 0.16);
+}
+.menu-index-link.is-active .menu-index-mark {
+    height: 100%;
+    background: var(--color-brand-orange);
+}
+
+@media (max-width: 1024px) {
+    /* Phone and small-tablet: the fixed rail owns navigation, so the index
+       column is removed entirely rather than stacked above the menu. */
+    .menu-layout {
+        grid-template-columns: 1fr;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .menu-index { display: none; }
+}
+
+/* ============================================================
+   The menu list
+
+   Replaces a masonry grid of bordered cards. Two reasons it had to go: the
+   client rejected the floating-dish presentation the cards were built around,
+   and a page whose structure is a grid of identical boxes reads as a product
+   catalogue rather than a menu. The brand's own printed menu - the scans in
+   `_masters/Brand_Asset` - is a two-column typographic list, so this follows
+   the brand's native format rather than inventing one.
+
+   Two columns of rows, not a grid of cells: rows flow independently and each
+   hugs its own content, so a long description never pads out the dish beside
+   it. Column rules and hairlines carry the structure; there is no box.
+   ============================================================ */
+/* Two dishes per screen, three at most.
+
+   The first pass set these as a dense two-column list with ~150px thumbnails,
+   which fitted the whole menu into very little height - and read as a price
+   list. The client's note was that it had become too short. Each dish is now a
+   large stacked block: a big photograph with its name, tags and description
+   beneath. At two columns and roughly 68vh a cell, one row fills the screen
+   with the next just breaking the fold - two dishes in view, a third arriving.
+
+   Grid, not CSS columns, now that the cells are large: column flow would pull
+   a tall dish into the next column and break the pairing. */
+.menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(48px, 5vw, 88px) clamp(32px, 3.4vw, 64px);
+}
+.menu-row {
+    display: flex;
+    flex-direction: column;
+}
+/* The photograph. A plated composite, so it fills its frame as a real
+   photograph - no transparent ground, nothing floating, no drop-shadow
+   pretending the dish hovers over the page. */
+.menu-row-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    margin-bottom: clamp(16px, 1.6vw, 24px);
+}
+.menu-row-photo img {
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.menu-row:hover .menu-row-photo img {
+    transform: scale(1.04);
+}
+.menu-row-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 2vw, 1.95rem);
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    color: var(--color-text-primary);
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+.menu-row-portion {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    margin-left: 8px;
+    white-space: nowrap;
+}
+.menu-row-desc {
+    color: var(--color-text-secondary);
+    font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+    line-height: 1.65;
+    margin: 0;
+    /* Comfortably inside the 65-75ch measure at every column width. */
+    max-width: 56ch;
+}
+/* Above the description - see the note in menu-row.tsx. */
+.menu-row-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+.menu-row-addon {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--color-primary);
+    margin: 10px 0 0;
+}
+
+/* Dish marks. Outlined, in the field's own ink - a filled chip per dish would
+   put 75 coloured pills on one page and the marks would become the pattern. */
+.menu-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    border: 1px solid currentColor;
+    border-radius: var(--radius-pill);
+    padding: 3px 9px;
+    line-height: 1.4;
+}
+
+.menu-addons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 20px;
+    margin: clamp(22px, 2.4vw, 34px) 0 0;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+.menu-addons-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+/* The category name is the only thing marking a new category - no rule, no
+   band, no eyebrow. The client asked for one continuous menu rather than a
+   stack of separated sections, so the scale change does the work. */
+.menu-category-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.1rem);
+    line-height: 1.06;
+    letter-spacing: 0.014em;
+    color: var(--color-text-primary);
+    margin: 0 0 clamp(20px, 2.4vw, 34px);
+}
+
+@media (max-width: 900px) {
+    /* One dish at a time on a phone - two columns of large blocks would make
+       each photograph too small to be worth showing. */
+    .menu-list {
+        grid-template-columns: 1fr;
+        gap: clamp(36px, 8vw, 56px);
+    }
+}
+
+@media (min-width: 768px) {
+}
+
+
+/* Food photography - the dish IS the hero. No frame, no box: the plated
+   cutout rests on the page, lit from above. A silhouette-following drop
+   shadow reads as an overhead key light; a separate soft contact shadow
+   grounds the plate on the surface. On hover the dish lifts a touch and its
+   contact shadow spreads, the way a plate lifts off a table. */
+.dish {
+    position: relative;
+    width: 100%;
+}
+/* Overhead key light - a soft warm pool falling across the top of the plate,
+   as if lit from the upper side. The element extends above the dish and is
+   clipped by overflow:hidden, so the top edge dissolves instead of cutting
+   in with a straight line. */
+.dish::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: 84%;
+    height: 74%;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse 62% 50% at 50% 26%, rgba(255, 238, 214, 0.26) 0%, rgba(255, 238, 214, 0) 70%);
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 20%, #000 85%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0, #000 15%, #000 85%, transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 20%, #000 85%, transparent 100%);
+    mask-composite: intersect;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.5s ease;
+}
+.dish:hover::before { opacity: 1; }
+/* Contact shadow: tight under the plate, dark and short - reads as cast
+   directly by the overhead key light. A concentrated dark core with a
+   brief penumbra so the dish floats just above the surface. */
+.dish::after {
+    content: "";
+    position: absolute;
+    left: 26%;
+    right: 26%;
+    bottom: 5%;
+    height: 4%;
+    background: radial-gradient(ellipse at center, rgba(141, 54, 31, 0.34) 0%, rgba(141, 54, 31, 0.16) 35%, rgba(141, 54, 31, 0) 78%);
+    filter: blur(5px);
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
+}
+.dish > img,
+.dish .dish-img {
+    position: relative;
+    z-index: 1;
+    object-fit: contain;
+    /* Directional light from the upper side: a fine near-white top highlight,
+       layered over a soft mid shadow and a deeper ambient shadow - premium
+       depth without any artificial glow. */
+    filter:
+        drop-shadow(0 1px 0 rgba(255, 246, 232, 0.25))
+        drop-shadow(0 10px 14px rgba(141, 54, 31, 0.18))
+        drop-shadow(0 22px 32px rgba(141, 54, 31, 0.12));
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), filter 0.5s ease;
+}
+.dish:hover > img,
+.dish:hover .dish-img {
+    transform: translateY(-8px);
+}
+.dish:hover::after {
+    transform: scale(1.1);
+    opacity: 0.66;
+}
+/* Some plates were shot dead-on and read flat, like a UI icon. A gentle tilt,
+   applied only to those, re-seats the dish on the table at a natural angle;
+   it settles level on hover. Opt-in via .dish--angled so top-down shots that
+   already look plated are left untouched. */
+.dish--angled > img,
+.dish--angled .dish-img {
+    transform: rotate(-5deg);
+}
+.dish--angled:hover > img,
+.dish--angled:hover .dish-img {
+    transform: translateY(-8px) rotate(0deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dish--angled > img,
+    .dish--angled .dish-img { transform: none; }
+}
+
+/* Corner-bracket framing for menu dishes - the client wanted dishes "framed"
+   without wrapping them in a traditional rectangular card, which would fight
+   the floating/feathered presentation already established. Two opposite
+   corner brackets (not four - a card outline reads as a box; two diagonal
+   marks read as a museum-label/plated-presentation frame) plus a small
+   accent tick beneath, echoing a specimen label rather than a UI card. */
+/* Weight: these were 22px long at a 1.5px stroke, which worked when the field
+   behind them was flat orange. Now that the field carries the brand's lotus
+   lattice, a hairline mark that size simply dissolves into the pattern - it
+   read as a stray artefact rather than a deliberate frame. Roughly doubled in
+   length and stroke so the bracket is unambiguously a drawn mark sitting ON the
+   pattern, not part of it. Still only two opposite corners: the point is a
+   museum-label crop, not a box. */
+/* The dish presentation that lived here - .dish-photo, the specimen corner
+   brackets and the .dish-frame-mark accent rule - is all gone. It belonged to
+   the card grid and to the floating cut-out before it. Dishes are rows in a
+   list now (.menu-row above) carrying plated photographs, so none of that
+   framing has anything to frame. */
+
+/* Floating presentation - for dishes suspended in space (the menu hero), not
+   resting on a surface. The tight contact shadow becomes a soft shadow cast
+   well below to imply suspension, and a wider ambient glow lifts the plate off
+   the dark ground. Light stays consistent: highlight on top, shadow beneath. */
+.dish--float::after {
+    left: 24%;
+    right: 24%;
+    bottom: 1%;
+    height: 8%;
+    background: radial-gradient(ellipse at center, rgba(141, 54, 31, 0.28) 0%, rgba(141, 54, 31, 0.11) 42%, rgba(141, 54, 31, 0) 80%);
+    filter: blur(12px);
+}
+.dish--float::before {
+    width: 100%;
+    height: 100%;
+    top: 0;
+    opacity: 0.85;
+    background: radial-gradient(ellipse 58% 54% at 50% 42%, rgba(255, 236, 210, 0.22) 0%, rgba(255, 236, 210, 0) 72%);
+}
+.dish--float .dish-img {
+    filter:
+        drop-shadow(0 2px 1px rgba(255, 246, 232, 0.24))
+        drop-shadow(0 18px 22px rgba(141, 54, 31, 0.2))
+        drop-shadow(0 8px 12px rgba(141, 54, 31, 0.15));
+}
+
+/* Signature spreads - an editorial two-up, deliberately off-centre. The plate
+   runs large toward one edge; the copy sits in the opposite column with
+   generous negative space and a ghosted index numeral. Alternating sides
+   create a reading rhythm rather than two mirrored, centred rows. */
+.spread {
+    display: grid;
+    grid-template-columns: 1.28fr 0.72fr;
+    align-items: center;
+    gap: clamp(28px, 5vw, 72px);
+    position: relative;
+}
+.spread--reverse { grid-template-columns: 0.72fr 1.28fr; }
+.spread--reverse .spread-media { order: 2; }
+.spread--reverse .spread-copy  { order: 1; text-align: right; }
+.spread-media { position: relative; }
+.spread-index {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    line-height: 0.8;
+    font-weight: 700;
+    color: rgba(240, 139, 67, 0.16);
+    margin-bottom: 12px;
+}
+/* .spread-meta removed: it carried the "★ Signature / Tamarind & Charred Wok"
+   specialty line beside each signature dish, which the client asked to drop. */
+@media (max-width: 820px) {
+    .spread,
+    .spread--reverse { grid-template-columns: 1fr; gap: 24px; }
+    .spread--reverse .spread-media { order: -1; }
+    .spread--reverse .spread-copy  { order: 2; text-align: left; }
+    .spread-media { width: 100%; max-width: 460px; margin: 0 auto; }
+}
+
+/* .menu-card* removed with the card grid. The dish is a row in a list now -
+   see .menu-row below. */

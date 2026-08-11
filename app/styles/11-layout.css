@@ -1,0 +1,212 @@
+/* .section-seam / .section-seam-mark (a tapered-hairline-and-diamond chapter
+   divider) removed: it drew an explicit line between two chapters, which is
+   the opposite of the seamless flow the client asked for. Same-field sections
+   now simply continue; different-field sections cross-fade via the seam bands
+   in 10-backgrounds.css. */
+
+
+/* Gift card hero - same split-grid logic as the menu hero: contained copy on
+   one side, the card composition on the other, one padding rhythm, collapsing
+   to a single column with the visual on top on narrow screens. */
+.giftcard-hero-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 120px max(8vw, 24px) 96px;
+    display: grid;
+    grid-template-columns: 1.02fr 0.98fr;
+    grid-template-rows: auto auto;
+    gap: clamp(24px, 4vw, 72px);
+    align-items: start;
+}
+.gift-hero-head {
+    grid-column: 1;
+    grid-row: 1;
+    margin-bottom: 24px;
+}
+.gift-hero-body {
+    grid-column: 1;
+    grid-row: 2;
+}
+.giftcard-hero-cards {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    position: relative;
+    min-height: 420px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 clamp(8px, 2vw, 40px);
+}
+
+@media (max-width: 860px) {
+    .giftcard-hero-inner {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        gap: 36px;
+        padding-top: 128px;
+        padding-bottom: 56px;
+    }
+    .gift-hero-head {
+        grid-column: 1;
+        grid-row: auto;
+        order: -2;
+        margin-bottom: 0;
+        padding-bottom: 56px;
+    }
+    .gift-hero-body {
+        grid-column: 1;
+        grid-row: auto;
+        order: 0;
+    }
+    .giftcard-hero-cards {
+        grid-column: 1;
+        grid-row: auto;
+        order: -1;
+        min-height: 320px;
+    }
+}
+
+/* Homepage gift card section - 3-child grid, same clean pattern as giftcard hero.
+   The column gap is deliberately generous: the saffron brush sits behind the
+   cards and bleeds left, so the copy column needs real distance from it or the
+   stroke reads as encroaching on the text rather than as the cards' backdrop.
+
+   The copy column is NOT squeezed to buy that gap, though - at 0.68fr the
+   heading dropped to three lines ("An" / "evening," / "Gifted."), which is a
+   worse outcome than a slightly tighter gap. 0.82fr keeps "An evening," on one
+   line at its clamp ceiling while still leaving the cards a wide column. */
+.landing-gift-grid {
+    display: grid;
+    grid-template-columns: 0.82fr 1.18fr;
+    grid-template-rows: auto auto;
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+    max-width: 1440px;
+    margin: 0 auto;
+}
+.landing-gift-head {
+    grid-column: 1;
+    grid-row: 1;
+}
+.landing-gift-body {
+    grid-column: 1;
+    grid-row: 2;
+}
+.landing-gift-cards {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    /* Nudged right so the brush has open cream to its left instead of running
+       straight into the copy column. */
+    padding-left: clamp(0px, 4vw, 64px);
+}
+@media (max-width: 768px) {
+    .landing-gift-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .landing-gift-head {
+        grid-column: 1;
+        grid-row: auto;
+        order: -2;
+        padding-bottom: 40px;
+    }
+    .landing-gift-body {
+        grid-column: 1;
+        grid-row: auto;
+        order: 0;
+    }
+    .landing-gift-cards {
+        grid-column: 1;
+        grid-row: auto;
+        order: -1;
+        padding: 48px 0 56px 0;
+    }
+}
+
+/* ============================================================
+   Feathered media frames - ONE dissolve language, one strength.
+
+   Media dissolves into the page instead of sitting as a hard outlined
+   rectangle. Pair with a diffuse ambient shadow (.media-soft) for weight
+   without a visible border.
+
+   ⚠ The fade distance is in PIXELS, deliberately, and this is the whole
+   point of the rule. It used to be a percentage - 7%/9% here and 15%/18%
+   on .img-feather - which meant the softness scaled with the element. Two
+   consequences, both bad:
+
+     1. The same class produced visibly different treatments depending on
+        where it was used, so the site had no single edge language: a tight
+        vignette on one card, a wide smear on the next.
+     2. On the larger blocks the ramp grew long enough that good footage
+        read as OUT OF FOCUS rather than deliberately dissolved. The
+        Chapter II video was the worst case - a sharp kitchen shot that
+        looked like a blurry rectangle.
+
+   A dissolve is an optical effect: it should be the same physical distance
+   everywhere, like a bleed on a printed page. 20px is enough to kill the
+   hard edge and not enough to read as blur. If a future element needs more,
+   give it its own token - do not reach back for a percentage.
+   ============================================================ */
+:root {
+    --feather-edge: 20px;
+}
+.media-feather,
+.img-feather {
+    -webkit-mask-image:
+        linear-gradient(to right, transparent 0, #000 var(--feather-edge), #000 calc(100% - var(--feather-edge)), transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 var(--feather-edge), #000 calc(100% - var(--feather-edge)), transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+        linear-gradient(to right, transparent 0, #000 var(--feather-edge), #000 calc(100% - var(--feather-edge)), transparent 100%),
+        linear-gradient(to bottom, transparent 0, #000 var(--feather-edge), #000 calc(100% - var(--feather-edge)), transparent 100%);
+    mask-composite: intersect;
+}
+.media-soft {
+    box-shadow: 0 30px 60px rgba(141, 54, 31, 0.22);
+}
+
+/* ============================================================
+   Section spacing scale - one rhythm for every section's vertical padding,
+   replacing ad-hoc px values scattered across pages. Built on --space-macro
+   so it already flexes down at the tablet/mobile breakpoints below.
+   ============================================================ */
+.section-pad   { padding-top: var(--space-macro); padding-bottom: var(--space-macro); }
+.section-pad-t { padding-top: var(--space-macro); }
+.section-pad-b { padding-bottom: var(--space-macro); }
+
+/* Stills use the identical mask (declared with .media-feather above) and add
+   a rounded corner. The old separate 15%/18% ramp is gone - it was nearly
+   twice the video's fade and was what made the Heritage stills and the
+   Chapter II block look like two unrelated treatments. */
+.img-feather {
+    border-radius: var(--radius-lg);
+}
+
+/* ============================================================
+   Section dissolve - hard horizontal cuts between sections
+   become soft editorial transitions. Each section's top edge
+   fades in from noir and its bottom edge dissolves back,
+   matching the .media-feather / .img-feather dissolve language.
+   ============================================================ */
+.section-blend-top,
+.section-blend-bottom {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+.section-blend-top {
+    top: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, var(--color-surface-base) 0%, transparent 100%);
+}
+.section-blend-bottom {
+    bottom: 0;
+    height: 120px;
+    background: linear-gradient(to top, var(--color-surface-base) 0%, transparent 100%);
+}

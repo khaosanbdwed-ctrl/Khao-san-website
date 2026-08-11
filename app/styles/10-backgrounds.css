@@ -1,0 +1,433 @@
+/* ============================================================
+   Background motif system
+   One visual language, many marks. Each major section can carry its own
+   low-opacity Thai motif (lotus, lattice) as a near-invisible black-on-black
+   texture - discovered, not noticed. Purely decorative: always behind
+   content, never interactive.
+   ============================================================ */
+.motif {
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.05;
+}
+/* A single lotus, drifted to a corner - for feature sections. Brightness
+   pulled down from the old near-black-surface value (1.6) so the mark reads
+   as a faint darker texture on the new light/bright surfaces instead of
+   washing out to near-invisible white-on-white. */
+.motif--lotus {
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp');
+    filter: grayscale(1) brightness(0.8);
+}
+/* A quiet repeating lotus - the actual brand motif (Lotus Single White),
+   tiled at very low opacity for an atmospheric field rather than a loud
+   pattern. This is the Khao San visual language, not abstract geometry. */
+.motif--lotus-field {
+    background-image: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single White.svg');
+    background-repeat: repeat;
+    background-size: 200px;
+    opacity: 0.035;
+}
+.motif--tl   { inset: -4% auto auto -4%; width: 42%; height: 42%; }
+.motif--tr   { inset: -4% -4% auto auto; width: 40%; height: 40%; }
+.motif--br   { inset: auto -4% -6% auto; width: 44%; height: 44%; }
+.motif--bl   { inset: auto auto -6% -4%; width: 40%; height: 40%; }
+.motif--fill { inset: 0; width: auto; height: auto; }
+
+/* ============================================================
+   Designed section backgrounds
+   Bright brand-colour fields (orange / blue) with the same Thai lattice +
+   lotus line-work art bled through as a faint darker texture, instead of the
+   old near-black scrim. Used to replace solid-colour sections; varied per
+   section so nothing repeats.
+
+   CONTRAST RULE: text on .bg-orange-field MUST be var(--color-text-primary)
+   (near-black) or var(--color-brand-blue) - NEVER white/cream (contrast
+   fails, verified 2.16:1). Text on .bg-blue-field should be white or
+   var(--color-brand-butter).
+   ============================================================ */
+.bg-orange-field {
+    background-color: var(--color-brand-orange);
+    background-image:
+        linear-gradient(rgba(255, 150, 63, 0.84), rgba(255, 150, 63, 0.90)),
+        url('/assets/bg-web/lotus-bg.webp');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+}
+
+/* Menu-page dish field.
+
+   `Lotus Single.webp` is a genuinely good asset: a perfectly seamless Thai
+   lotus lattice - a quatrefoil medallion whose corner elements resolve into
+   diamonds where four tiles meet. Tiled once, on its own, it is a clean,
+   confident, on-brand ornamented ground.
+
+   It was previously being painted THREE ways at once, which destroyed it:
+     1. the same tile repeated at ~340-480px, AND
+     2. the same tile repeated again at ~160-230px, at an unrelated offset, AND
+     3. a navy, naturalistic, hatched corner bloom (Lotus Crop Transparent)
+        layered on top.
+   Two grids of one motif at different scales are never in phase, so the small
+   medallions landed arbitrarily across the large ones and both patterns'
+   geometry collapsed into visual mush - not a lattice, just noise. The corner
+   bloom then added a second, incompatible visual language on the same surface
+   (flat geometric quatrefoil vs engraved botanical line-art).
+
+   Collapsing that to a single grid fixed the noise, but the motif itself was
+   still wrong for the job: `Lotus Single.webp` is a set of large, soft, SOLID
+   medallions that float as isolated blobs with empty diamonds between them.
+   At background scale that reads as bubbly wallpaper, not Thai ornament.
+
+   The pattern used now is the client's OWN. It was recovered from their brand
+   artwork (`Brand_Asset/433075883_*.jpg` - the elephant logo sitting on their
+   orange pattern) by measuring the tile period off the unoccluded strips by
+   autocorrelation (245px horizontally, 244px vertically, correlation 0.95/0.96)
+   and cutting exactly one period from a clean corner, then converting it to a
+   white-on-transparent soft-alpha mask so it tints to any brand colour at any
+   opacity. It tiles seamlessly because it is a true single period of a pattern
+   that was already seamless.
+
+   Structurally it is what the old tile was missing: a continuous woven 45°
+   diamond lattice with a quatrefoil lotus medallion at each intersection,
+   drawn in fine outlined strokes rather than heavy solid shapes. Fine line-work
+   at small scale is what makes a background read as texture instead of
+   wallpaper - and it is literally the brand's own pattern rather than an
+   approximation of it.
+
+   NOTE: do NOT reach for `Background/thai-lotus-flower-pattern-vector-*.avif`
+   as an alternative - it is watermarked VectorStock comp art
+   (VectorStock.com/16429254 is baked into the pixels) and is not licensed.
+
+   Wash 0.90/0.92 with a fine tile: the tracery is dense, so the wash carries
+   more of the load than it did with sparse medallions.
+
+   The wash colour tracks --color-dish-field and was lightened with it (see the
+   token). Keep the two in step - if this gradient is edited back to the old
+   deep #E07B30 while the token stays light, the field flattens to the deep
+   value again and the ink loses the headroom it was given. */
+.bg-orange-field--quiet {
+    background-color: var(--color-dish-field);
+    background-image:
+        linear-gradient(rgba(240, 145, 63, 0.90), rgba(240, 145, 63, 0.92)),
+        url('/assets/patterns/thai-lotus-lattice.png');
+    background-size:
+        auto,
+        clamp(118px, 11vw, 168px);
+    background-position:
+        0 0,
+        center top;
+    background-repeat:
+        no-repeat,
+        repeat;
+}
+
+/* Corner-florals art (lotus blooms anchored in the corners over the
+   lattice) on a deep brand-blue field - for structural, hero-scale sections
+   where the centre must stay clear for copy. */
+.bg-blue-field {
+    background-color: var(--color-brand-blue);
+    background-image:
+        linear-gradient(rgba(30, 65, 123, 0.86), rgba(30, 65, 123, 0.92)),
+        url('/assets/bg-web/lotus-background.webp');
+    background-size: cover, cover;
+    background-position: center, center;
+    background-repeat: no-repeat, no-repeat;
+}
+/* Clean warm-white surface for text-dense sections - no art overlay so
+   long-form copy stays fully legible. */
+.bg-warm-white {
+    background-color: var(--color-surface-base);
+}
+
+/* Gift chapter field.
+
+   Deliberately cream rather than orange, and deliberately NOT the menu page's
+   repeating lattice - it needs to be its own surface on both counts:
+
+   - The two gift cards are dark, premium objects and the saffron brush behind
+     them is the section's energy. Both need a PALE ground to read: on the
+     orange field the orange brush stroke disappeared into the background
+     entirely, and the dark cards lost their sense of sitting on a surface.
+   - A large single engraved bloom is a different lotus language from the
+     menu's fine repeating lattice, so the two sections don't read as the same
+     wallpaper twice.
+   - It also paces the page: ... blue Havens -> cream gift -> dark video ...
+     gives a breath before the close, and rhymes with the kraft-paper footer.
+
+   The bloom is `Lotus.webp` (navy botanical line-art) held under a cream wash.
+   It is a CORNER FLOURISH, not a backdrop: anchored low-left and bleeding off
+   both edges, so it fills the empty cream under the CTA and counterweights the
+   brush and cards on the right - without ever sitting behind the copy. A first
+   pass had it centred-left at 58vw and 6% presence, which put a full spread of
+   leaves directly behind the heading and body text and read as clutter rather
+   than as a watermark. Smaller and fainter does more here. */
+.gift-field {
+    background-color: var(--color-surface-base);
+    background-image:
+        linear-gradient(rgba(255, 248, 236, 0.955), rgba(255, 248, 236, 0.955)),
+        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp');
+    background-size: auto, clamp(340px, 32vw, 520px);
+    background-position: 0 0, -9% 104%;
+    background-repeat: no-repeat, no-repeat;
+
+    /* Cream ink scale: brand orange as text on cream is 1.9:1 and fails
+       outright; terracotta reaches 6.8:1. Same rule as .bg-warm-white. */
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+
+/* ============================================================
+   Field ink scales
+
+   The colour fields above are painted backgrounds, but the type on them was
+   still resolving the :root ink scale - which is tuned for the cream surface.
+   That put warm-brown body copy (#6B5A46) on orange and an orange accent
+   (--color-primary) on orange, so eyebrows and every .display-1/.display-2
+   that inherited the accent were effectively invisible against their own
+   background.
+
+   Re-declaring the tokens on the field itself fixes all of it in one place:
+   inline `var(--color-text-secondary)` / `var(--color-primary)` references
+   scattered through the pages inherit the corrected value automatically, with
+   no call-site edits. Any elevated surface sitting *inside* a field (cards,
+   panels) must reset the scale back - see .haven-card below.
+
+   Ratios below are against the field's own flattened colour.
+   ============================================================ */
+
+/* Orange field: dark ink only, per the contrast rule above.
+
+   --quiet is included so the menu page (which wraps all 14 dish categories
+   in .bg-orange-field--quiet) picks up the same ink scale. Without it, the
+   menu dish descriptions and prices were inheriting the root tokens (warm
+   brown, brand orange) and rendering at ~3:1 on the orange field - a real
+   AA failure hidden by the fact that the .bg-orange-field--quiet wrapper
+   shares nothing with the .bg-orange-field selector at the CSS level.
+
+   ⚠ HISTORY - do not "fix" this back. Every token here was at one point set
+   to #ffffff, which put white directly on orange: the exact pairing the
+   CONTRAST RULE above forbids, and the one the brand sheet records as
+   2.16:1. Because the failure lived in a *token*, every call site that
+   correctly wrote `color: var(--color-text-primary)` still rendered white -
+   so the menu H1, all 14 category headings and all 75 dish titles and
+   descriptions failed AA while every component looked right in isolation.
+   If type on orange ever needs to be lighter, darken the FIELD, never
+   lighten the ink.
+
+   Two flattened grounds, so every value below is quoted for both:
+     .bg-orange-field        -> rgb(255, 150, 79)   (main)
+     .bg-orange-field--quiet -> rgb(224, 123, 48)   (menu dish field) */
+.bg-orange-field,
+.bg-orange-field--quiet {
+    /* Navy, not black — see the "INK ON ORANGE" note in 01-tokens.css. Black
+       and warm brown both passed WCAG here and both still read muddy, because
+       they separate from the field on lightness alone while sharing its warm
+       hue. Navy opposes the hue as well, so the same measured ratio looks far
+       crisper. #35251a in particular (the old secondary) was the worst of the
+       set: a warm brown on warm orange is the lowest-chroma-separation pairing
+       available. */
+    --color-text-primary: var(--ink-on-orange);            /* 7.33:1 / 6.65:1 */
+    --color-text-secondary: var(--ink-on-orange-secondary); /* 5.60:1 / 5.07:1 */
+    --color-primary: var(--ink-on-orange);                  /* 7.33:1 / 6.65:1 */
+    --color-accent: var(--ink-on-orange);                   /* 7.33:1 / 6.65:1 */
+}
+/* An orange CTA on an orange field reads as a flat shape with no edge, so the
+   field flips it to the brand's other primary. The label goes back to white,
+   which on brand blue is 10.01:1. */
+.bg-orange-field .btn-primary {
+    background-color: var(--color-brand-blue);
+    border-color: var(--color-brand-blue);
+    color: #ffffff;
+    box-shadow: 0 8px 22px rgba(30, 65, 123, 0.30);
+}
+.bg-orange-field .btn-primary:hover,
+.bg-orange-field .btn-primary:focus-visible {
+    background-color: var(--color-brand-blue-deep);
+    border-color: var(--color-brand-blue-deep);
+    color: #ffffff;
+    box-shadow: 0 18px 38px rgba(30, 65, 123, 0.45);
+}
+/* The powder-blue fill from 03-buttons is already the opposing hue to this
+   field, so nothing needs overriding - only a warmer shadow so the button
+   lifts off the orange rather than floating on it. */
+.bg-orange-field .btn-secondary {
+    box-shadow: 0 10px 26px rgba(90, 40, 10, 0.30);
+}
+.bg-orange-field .btn-secondary:hover,
+.bg-orange-field .btn-secondary:focus-visible {
+    box-shadow: 0 18px 34px rgba(90, 40, 10, 0.38);
+}
+
+/* Blue field (#1e417b): light ink only. */
+.bg-blue-field {
+    --color-text-primary: #ffffff;                /* 10.01:1 */
+    --color-text-secondary: rgba(255, 255, 255, 0.84);
+    --color-primary: var(--color-brand-butter);   /*  8.29:1 */
+    --color-accent: var(--color-brand-butter);
+}
+
+/* The reservation chapter is type over dark footage - same inverted scale as
+   the hero, so the copy is never warm-brown on a night-lit video.
+
+   --color-primary was left out of this scale, which meant the closing headline
+   ("Taste the fire.") kept the root brand orange and rendered at 2.16:1 against
+   the pale highlights in the footage behind it - the same white-on-orange-class
+   failure this file forbids everywhere else. The chapter's footage is a bright,
+   near-white drink shot, so no single ink colour can survive it unaided; the
+   headline takes the cream ink and the scrim below gives it a ground to sit on. */
+.section-reservation {
+    --color-text-primary: #FFF8EC;
+    --color-text-secondary: rgba(255, 248, 236, 0.84);
+    --color-primary: #FFF8EC;
+    --color-accent: var(--color-brand-butter);
+
+    /* Same cool, deep shadow the hero uses, not the root's warm terracotta one:
+       this is the other place on the site where light type sits directly on
+       photography, and the root shadow is tuned to lift dark type off a cream
+       page. Measured, the scrim alone carries the headline at 6.7:1 median and
+       4.3:1 at the 95th percentile of its ground - comfortably past the 3:1
+       large-text floor - but the glass's specular highlight leaves a thin
+       brightest-1% sliver where cream-on-near-white would still collapse. This
+       shadow closes that last gap without darkening the footage any further,
+       which matters because the client asked for the video to stay visible. */
+    --hero-text-shadow: 0 2px 14px rgba(8, 14, 28, 0.55), 0 1px 3px rgba(8, 14, 28, 0.45);
+}
+
+/* Cream surfaces (#FFF8EC). Brand orange as *text* on cream is 1.9:1 - it
+   fails outright, terracotta reaches 6.8:1. Buttons are unaffected:
+   .btn-primary is pinned to the literal brand orange, not to this token.
+
+   .menu-category is deliberately NOT in this rule: each menu-category sits
+   inside .bg-orange-field--quiet, whose ink scale re-points --color-primary
+   to brand blue for legible contrast on orange. A per-category terracotta
+   override here would beat the parent scale (higher specificity) and drop
+   the accent back to 3.6:1 - the price line, the category heading and the
+   add-on note would all fail AA on the orange field.
+
+   #gift was removed from this rule for exactly the same reason once the gift
+   chapter became an orange field. An ID selector scores 100 against
+   .bg-orange-field's 10, so leaving it here would have silently beaten the
+   field's own ink scale and forced terracotta (3.48:1) back onto orange -
+   the "Gifted." accent and every bullet marker would have failed AA while the
+   CSS still looked correct. */
+.bg-warm-white {
+    --color-primary: var(--color-deep-terracotta);
+    --color-accent: var(--color-deep-terracotta);
+}
+
+/* Two consecutive sections on the same field: no gap, no mark. The client's
+   direction is that chapters should flow into one another rather than read as
+   stacked blocks, and two same-colour sections in sequence are the one case
+   where that is free - so they simply continue. (This previously added a
+   top gap and a .section-seam divider mark; both were boundary signals.) */
+.bg-orange-field + .bg-orange-field,
+.bg-blue-field + .bg-blue-field {
+    padding-top: 0;
+}
+
+section {
+    position: relative;
+}
+
+/* ============================================================
+   Chapter seams - cross-fade, not a shadow
+
+   This replaced an inset black box-shadow applied to every section's top
+   edge. That shadow was doing the opposite of what it was for: a dark band
+   at a section's first 40px is itself a boundary marker, so every chapter
+   break was still announced as a line - just a soft-edged one. The client's
+   note is that sections should not read as separated blocks at all.
+
+   The mechanism now is a genuine dissolve. Each section paints a tall band at
+   its own top edge carrying the colour of the section ABOVE it, fading to
+   transparent - so the outgoing field bleeds down into the incoming one and
+   there is no row of pixels where one becomes the other. It is a `::before`
+   inside the section (not an element overhanging the boundary) because
+   several of these sections run overflow:hidden for their own artwork, which
+   would clip anything extending past the edge.
+
+   z-index 1: above the section's own background, below every content
+   container on the page (all of which are position:relative with z-index >= 1
+   already - .heritage-inner is z-index 2, the rest are their sections'
+   .container). If a new section is added, give its content wrapper a
+   z-index or the band will veil it.
+   ============================================================ */
+.bg-orange-field::before,
+.bg-blue-field::before,
+.gift-field::before,
+.section-reservation::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    /* Tall enough to be a passage rather than an edge treatment. Below about
+       90px the gradient itself starts to read as a band. */
+    height: clamp(110px, 15vh, 200px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* --- the seams that actually occur, in page order --- */
+
+/* hero (full-bleed footage) -> Theatre of Fire.
+
+   This seam cannot be solved from the incoming side alone. A band inside the
+   next section fades ITS colour in, but the hero above ends on whatever frame
+   the video happens to be showing - often a bright one - so the join still
+   read as a step from a light frame to a dark band.
+
+   So the hero fades out instead: its own bottom edge dissolves into the blue
+   of the section below, and the craft video's top edge (masked in
+   09-home-sections.css) dissolves back in out of that same blue. Light frame
+   -> blue -> footage, with no row of pixels where one becomes the other.
+
+   ::after rather than ::before because .hero-cinematic-light already owns the
+   hero's overlay layer; z-index 1 puts this above the video (z-index 0) and
+   below the copy (z-index 2). */
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: clamp(120px, 18vh, 240px);
+    z-index: 1;
+    pointer-events: none;
+    /* rgb(28,59,111), not the raw --color-brand-blue #1e417b. .bg-blue-field is
+       a 0.86-0.92 wash of that token over dark lotus artwork, so it composites
+       DARKER than the token itself. Fading to #1e417b left a measured
+       rgb(32,66,123) -> rgb(28,59,111) step at the join - small, but a visible
+       line. Sampled from the rendered page; re-measure if the field's wash
+       opacities or artwork change. */
+    background: linear-gradient(to bottom, rgba(28, 59, 111, 0) 0%, rgb(28, 59, 111) 100%);
+}
+/* blue -> orange (Theatre -> Heritage) */
+.bg-blue-field + .bg-orange-field::before {
+    background: linear-gradient(to bottom, rgb(30, 65, 123) 0%, rgba(30, 65, 123, 0) 100%);
+}
+/* orange -> blue (Exhibition -> Locations) */
+.bg-orange-field + .bg-blue-field::before {
+    background: linear-gradient(to bottom, rgb(255, 150, 63) 0%, rgba(255, 150, 63, 0) 100%);
+}
+/* blue -> cream (Locations -> Gift) */
+.bg-blue-field + .gift-field::before {
+    background: linear-gradient(to bottom, rgb(30, 65, 123) 0%, rgba(30, 65, 123, 0) 100%);
+}
+/* cream -> dark footage (Gift -> closing). Fades the cream DOWN into the
+   video rather than the video up into the cream, which would dirty the
+   footage the client asked to keep visible. */
+.gift-field + .section-reservation::before {
+    background: linear-gradient(to bottom, rgb(255, 248, 236) 0%, rgba(255, 248, 236, 0) 100%);
+    /* This section stacks a background still, a tint layer and the video all at
+       z-index 0-1, and they come after ::before in DOM order - at z-index 1 the
+       band would paint underneath the footage and be invisible. z-index 2 puts
+       it over the video; the copy container is also z-index 2 but later in the
+       DOM, so the text still sits on top of the band. */
+    z-index: 2;
+}
+/* Same field twice in a row (Heritage -> Exhibition): nothing to dissolve. */
+.bg-orange-field + .bg-orange-field::before,
+.bg-blue-field + .bg-blue-field::before {
+    display: none;
+}

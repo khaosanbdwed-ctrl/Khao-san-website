@@ -1,0 +1,17 @@
+# Keep the knowledge graph scoped to THIS project.
+#
+# Without these, a scan picks up 289 files / ~1.38M words, of which the large
+# majority is not Khao San: vendored Supabase agent-skill reference docs
+# (duplicated under both .agents/ and .claude/), the brand image library, and
+# marketing b-roll / background-music files. Graphing those buries the app in
+# Postgres tips and costs a vision subagent per image.
+
+# Vendored agent skills (Supabase best-practice docs, not our code)
+.agents/
+.claude/skills/
+
+# Brand asset masters: source video, scanned menu pages, social exports
+_masters/Brand_Asset/
+
+# Shipped media — binary, no graph value
+public/assets/

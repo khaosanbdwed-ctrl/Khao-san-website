@@ -126,12 +126,18 @@ export default function Header() {
                 padding: 12px 24px;
                 font-size: 0.75rem;
             }
+            /* The mark anchors the bar on the left. The 1fr/auto/1fr grid keeps
+               the nav optically centred in the viewport regardless of how wide
+               the logo and the CTA are - which they are not, to each other. */
             .header-left {
-                /* Takes up 1fr space to balance the grid */
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
             }
             .header-center {
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 gap: 40px;
             }
             .header-right {
@@ -188,7 +194,11 @@ export default function Header() {
                     display: flex;
                     justify-content: space-between;
                 }
-                .header-left {
+                /* The nav links are all in the overlay at this width, so the
+                   centre column is empty - collapse it so the logo (left) and
+                   the hamburger (right) are the only two flex children and
+                   space-between puts them exactly at the two edges. */
+                .header-center {
                     display: none;
                 }
             }
@@ -196,18 +206,9 @@ export default function Header() {
 
         <header className={`header-container ${scrolled ? 'scrolled' : 'top'}${inHero && !menuOpen ? ' in-hero' : ''}`}>
             
-            {/* Left Column - Empty to balance CSS Grid */}
-            <div className="header-left"></div>
-
-            {/* Center Column - Nav Links + Logo perfectly centered */}
-            <nav className="header-center">
-                <Link href={pathname === '/menu' ? "/" : "/menu"} className="nav-link desktop-only">
-                    {pathname === '/menu' ? "Home" : "Menu"}
-                </Link>
-                <Link href="/#havens" className="nav-link desktop-only">Locations</Link>
-
-                {/* Logo */}
-                <Link href="/" onClick={closeMenu} style={{ display: 'inline-block', position: 'relative', height: scrolled ? '42px' : '50px', width: scrolled ? '42px' : '50px', transition: 'all 0.4s ease' }}>
+            {/* Left Column - the mark */}
+            <div className="header-left">
+                <Link href="/" onClick={closeMenu} aria-label="Khao San - home" style={{ display: 'inline-block', position: 'relative', height: scrolled ? '42px' : '50px', width: scrolled ? '42px' : '50px', transition: 'all 0.4s ease' }}>
                     {/* unoptimized for the same reason as the hero and footer marks:
                         this logo depends on its alpha channel (it sits on a
                         translucent bar over video). The optimiser flattens that
@@ -225,14 +226,21 @@ export default function Header() {
                         unoptimized
                     />
                 </Link>
+            </div>
 
+            {/* Center Column - section navigation */}
+            <nav className="header-center" aria-label="Primary">
+                <Link href={pathname === '/menu' ? "/" : "/menu"} className="nav-link desktop-only">
+                    {pathname === '/menu' ? "Home" : "Menu"}
+                </Link>
+                <Link href="/#locations" className="nav-link desktop-only">Locations</Link>
                 <Link href="/#heritage" className="nav-link desktop-only">Our Story</Link>
                 <Link href="/#gift" className="nav-link desktop-only">Gift Cards</Link>
             </nav>
 
-            {/* Right Column - Reserve Button & Mobile Hamburger */}
+            {/* Right Column - CTA & Mobile Hamburger */}
             <div className="header-right">
-                <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" className="btn btn-primary desktop-only">Reserve</a>
+                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" className="btn btn-primary desktop-only">Contact Us</a>
                 
                 {/* Mobile Hamburger */}
                 <button 
@@ -311,10 +319,10 @@ export default function Header() {
                 <Link href={pathname === '/menu' ? "/" : "/menu"} style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
                     {pathname === '/menu' ? "Home" : "Menu"}
                 </Link>
-                <Link href="/#havens" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
+                <Link href="/#locations" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
                 <Link href="/#heritage" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
                 <Link href="/#gift" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
-                <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Reserve a Table</a>
+                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Contact Us</a>
             </nav>
         </header>
         </>

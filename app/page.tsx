@@ -1,16 +1,30 @@
 "use client";
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import BackgroundVideo from '@/components/ui/background-video';
 import BrushTransition from '@/components/ui/brush-transition';
+import InteriorDrift from '@/components/ui/interior-drift';
+import type { InteriorShot } from '@/components/ui/interior-drift';
 
+/* The hero poster is what the visitor actually sees first — the video behind it
+   is ~1.2 MB and cannot paint for a while, so this still is the LCP element.
+   Browsers do not give a <video poster> any loading priority, so it was being
+   fetched after the scripts. Preloading it here (homepage only — putting it in
+   layout.tsx would pull it on /menu too, where it never renders) moves the
+   first meaningful paint forward by roughly a round trip. */
+const HERO_POSTER =
+    '/assets/posters/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.webp';
+
+/* No `type` or `tagline` fields: the Flagship / Original / Sanctuary
+   descriptors were removed at the client's request, and with them the reason
+   for one card to be structured differently from the other two. Every location
+   now renders the same block. */
 const LOCATIONS = [
     {
-        type: 'Flagship',
         name: 'Gulshan 1',
-        tagline: 'Where it all began - our original street-corner theatre, still the loudest room in Dhaka.',
         address: 'Level 1, Progress Tower, House 1, Road 23, Gulshan 1, Dhaka 1212',
         whatsapp: '8801600068193',
         hours: ['Sat–Thu: 12:00 PM – 11:00 PM', 'Friday: 2:00 PM – 11:00 PM'],
@@ -18,7 +32,6 @@ const LOCATIONS = [
         mapQuery: 'Level 1, Progress Tower, House 1, Road 23, Gulshan 1, Dhaka',
     },
     {
-        type: 'Original',
         name: 'Dhanmondi',
         address: 'Ahmad & Kazi Tower, Level-5, House-35, Road-2, Dhanmondi, Dhaka',
         whatsapp: '8801603523731',
@@ -27,7 +40,6 @@ const LOCATIONS = [
         mapQuery: 'Ahmad & Kazi Tower, Level-5, House-35, Road-2, Dhanmondi, Dhaka',
     },
     {
-        type: 'Sanctuary',
         name: 'Uttara',
         address: 'House 30, Tropical Sormi Center, Sector 13, Garib-E-Newaz Ave, Uttara, Dhaka',
         whatsapp: '8801627167758',
@@ -42,25 +54,87 @@ const LOCATIONS = [
    photography into their own assets under /assets/Heritage. The wide
    dining-room shots they came from belong to the Havens section further down
    and are used only there. */
-const HERITAGE_ROOMS = [
+/* The interior gallery's content.
+ *
+ * ⚠ This list is deliberately short and the gallery knows it. Khao San's
+ * interior photography has not been delivered yet - the only room imagery in
+ * the repo is these three wall-art crops plus the three outlet shots the
+ * Locations cards use, and everything in `_masters/Brand_Asset/` is menu pages
+ * and food (checked, not assumed). Under InteriorDrift's `driftThreshold` the
+ * component renders a static masonry; once there are 8+ entries here it starts
+ * drifting on its own. Adding photography is a change to this array only.
+ *
+ * Per entry:
+ *   location - the outlet, rendered as the plate's caption. This is how the
+ *              gallery says "three locations" without a filter UI.
+ *   ratio    - each plate declares its own shape. Mixed tall (2/3, 4/5),
+ *              square and landscape (3/2) is what stops the columns settling
+ *              into rows; uniform ratios collapse the effect.
+ */
+/* Order matters: InteriorDrift deals round-robin, so consecutive entries land
+   in different columns. Grouped by outlet, the top row came out all-Gulshan.
+   Interleaved Gulshan / Dhanmondi / Uttara instead, so every column carries all
+   three outlets and the wall reads as the whole brand rather than one room. */
+const INTERIORS: InteriorShot[] = [
+    {
+        src: '/assets/interiors/gulshan/tuktuk-booth.webp',
+        alt: 'The blue tuk-tuk booth under caged pendant lamps, beside patterned banquette seating',
+        location: 'Gulshan 1',
+        ratio: '2 / 3',
+    },
+    {
+        src: '/assets/interiors/dhanmondi/tables-palm.webp',
+        alt: 'Timber tables with orange and grey chairs, set against dense planting',
+        location: 'Dhanmondi',
+        ratio: '3 / 2',
+    },
     {
         src: '/assets/Heritage/neon-market.webp',
         alt: 'Hand-bent neon signs - Night Market, Khao San, Tom Yum, Tuk Tuk - above the tuk-tuk booth',
-        caption: 'The Thai Way',
-    },
-    {
-        src: '/assets/Heritage/elephant-mark.webp',
-        alt: 'The painted elephant, our mark, on the jungle mural wall',
-        caption: 'The Mark',
+        location: 'Uttara',
+        ratio: '3 / 4',
     },
     {
         src: '/assets/Heritage/rocco-street.webp',
         alt: 'A painted Bangkok street scene with the Rocco sign glowing over the shopfronts',
-        caption: 'Thailand, 0 KM',
+        location: 'Gulshan 1',
+        ratio: '3 / 4',
+    },
+    {
+        src: '/assets/interiors/dhanmondi/mural-glass.webp',
+        alt: 'Tropical mural painted across the glass partition, with the dining room beyond',
+        location: 'Dhanmondi',
+        ratio: '3 / 4',
+    },
+    {
+        src: '/assets/interiors/uttara/dining-floor.webp',
+        alt: 'Orange chairs and timber tables on the oak floor, framed by potted greenery',
+        location: 'Uttara',
+        ratio: '4 / 3',
+    },
+    {
+        src: '/assets/interiors/gulshan/banquette.webp',
+        alt: 'Solid timber tables and grey banquette seating, set with daisies',
+        location: 'Gulshan 1',
+        ratio: '3 / 2',
+    },
+    {
+        src: '/assets/Heritage/elephant-mark.webp',
+        alt: 'The painted elephant, our mark, on the jungle mural wall',
+        location: 'Uttara',
+        ratio: '3 / 4',
+    },
+    {
+        src: '/assets/interiors/uttara/pendants.webp',
+        alt: 'The neon signage wall and jungle mural seen past the pendant lighting rig',
+        location: 'Uttara',
+        ratio: '5 / 4',
     },
 ];
 
 export default function Home() {
+    ReactDOM.preload(HERO_POSTER, { as: 'image', fetchPriority: 'high' });
+
     return (
         <>
         {/* CHAPTER I: THE THRESHOLD (Hero) */}
@@ -69,17 +143,19 @@ export default function Home() {
                 surface, which washed the room out to near-white before the
                 lighting layer even landed on top of it. */}
             <BackgroundVideo
-                src="/assets/Brand_Asset/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.mp4"
+                src="/assets/video-web/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.mp4"
+                poster="/assets/posters/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.webp"
+                priority
                 style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0}}
                 className="hero-ken-burns"
             />
             <div className="hero-cinematic-light" aria-hidden="true"></div>
 
             <div className="container" style={{position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '800px', padding: '0 24px'}}>
-                {/* The brand's own lockup: the mark set beside the wordmark on one
-                    line, with "Reinventing" as the overline above it. "The Thai
-                    Way" is set in Good Brush - the hand-painted brush face the
-                    brand uses for this phrase - not the display serif. */}
+                {/* Hero order, top to bottom: mark, tagline, description, actions.
+                    The mark is centred on its own line above the wordmark.
+                    "The Thai Way" is set in Good Brush - the hand-painted brush
+                    face the brand uses for this phrase - not the display serif. */}
                 <div className="hero-lockup ignition-reveal ignition-reveal-1">
                     {/* unoptimized is REQUIRED, not an optimisation opt-out: the
                         image pipeline re-encodes this transparent WebP to a format
@@ -127,52 +203,50 @@ export default function Home() {
             Heritage chapter so the homepage reads orange->blue->orange
             instead of orange the whole way down. */}
         <section className="bg-blue-field section-blend overflow-hidden" style={{position: 'relative'}}>
-            <div className="container" style={{position: 'relative', zIndex: 2, paddingTop: 'var(--space-macro)', paddingBottom: 'var(--space-macro)'}}>
-                <div style={{display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8vw', margin: '0 auto'}}>
-                    
-                    {/* Media Side - feathered so the footage dissolves into the
-                        section rather than reading as an outlined rectangle */}
-                    <div className="reveal-hidden" style={{
-                        flex: '1 1 500px',
-                        position: 'relative',
-                        zIndex: 1,
-                        aspectRatio: '16/9'
-                    }}>
+            {/* Still the original split - footage one side, copy the other -
+                just with the film given considerably more of it. The frame was
+                briefly rebuilt as a full-bleed, near-viewport-height stage;
+                that was a hero treatment and overshot the brief, which was
+                only that the frame was too small. The video column now leads
+                the split (see .craft-split in 09-home-sections.css) instead of
+                sharing it evenly with the text. */}
+            {/* Not .container: this chapter is the one place the composition is
+                allowed past the page's 1280 measure - see .craft-split. */}
+            <div style={{position: 'relative', zIndex: 2, paddingTop: 'var(--space-macro)', paddingBottom: 'var(--space-macro)'}}>
+                <div className="craft-split">
+                    <div className="reveal-hidden craft-stage">
                         <BackgroundVideo
-                            src="/assets/Brand_Asset/Khao_San_Food_is_fuel_but_its_a_984497544399650_1080p_20260706.mp4"
+                            src="/assets/video-web/theatre-craft.mp4"
+                            poster="/assets/posters/theatre-craft.webp"
                             className="media-feather"
                             style={{width: '100%', height: '100%', objectFit: 'cover', display: 'block'}}
                         />
                     </div>
 
-                    {/* Content Side */}
-                    <div style={{
-                        flex: '1 1 300px',
-                        position: 'relative', 
-                        zIndex: 2,
-                        maxWidth: '450px'
-                    }}>
-                        <span className="overline" style={{color: 'var(--color-brand-butter)', display: 'block', marginBottom: '24px', letterSpacing: '4px'}}>The Kitchen</span>
-                        {/* Brush lettering: this is a "heat" line, which is exactly
-                            the register the caps-only brush face suits. Third and
-                            middle of the three brush-hand moments (hero, here,
-                            closing) - see .display-brush. */}
-                        <h2 className="display-2 display-brush" style={{marginBottom: '40px', fontSize: 'clamp(2.5rem, 5vw, 4.5rem)', lineHeight: 0.94, color: '#ffffff'}}>The Theatre of Fire.</h2>
-                        <p className="body-large" style={{color: 'rgba(255,255,255,0.8)', lineHeight: 1.8, fontSize: '1.2rem', marginBottom: '48px'}}>
+                    <div className="craft-copy">
+                        <h2 className="display-2" style={{marginBottom: '28px', fontSize: 'clamp(2rem, 3vw, 3rem)', lineHeight: 1.0, color: '#ffffff'}}>The Theatre of Fire.</h2>
+                        <p className="body-large" style={{color: 'rgba(255,255,255,0.8)', lineHeight: 1.8, fontSize: '1.1rem', marginBottom: '36px'}}>
                             Our woks are fueled by raw heat and culinary discipline. By tossing fresh ingredients at extreme temperatures, we achieve a charred, complex caramelization that defines the soul of authentic street craft.
                         </p>
-                        <Link href="/menu" className="btn btn-primary">See the Craft</Link>
+                        <Link href="/menu" className="btn btn-primary">See the Menu</Link>
                     </div>
-
                 </div>
             </div>
         </section>
 
-        {/* CHAPTER III: THE STORY - immersive editorial storytelling band */}
-        <section id="heritage" className="heritage reveal-hidden bg-orange-field section-blend">
-            <div className="heritage-inner">
+        {/* CHAPTERS III + IV: THE STORY and THE EXHIBITION.
+
+            One <section>, not two. They were two adjacent .bg-orange-field
+            sections, and each one paints its own copy of the lotus artwork at
+            `background-size: cover` - so the art restarted at the join and drew
+            a visible horizontal line straight across the page, even though both
+            sections were the same colour. No amount of padding or seam work
+            fixes that; the art has to be one continuous field, which means one
+            element. Merging them is also the most literal reading of "section
+            divisions should be removed": there is now genuinely no division. */}
+        <section id="heritage" className="heritage bg-orange-field section-blend">
+            <div className="heritage-inner reveal-hidden">
                 <div className="heritage-head">
-                    <span className="heritage-eyebrow">Our Heritage</span>
                     <blockquote className="heritage-quote">
                         Bangkok&rsquo;s fiercest street corners, <em>quietly elevated.</em>
                     </blockquote>
@@ -181,24 +255,14 @@ export default function Home() {
                 {/* The rooms themselves - the murals, the neon, the tuk-tuk. The
                     dish photography carries the Exhibition chapter immediately
                     below; running plates here too made the two chapters read as
-                    one continuous food grid with a heading in the middle. */}
-                <div className="heritage-gallery">
-                    {HERITAGE_ROOMS.map((room) => (
-                        <figure className="hg" key={room.caption}>
-                            <div className="hg-card">
-                                <Image
-                                    src={room.src}
-                                    alt={room.alt}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    sizes="(max-width: 560px) 90vw, (max-width: 900px) 50vw, 30vw"
-                                />
-                                <div className="hg-scrim" aria-hidden="true"></div>
-                                <figcaption className="hg-cap">{room.caption}</figcaption>
-                            </div>
-                        </figure>
-                    ))}
-                </div>
+                    one continuous food grid with a heading in the middle.
+
+                    Columns of room photography drifting slowly upward inside a
+                    feathered frame - see InteriorDrift for why the columns
+                    translate rather than the frame scrolling. It shows a lot of
+                    rooms at once, which is the job: three outlets with a great
+                    deal of interior to show. */}
+                <InteriorDrift shots={INTERIORS} />
 
                 <div className="heritage-note">
                     <p>
@@ -209,23 +273,13 @@ export default function Home() {
                     <Link href="/menu" className="btn btn-secondary">Explore the Menu</Link>
                 </div>
             </div>
-        </section>
- 
-        {/* CHAPTER IV: THE EXHIBITION (Food Spotlight) - a clean gallery wall,
-            not another full lotus wash, so the photography carries the section */}
-        {/* Padding via .section-pad rather than an inline value: this section
-            follows another orange one, and the adjacent-field rule in
-            globals.css needs to be able to collapse the doubled seam - an
-            inline padding would outrank it. */}
-        <section className="bg-orange-field section-pad section-blend" style={{ position: 'relative', overflow: 'hidden' }}>
-            {/* Heritage above is the same orange, so there is no colour change to
-                mark the join - the seam supplies the divider. */}
-            <div className="section-seam" aria-hidden="true"><span className="section-seam-mark" /></div>
 
-            <div className="container" style={{position: 'relative', zIndex: 2}}>
+            {/* THE EXHIBITION (Food Spotlight) - continues inside the same
+                orange field rather than opening a new one. No heading label and
+                no divider mark: the change of content is the only transition. */}
+            <div className="container" style={{position: 'relative', zIndex: 2, paddingTop: 'clamp(64px, 8vw, 120px)'}}>
                 <div style={{textAlign: 'left', marginBottom: '80px', maxWidth: '1000px', margin: '0 auto 80px'}}>
-                    <span className="overline" style={{color: 'var(--color-primary)'}}>The Exhibition</span>
-                    <h2 className="display-2" style={{marginTop: '8px'}}>Signature Spreads</h2>
+                    <h2 className="display-2">Signature Spreads</h2>
                 </div>
 
                 <div style={{display: 'flex', flexDirection: 'column', gap: 'clamp(80px, 12vw, 160px)', maxWidth: '1120px', margin: '0 auto'}}>
@@ -237,15 +291,10 @@ export default function Home() {
                         </div>
                     </div>
                         <div className="spread-copy">
-                            <div className="spread-meta">
-                                <span style={{color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase'}}>★ Signature</span>
-                                <span style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem', fontStyle: 'italic'}}>Tamarind &amp; Charred Wok</span>
-                            </div>
                             <h3 className="display-2" style={{marginBottom: '18px'}}>Pad Thai Goong</h3>
                             <p className="body-large text-pretty" style={{color: 'var(--color-text-secondary)', marginBottom: '28px', lineHeight: 1.8, fontSize: '1.1rem'}}>
                                 Rice noodles flash-tossed in high wok fire with river prawns, baked tofu, peanuts and our house tamarind reduction &mdash; the rhythm of the wok in a single plate.
                             </p>
-                            <p style={{color: 'var(--color-text-primary)', fontWeight: 600, fontSize: '1rem', marginBottom: '28px', letterSpacing: '0.04em'}}>1250 BDT</p>
                             <Link href="/menu#e-noodles" className="btn btn-secondary">View Noodles</Link>
                         </div>
                     </div>
@@ -253,15 +302,10 @@ export default function Home() {
                     {/* 02 - Tom Yum: copy left, large plate bleeding into the right */}
                     <div className="spread spread--reverse">
                         <div className="spread-copy">
-                            <div className="spread-meta">
-                                <span style={{color: 'var(--color-brand-blue)', fontWeight: 600, fontSize: '0.8rem', letterSpacing: '2px', textTransform: 'uppercase'}}>🌶 Fiery</span>
-                                <span style={{color: 'var(--color-text-secondary)', fontSize: '0.9rem', fontStyle: 'italic'}}>Lemongrass &amp; Kaffir Lime</span>
-                            </div>
                             <h3 className="display-2" style={{marginBottom: '18px'}}>Tom Yum Goong</h3>
                             <p className="body-large text-pretty" style={{color: 'var(--color-text-secondary)', marginBottom: '28px', lineHeight: 1.8, fontSize: '1.1rem', marginLeft: 'auto'}}>
                                 A piping-hot, sour-spicy river-prawn soup infused with hand-crushed aromatics &mdash; an uncompromising standard of true Bangkok street balance.
                             </p>
-                            <p style={{color: 'var(--color-text-primary)', fontWeight: 600, fontSize: '1rem', marginBottom: '28px', letterSpacing: '0.04em'}}>950 BDT</p>
                             <Link href="/menu#b-soups" className="btn btn-secondary">View Soups</Link>
                         </div>
                         <div className="spread-media reveal-toss">
@@ -275,37 +319,34 @@ export default function Home() {
         </section>
 
         {/* CHAPTER V: THE HAVENS (Locations - compact card grid, one section) */}
-        <section id="havens" className="bg-blue-field section-blend" style={{ padding: 'var(--space-macro) 0', position: 'relative', overflow: 'hidden' }}>
+        <section id="locations" className="bg-blue-field section-blend" style={{ padding: 'var(--space-macro) 0', position: 'relative', overflow: 'hidden' }}>
             <div className="container" style={{position: 'relative', zIndex: 1}}>
                 <div className="reveal-hidden" style={{textAlign: 'center', marginBottom: '56px'}}>
-                    <span className="overline" style={{color: 'var(--color-primary)'}}>The Spaces</span>
-                    <h2 className="display-2" style={{marginTop: '8px', fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: 'var(--color-text-primary)'}}>Our Havens.</h2>
-                    <p style={{color: 'rgba(255,255,255,0.75)', maxWidth: '500px', margin: '24px auto 0', fontSize: '1.1rem'}}>Three deeply atmospheric dining rooms across Dhaka. Find your nearby sanctuary.</p>
+                    <h2 className="display-2" style={{fontSize: 'clamp(2.5rem, 5vw, 4rem)', color: 'var(--color-text-primary)'}}>Our Locations.</h2>
+                    <p style={{color: 'rgba(255,255,255,0.75)', maxWidth: '500px', margin: '24px auto 0', fontSize: '1.1rem'}}>Three deeply atmospheric dining rooms across Dhaka. Find your nearest.</p>
                 </div>
 
+                {/* Every card is the flagship block now - the first location's
+                    structure, applied across all three. */}
                 <div className="havens-grid">
-                    {LOCATIONS.map((loc, i) => (
-                        <div key={loc.name} className={`reveal-hidden haven-card${i === 0 ? ' haven-card--feature' : ''}`}>
+                    {LOCATIONS.map((loc) => (
+                        <div key={loc.name} className="reveal-hidden haven-card">
                             <div className="haven-card-image">
-                                <Image src={loc.imageSrc} alt={`Khao San ${loc.name} dining room`} fill style={{objectFit: 'cover'}} sizes={i === 0 ? '(max-width: 900px) 100vw, 600px' : '(max-width: 900px) 100vw, 560px'} />
+                                <Image src={loc.imageSrc} alt={`Khao San ${loc.name} dining room`} fill style={{objectFit: 'cover'}} sizes="(max-width: 900px) 100vw, 560px" />
                             </div>
-                            {/* The category moved off the photograph and into the label,
-                                where it sets the block as a marked overline. */}
                             <div className="haven-card-body">
-                                <span className="haven-card-type">{loc.type}</span>
                                 <h3>{loc.name}</h3>
-                                {loc.tagline && <p className="haven-card-tagline">{loc.tagline}</p>}
                                 <div className="haven-card-meta">
                                     <p className="haven-card-address">{loc.address}</p>
                                     <p className="haven-card-hours">{loc.hours.join(' · ')}</p>
                                 </div>
                                 <div className="haven-card-actions">
                                     <a
-                                        href={`https://wa.me/${loc.whatsapp}?text=${encodeURIComponent(`Hi, I'd like to reserve a table at Khao San ${loc.name}.`)}`}
+                                        href={`https://wa.me/${loc.whatsapp}?text=${encodeURIComponent(`Hi, I'd like to get in touch with Khao San ${loc.name}.`)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="btn btn-primary"
-                                    >Reserve</a>
+                                    >Contact Us</a>
                                     <a
                                         href={`https://maps.google.com/?q=${encodeURIComponent(loc.mapQuery)}`}
                                         target="_blank"
@@ -388,7 +429,7 @@ export default function Home() {
                             rel="noopener noreferrer"
                             className="btn btn-primary"
                         >
-                            Purchase Gift Card &rarr;
+                            Contact Us &rarr;
                         </a>
                     </div>
 
@@ -408,7 +449,18 @@ export default function Home() {
                             are gone. On the cream field a single stroke at that value
                             just read as a washed-out smudge rather than paint; the
                             asset is a real saffron brush and should look like one. */}
-                        <div aria-hidden="true" style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-38deg) scale(1.42)', width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none'}}>
+                        {/* The wrapper is centred on the card area, but the painted
+                            mass inside saffron.png is not centred in its own frame —
+                            the dense body sits low-left with the splatter trailing
+                            up-right — and rotating it -38deg swings that mass further
+                            down-left again. Centring the BOX therefore left the cards
+                            sitting above and right of the stroke rather than within it.
+                            Measured from the render: the brush centroid was 134px left
+                            and 74px below the card centroid on a ~800px-wide container,
+                            hence the +17% / -9% correction below, which keeps the cards
+                            in the middle of the paint at any width. A first pass at
+                            +17%/-9% overshot to (-39, +32); +13%/-6.3% lands it. */}
+                        <div aria-hidden="true" style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(calc(-50% + 13%), calc(-50% - 6.3%)) rotate(-38deg) scale(1.42)', width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none'}}>
                             <Image src="/assets/brush-strokes/saffron.png" alt="" fill style={{ objectFit: 'contain', opacity: 0.95 }} sizes="(max-width: 768px) 100vw, 800px" />
                         </div>
 
@@ -483,27 +535,28 @@ export default function Home() {
             <div style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(30, 41, 59, 0.8)', zIndex: 1}}></div>
             
             <BackgroundVideo
-                src="/assets/Brand_Asset/Khao_San_The_wait_is_finally_over_2134770693761947_1080p_20260706.mp4"
+                src="/assets/video-web/closing-table.mp4"
+                poster="/assets/posters/closing-table.webp"
                 style={{position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1, opacity: 0.75}}
             />
             <div className="invitation-light" aria-hidden="true"></div>
 
             <div className="container reveal-hidden" style={{position: 'relative', zIndex: 2, maxWidth: '700px', textAlign: 'center'}}>
-                {/* hero-text-shadow: this copy sits directly on bright footage, the
-                    case that class exists for. See .section-reservation in
-                    globals.css for the measured reasoning. */}
-                <span className="overline hero-text-shadow" style={{color: 'var(--color-accent)', display: 'block', marginBottom: '24px'}}>The Final Table</span>
                 {/* Set in the brand's own brush hand - see .display-brush. This is
                     the closing bookend to the hero's "The Thai Way": the site opens
-                    and closes in the same lettering. */}
+                    and closes in the same lettering, and those are now the only two
+                    places on the site that use the brush face.
+                    hero-text-shadow: this copy sits directly on bright footage, the
+                    case that class exists for. See .section-reservation in
+                    globals.css for the measured reasoning. */}
                 <h2 className="display-2 display-brush hero-text-shadow" style={{marginBottom: '32px'}}>Taste the fire.</h2>
-                <p className="body-large hero-text-shadow" style={{color: 'var(--color-text-secondary)', marginBottom: '48px', fontSize: '1.2rem'}}>We recommend reserving in advance. Claim your seat in one of our Dhaka sanctuaries.</p>
+                <p className="body-large hero-text-shadow" style={{color: 'var(--color-text-secondary)', marginBottom: '48px', fontSize: '1.2rem'}}>We recommend getting in touch in advance. Claim your seat in one of our Dhaka sanctuaries.</p>
                 <a
-                    href={`https://wa.me/8801600068193?text=${encodeURIComponent("Hi, I'd like to reserve a table at Khao San.")}`}
+                    href={`https://wa.me/8801600068193?text=${encodeURIComponent("Hi, I'd like to get in touch with Khao San.")}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-primary"
-                >Reserve A Table Now &rarr;</a>
+                >Contact Us &rarr;</a>
             </div>
         </section>
         </>

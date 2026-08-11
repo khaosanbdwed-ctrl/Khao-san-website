@@ -29,7 +29,7 @@ export default function Footer() {
                         <p className="footer-tagline">
                             Bangkok street craft, quietly elevated &mdash; three rooms across Dhaka.
                         </p>
-                        <a href={waLink("Hi, I'd like to reserve a table at Khao San.")} target="_blank" rel="noopener noreferrer" className="footer-reserve">Reserve a Table</a>
+                        <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" className="footer-reserve">Contact Us</a>
                         <p className="footer-outlets">Gulshan &middot; Dhanmondi &middot; Uttara</p>
                     </div>
 
@@ -37,7 +37,7 @@ export default function Footer() {
                         <h4>Explore</h4>
                         <ul>
                             <li><Link href="/menu" className="footer-link">Menu</Link></li>
-                            <li><Link href="/#havens" className="footer-link">Locations</Link></li>
+                            <li><Link href="/#locations" className="footer-link">Locations</Link></li>
                             <li><Link href="/#heritage" className="footer-link">Our Story</Link></li>
                             <li><Link href="/#gift" className="footer-link">Gift Cards</Link></li>
                         </ul>
