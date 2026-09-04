@@ -31,7 +31,7 @@
        last section and the footer - the exact thing the seam rework exists to
        remove. The footer is dark against a light field, so the change of
        ground already marks the join. */
-    padding: clamp(44px, 5vw, 68px) 0 clamp(26px, 2.6vw, 38px);
+    padding: 32px 0 20px;
 
     --color-text-primary: #ffffff;
     --color-text-secondary: rgba(255, 255, 255, 0.82);
@@ -85,7 +85,7 @@
        the button wrapping while the outlets ran short. */
     grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
     gap: clamp(28px, 3.4vw, 56px);
-    padding-bottom: clamp(44px, 5vw, 76px);
+    padding-bottom: 28px;
     align-items: start;
 }
 
@@ -100,9 +100,9 @@
    Pair this rule with the surface: light footer -> no filter, dark footer ->
    this. */
 .footer-logo {
-    height: clamp(52px, 5vw, 68px);
+    height: 56px;
     width: auto;
-    margin: 0 0 20px;
+    margin: 0 0 12px;
     opacity: 1;
     filter: brightness(0) invert(1);
 }
@@ -111,7 +111,7 @@
     font-size: 1.02rem;
     line-height: 1.5;
     max-width: 26ch;
-    margin: 0 0 20px;
+    margin: 0 0 12px;
     text-wrap: pretty;
 }
 /* Two rows, not a run-on sentence: opening times are scanned, not read, and
@@ -121,7 +121,7 @@
     display: flex;
     flex-direction: column;
     gap: 3px;
-    margin: 0 0 26px;
+    margin: 0 0 14px;
     color: var(--color-text-secondary);
     font-size: 0.9rem;
     line-height: 1.5;
@@ -132,7 +132,10 @@
     letter-spacing: 0.04em;
     opacity: 0.8;
 }
-.footer-cta { white-space: nowrap; }
+.footer-cta {
+    padding: 13px 24px;
+    white-space: nowrap;
+}
 
 /* The outlets. Three identical blocks - no card, no rule, no shadow. */
 .footer-outlet {
@@ -224,7 +227,7 @@
 
        Padding here rather than margins because it sits INSIDE the border, so
        the rule gets air on both sides from one declaration. */
-    padding: clamp(20px, 2.2vw, 32px) 0;
+    padding: 12px 0;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 .footer-nav-list {
@@ -281,7 +284,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 4px 24px;
-    margin-top: clamp(10px, 1.2vw, 18px);
+    margin-top: 2px;
     /* No hairline. Two rules in a footer this short would put a line every
        ~60px down its lower half; the change of type size and colour is enough
        of a break, and zone 2's rule already marks where the substance ends. */
@@ -324,49 +327,140 @@
     }
     .footer-brand {
         grid-column: 1 / -1;
-        padding-bottom: clamp(8px, 1.5vw, 16px);
+        display: grid;
+        grid-template-columns: 88px minmax(0, 1fr) auto;
+        grid-template-areas:
+            "logo tagline action"
+            "logo hours action";
+        gap: 6px 22px;
+        align-items: center;
+        padding-bottom: 6px;
     }
+    .footer-logo { grid-area: logo; margin: 0; }
+    .footer-tagline { grid-area: tagline; margin: 0; }
+    .footer-hours { grid-area: hours; margin: 0; }
+    .footer-cta { grid-area: action; }
     .footer-outlet { padding-top: 0; }
 }
 @media (max-width: 700px) {
-    .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .site-footer {
+        padding: 38px 0 24px;
+        background-position: 38% center;
+    }
+
+    /* On a phone, the footer is a contact tool rather than four desktop
+       columns squeezed into a stack. The brand becomes a compact two-column
+       introduction and every outlet becomes one scan row: identity on the
+       left, immediate actions on the right. All NAP content stays visible. */
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding-bottom: 26px;
+    }
+
+    .footer-brand {
+        grid-column: auto;
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        grid-template-areas:
+            "logo tagline"
+            "hours action";
+        column-gap: 18px;
+        row-gap: 18px;
+        align-items: center;
+        padding-bottom: 30px;
+    }
+    .footer-logo {
+        grid-area: logo;
+        width: 64px;
+        height: auto;
+        margin: 0;
+    }
+    .footer-tagline {
+        grid-area: tagline;
+        margin: 0;
+        max-width: 24ch;
+    }
+    .footer-hours {
+        grid-area: hours;
+        margin: 0;
+        font-size: 0.82rem;
+        line-height: 1.45;
+    }
+    .footer-cta {
+        grid-area: action;
+        width: 100%;
+        min-width: 0;
+        padding-inline: 14px;
+        text-align: center;
+    }
+
+    .footer-outlet {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "name directions"
+            "address telephone";
+        column-gap: 18px;
+        align-items: start;
+        padding: 16px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .footer-outlet-name {
+        grid-area: name;
+        align-self: center;
+        margin: 0;
+    }
+    .footer-outlet-address {
+        grid-area: address;
+        align-self: start;
+        max-width: 29ch;
+        padding-top: 2px;
+        font-size: 0.84rem;
+        line-height: 1.5;
+    }
+    .footer-outlet-tel {
+        grid-area: telephone;
+        justify-self: end;
+        align-self: start;
+        margin: 0;
+        font-size: 0.84rem;
+        white-space: nowrap;
+    }
+    .footer-outlet-map {
+        grid-area: directions;
+        justify-self: end;
+        margin: 0;
+        font-size: 0.76rem;
+    }
+
+    .footer-nav {
+        justify-content: center;
+        gap: 8px 16px;
+        padding: 18px 0;
+    }
+    .footer-nav-list:first-child {
+        width: 100%;
+        justify-content: space-between;
+        gap: 0 12px;
+    }
+    .footer-nav-list--social {
+        width: 100%;
+        justify-content: center;
+    }
+    .footer-bottom {
+        justify-content: center;
+        margin-top: 8px;
+        text-align: center;
+    }
+    .footer-legal { justify-content: center; }
 }
 @media (max-width: 460px) {
-    .footer-grid { grid-template-columns: 1fr; gap: 26px; }
-    /* Rows sit left-aligned under each other rather than pushing to opposite
-       edges of a 360px screen, where `space-between` strands one word a side. */
-    .footer-nav { justify-content: flex-start; gap: 0 22px; }
-    .footer-bottom { justify-content: flex-start; }
-}
-
-/* --- Mobile Responsiveness Adjustments --- */
-.location-card-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    min-height: 800px;
-    display: flex;
-    align-items: center;
-    margin-left: calc(50% - 50vw);
-}
-
-.location-card-image-wrapper {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-}
-
-.location-card-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 700px;
-    padding: 0 8vw;
-}
-
-/* Phone type floor - `Directions` rendered at 11.5px, which is small for a
-   tracked uppercase label on a dark ground at arm's length. */
-@media (max-width: 768px) {
-    .footer-outlet-map { font-size: 0.8rem; }
+    .footer-brand {
+        column-gap: 14px;
+    }
+    .footer-logo { width: 58px; }
+    .footer-tagline { font-size: 0.94rem; }
+    .footer-outlet { column-gap: 12px; }
+    .footer-outlet-address { max-width: 22ch; }
 }
