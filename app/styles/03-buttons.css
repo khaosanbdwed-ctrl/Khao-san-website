@@ -97,3 +97,18 @@
     transform: translateY(0) scale(0.97);
     box-shadow: 0 4px 12px rgba(30, 65, 123, 0.3);
 }
+
+/* ============================================================
+   Phone type floor
+
+   0.85rem is 13.6px at every width, and on a phone that is the primary call
+   to action set smaller than the paragraph above it. The desktop size is
+   deliberate and stays; this is a floor for the one context where a button is
+   hit with a thumb rather than pointed at.
+   ============================================================ */
+@media (max-width: 768px) {
+    .btn {
+        font-size: 0.95rem;
+        letter-spacing: 0.1em;
+    }
+}

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -51,6 +51,25 @@ const goodBrush = localFont({
   variable: "--font-good-brush",
   display: "swap",
 });
+
+/* ⚠ `viewportFit: 'cover'` IS NOT COSMETIC HERE - IT IS WHAT MAKES THE SAFE
+   AREA INSETS REAL. Two rules in this codebase already position against
+   `env(safe-area-inset-*)`: the menu category index sits at
+   `right: max(14px, env(safe-area-inset-right))` and the mobile category bar
+   pads its bottom by `env(safe-area-inset-bottom)`. Without `viewport-fit`
+   the browser reports every inset as 0, so both were quietly doing nothing on
+   exactly the notched phones they were written for, and the bar sat under the
+   home indicator.
+
+   No `maximumScale` or `userScalable` here on purpose. Locking zoom is the
+   usual companion to this line and it breaks pinch-to-zoom for anyone who
+   needs it; the layout is built to survive zooming instead. */
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#1e417b',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://khaosan.com.bd'),

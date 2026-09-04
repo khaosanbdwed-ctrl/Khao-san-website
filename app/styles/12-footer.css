@@ -31,7 +31,7 @@
        last section and the footer - the exact thing the seam rework exists to
        remove. The footer is dark against a light field, so the change of
        ground already marks the join. */
-    padding: clamp(44px, 5vw, 68px) 0 22px;
+    padding: clamp(44px, 5vw, 68px) 0 clamp(26px, 2.6vw, 38px);
 
     --color-text-primary: #ffffff;
     --color-text-secondary: rgba(255, 255, 255, 0.82);
@@ -85,7 +85,7 @@
        the button wrapping while the outlets ran short. */
     grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
     gap: clamp(28px, 3.4vw, 56px);
-    padding-bottom: clamp(34px, 4vw, 52px);
+    padding-bottom: clamp(44px, 5vw, 76px);
     align-items: start;
 }
 
@@ -192,7 +192,10 @@
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
+    /* 44px, not 40. Four pixels under the minimum is still under it, and this
+       is the control that opens directions to a restaurant from a phone that
+       is probably already moving. */
+    min-height: 44px;
     margin-top: -6px;
     line-height: 1;
     border-bottom: 1.5px solid rgba(249, 235, 155, 0.4);
@@ -212,7 +215,16 @@
     align-items: center;
     justify-content: space-between;
     gap: 4px clamp(24px, 3vw, 48px);
-    padding: 4px 0;
+    /* ⚠ MEASURED AT ZERO BEFORE THIS. The three zones were butted straight
+       against each other - 0px from the outlet grid to this rule, 0px from
+       this row to the copyright line - so the footer's lower half read as one
+       53px row and one 44px row stacked with nothing between them. The
+       hairline was doing all the separating on its own, which is what makes a
+       footer feel ruled rather than composed.
+
+       Padding here rather than margins because it sits INSIDE the border, so
+       the rule gets air on both sides from one declaration. */
+    padding: clamp(20px, 2.2vw, 32px) 0;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 .footer-nav-list {
@@ -224,10 +236,28 @@
     align-items: center;
     gap: 0 clamp(18px, 2.2vw, 34px);
 }
-.footer-nav-list--social .footer-link {
+.footer-nav-list--social { gap: 0 6px; }
+/* A 44px target around a 20px mark. The box is the tap area and the hover
+   ground; the mark stays small so the row reads as two quiet glyphs rather
+   than two buttons. */
+.footer-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
     color: var(--color-text-secondary);
-    font-size: 0.86rem;
-    letter-spacing: 0.06em;
+    transition: color 0.3s ease, background-color 0.3s ease;
+}
+.footer-social:hover,
+.footer-social:focus-visible {
+    color: var(--color-brand-butter);
+    background: rgba(255, 255, 255, 0.09);
+}
+.footer-social:focus-visible {
+    outline: 2px solid var(--color-brand-butter);
+    outline-offset: 2px;
 }
 /* 44px minimum touch target (WCAG 2.5.5). Inline, so the height costs the
    row nothing - it IS the row's height. This is the same rule that made the
@@ -251,6 +281,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 4px 24px;
+    margin-top: clamp(10px, 1.2vw, 18px);
     /* No hairline. Two rules in a footer this short would put a line every
        ~60px down its lower half; the change of type size and colour is enough
        of a break, and zone 2's rule already marks where the substance ends. */
@@ -332,4 +363,10 @@
     width: 100%;
     max-width: 700px;
     padding: 0 8vw;
+}
+
+/* Phone type floor - `Directions` rendered at 11.5px, which is small for a
+   tracked uppercase label on a dark ground at arm's length. */
+@media (max-width: 768px) {
+    .footer-outlet-map { font-size: 0.8rem; }
 }

@@ -1214,3 +1214,53 @@
         display: none;
     }
 }
+
+/* ============================================================
+   Phone type floors
+
+   Measured on a 375px viewport, these rendered at 10.6px (dish marks), 10.9px
+   (add-ons label), 11.5px (hero dish count), 12.1px (portion note), 12.5px
+   (showcase link) and 14.1px (dish description). Every one of them is a fixed
+   rem value tuned against a desktop reading distance and never given a phone
+   floor, and the menu is the page people actually read on a phone, standing
+   up, deciding what to order.
+
+   The desktop sizes are not changed. This raises only the floor, and only
+   where the type is small enough that the size is doing harm rather than
+   hierarchy.
+   ============================================================ */
+@media (max-width: 768px) {
+    .menu-tag { font-size: 0.75rem; }
+    .menu-addons-label { font-size: 0.75rem; }
+    .menu-hero-count { font-size: 0.78rem; }
+    .menu-stage-link { font-size: 0.85rem; }
+    /* ⚠ `em`, SO IT RIDES THE TITLE. When the dish name went to 20.5px below,
+       0.8em took this annotation to 16.4px - larger than the 15.2px
+       description under it, which inverts the hierarchy: `(4pcs)` outranking
+       the sentence that tells you what the dish is. 0.7em lands it at 14.3px,
+       above the 12px floor and clearly subordinate to the description.
+       Anything that changes .menu-row-title on phones has to re-check this. */
+    .menu-row-portion { font-size: 0.7em; }
+    .menu-row-desc { font-size: 0.95rem; }
+    .menu-legal-terms li { font-size: 0.9rem; }
+
+    /* ⚠ THE DISH NAME HAS TO MOVE WITH THE DESCRIPTION. Raising the
+       description to 15.2px above without touching the name left the two
+       1.6px apart - a heavy display face at almost exactly the size of the
+       sans beneath it, which stops reading as a name and starts reading as a
+       slightly odd first line of the paragraph. Camera Obscura also needs
+       more size than Montserrat to stay legible: its letterforms are tight
+       and high-contrast, and 16.8px of it on a phone is genuinely hard work.
+
+       20.5px restores a real step (5.3px over the description) and gives the
+       face room to be read. The desktop clamp is untouched.
+
+       The rule this reverses is `.menu-row-title`'s note about 75 shouting
+       names, and that reasoning still holds where it was written - a desktop
+       GRID of seventy-five. A phone shows one column, two or three dishes at
+       a time, so the name is a caption competing with nothing. */
+    .menu-row-title {
+        font-size: 1.28rem;
+        line-height: 1.25;
+    }
+}

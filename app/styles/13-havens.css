@@ -340,3 +340,19 @@
     padding: 13px 18px;
     font-size: 0.78rem;
 }
+
+/* Phone type floors.
+
+   Opening hours rendered at 11.5px - the line a visitor checks before leaving
+   the house should not be the smallest thing on the card.
+
+   ⚠ `.haven-card-actions .btn` HAS TO BE NAMED HERE. The global phone floor
+   in 03-buttons.css is written against `.btn` (0,1,0) and this rule is
+   `.haven-card-actions .btn` (0,2,0), so it wins on specificity no matter
+   which file loads later - the haven cards were the one place on the site
+   still shipping a 12.5px button on a phone after the floor landed. Any
+   future descendant-selector override of `.btn` needs the same treatment. */
+@media (max-width: 768px) {
+    .haven-card-hours { font-size: 0.8rem; }
+    .haven-card-actions .btn { font-size: 0.95rem; }
+}

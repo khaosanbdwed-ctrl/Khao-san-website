@@ -46,8 +46,11 @@ import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
  *           internal rules; the columns are separated by space, which is what
  *           a grid is for.
  *   ZONE 2  one hairline, then ONE row: navigation inline on the left, social
- *           inline on the right. Inline is the fix for the 278px band - the
- *           same 44px targets sit side by side instead of stacking.
+ *           as icon buttons on the right. Inline is the fix for the 278px
+ *           band - the same 44px targets sit side by side instead of
+ *           stacking - and the marks replace the words "Instagram" and
+ *           "Facebook", which were 152px of text saying what two universally
+ *           known glyphs say in 96px.
  *   ZONE 3  copyright and legal on one line.
  *
  * Hours live in the brand column, not repeated per outlet: all three branches
@@ -67,9 +70,47 @@ const EXPLORE = [
     { href: '/#gift', label: 'Gift Cards' },
 ];
 
+/* ⚠ THE BRAND MARKS ARE AUTHORED HERE, NOT IMPORTED, AND THAT IS NOT A
+   SHORTCUT. lucide-react ships 5,978 icons and none of them are Facebook or
+   Instagram - the brand set was removed over trademark concerns - and a
+   generic "share" or "link" glyph is not a substitute for the mark a visitor
+   is actually scanning for. These are drawn on the same 24px grid at the same
+   1.75 stroke as every lucide icon on the site, so the footer's icons and the
+   menu's arrows read as one set rather than two.
+
+   The label survives as `aria-label` on the link. Dropping the visible word
+   must not drop the accessible name: the SVG is `aria-hidden` and the link
+   carries the name, so a screen reader still hears "Instagram", not
+   "link". */
+function InstagramMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <rect x="2" y="2" width="20" height="20" rx="5" />
+            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" />
+            <path d="M17.5 6.5h.01" />
+        </svg>
+    );
+}
+
+function FacebookMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+        </svg>
+    );
+}
+
 const SOCIAL = [
-    { href: 'https://www.instagram.com/khaosandhaka/', label: 'Instagram' },
-    { href: 'https://www.facebook.com/KhaoSanDhaka', label: 'Facebook' },
+    { href: 'https://www.instagram.com/khaosandhaka/', label: 'Instagram', Mark: InstagramMark },
+    { href: 'https://www.facebook.com/KhaoSanDhaka', label: 'Facebook', Mark: FacebookMark },
 ];
 
 /**
@@ -180,14 +221,17 @@ export default function Footer() {
                         ))}
                     </ul>
                     <ul className="footer-nav-list footer-nav-list--social">
-                        {SOCIAL.map((item) => (
-                            <li key={item.href}>
+                        {SOCIAL.map(({ href, label, Mark }) => (
+                            <li key={href}>
                                 <a
-                                    href={item.href}
+                                    href={href}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="footer-link"
-                                >{item.label}</a>
+                                    className="footer-social"
+                                    aria-label={label}
+                                >
+                                    <Mark />
+                                </a>
                             </li>
                         ))}
                     </ul>

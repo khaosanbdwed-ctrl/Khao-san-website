@@ -692,6 +692,13 @@
     margin-top: clamp(22px, 2.4vw, 32px);
     font-family: var(--font-sans);
     font-size: 0.78rem;
+    /* ⚠ 44px MINIMUM, AND IT IS A TOUCH TARGET FIX NOT A SPACING ONE. This
+       measured 122x26 on a phone: an inline-flex row of 12.5px uppercase with
+       4px of padding under it. It is the link out of every feature dish, so
+       it is one of the most-tapped things on the homepage, and it was barely
+       half the minimum. The visible mark is unchanged - the box grows around
+       it, which is what `min-height` plus centring buys. */
+    min-height: 44px;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
@@ -736,4 +743,9 @@
     .feature-photo img,
     .feature-link,
     .feature-link svg { transition: none; }
+}
+
+/* Phone type floor - `View Menu` rendered at 12.5px beside a 15px paragraph. */
+@media (max-width: 768px) {
+    .feature-link { font-size: 0.85rem; }
 }
