@@ -1,8 +1,31 @@
 "use client";
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import Image from 'next/image';
-import MenuRow, { BADGE_META, MenuBadge } from '@/components/ui/menu-row';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import BackgroundVideo from '@/components/ui/background-video';
+import MenuRow, { MenuBadge } from '@/components/ui/menu-row';
+import MenuShowcase, { type ShowcaseStep } from '@/components/ui/menu-showcase';
+
+/* The five categories the pinned showcase steps through, in order, each with
+ * the one plate that represents it.
+ *
+ * Chosen by the client: soup, wok, bowl, showpiece, dessert - a meal in five
+ * beats rather than the first five categories in sort order (which would be
+ * Appetizers, Soups, Dumplings, Salads, Kids Menu).
+ *
+ * ⚠ Referenced BY ID, never by array position, and the dish is looked up by
+ * title inside its category with a fallback. The menu is Supabase-backed and
+ * editable in admin: a renamed dish, a reordered category or a deleted row
+ * must degrade to a different plate, never to a crash or an empty stage. See
+ * buildShowcase below.
+ *
+ * The showcase is a way IN to the menu, not a replacement for it - all
+ * fourteen categories and every dish are on the page directly beneath it. */
+const SHOWCASE_PICKS: { categoryId: string; dishTitle: string }[] = [
+    { categoryId: 'b-soups', dishTitle: 'Tom Yum Goong' },
+    { categoryId: 'e-noodles', dishTitle: 'Pad Thai' },
+    { categoryId: 'k-rice-bowls', dishTitle: 'Thai Seafood Bowl' },
+    { categoryId: 'i-seafood', dishTitle: 'Fried Whole Fish in Spicy Hot Sauce' },
+    { categoryId: 'l-desserts', dishTitle: 'Mango Sticky Rice' },
+];
 
 export interface RawMenuItem {
     number: number;
@@ -33,318 +56,424 @@ const prefersReducedMotion = () =>
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/**
+ * Resolve the five picks against whatever the database actually holds.
+ *
+ * Every lookup degrades rather than failing: a missing category is skipped, a
+ * renamed dish falls back to the category's first `featured` item and then to
+ * its first item at all. A category that exists but is empty is skipped too -
+ * `app/menu/page.tsx` already filters those out, but this must not depend on
+ * that staying true.
+ */
+function buildShowcase(categories: MenuCategory[]): ShowcaseStep[] {
+    const byId = new Map(categories.map((c) => [c.id, c]));
+
+    return SHOWCASE_PICKS.flatMap(({ categoryId, dishTitle }) => {
+        const category = byId.get(categoryId);
+        if (!category || category.items.length === 0) return [];
+
+        const item =
+            category.items.find((i) => i.title === dishTitle) ??
+            category.items.find((i) => i.badges?.includes('featured')) ??
+            category.items[0];
+
+        return [{
+            categoryId: category.id,
+            categoryName: category.name,
+            dishTitle: item.title,
+            imageSrc: item.imageSrc,
+            description: item.description,
+            badges: item.badges,
+            portionNote: item.portionNote,
+        }];
+    });
+}
+
 export default function MenuPageClient({ categories }: { categories: MenuCategory[] }) {
     const [activeIndex, setActiveIndex] = useState(0);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [indexOpen, setIndexOpen] = useState(false);
     const [railVisible, setRailVisible] = useState(false);
+    /* Hover-to-open is a pointer affordance and nothing else. Left on
+       unconditionally it fires on touch too, where a tap raises mouseenter
+       and then click - opening and immediately re-toggling the panel. */
+    const [hoverCapable, setHoverCapable] = useState(false);
+    const [categoryCueVisible, setCategoryCueVisible] = useState(false);
+
+    const showcase = useMemo(() => buildShowcase(categories), [categories]);
+    const dishCount = useMemo(
+        () => categories.reduce((sum, c) => sum + c.items.length, 0),
+        [categories],
+    );
+
+    /* The index appears when the full category menu is reached.
+     *
+     * Measured on scroll rather than observed, for the same reason as the
+     * category indicator below: an IntersectionObserver reports transitions it
+     * witnesses, so a jump straight past the hero - an anchor click, a
+     * `/menu#e-noodles` deep link, a restored scroll position - could leave
+     * the index unmounted on a page it should be navigating. Reading the
+     * layout's rect answers "is it behind us" from the current position
+     * alone. */
     useEffect(() => {
-        const hero = document.querySelector('.menu-hero');
-        if (!hero) return;
-        const observer = new IntersectionObserver(
-            ([entry]) => setRailVisible(!entry.isIntersecting),
-            { threshold: 0 }
-        );
-        observer.observe(hero);
-        return () => observer.disconnect();
-    }, []);
-    const navRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-
-    /* The sliding-pill indicator and the auto-scroll that kept the active pill
-       centred are both gone with the horizontal bar. The vertical index shows
-       every category at once, so there is nothing to scroll into view and no
-       travelling highlight to position - the active item just marks itself. */
-
-    useEffect(() => {
-        const observers: IntersectionObserver[] = [];
-
-        categories.forEach((category, index) => {
-            const el = document.getElementById(category.id);
-            if (el) {
-                const observer = new IntersectionObserver(
-                    ([entry]) => {
-                        if (entry.isIntersecting) {
-                            setActiveIndex(index);
-                        }
-                    },
-                    { rootMargin: '-20% 0px -75% 0px' }
-                );
-                observer.observe(el);
-                observers.push(observer);
-            }
-        });
-
-        return () => {
-            observers.forEach(obs => obs.disconnect());
+        const measure = () => {
+            const menu = document.querySelector('.menu-layout');
+            if (!menu) return;
+            const rect = menu.getBoundingClientRect();
+            setRailVisible(rect.top <= window.innerHeight * 0.55 && rect.bottom > 0);
         };
-    }, [categories]);
+        measure();
+        window.addEventListener('scroll', measure, { passive: true });
+        window.addEventListener('resize', measure);
+        /* The preceding showcase holds media, so its height is not final until
+           those images decode. */
+        window.addEventListener('load', measure);
+        return () => {
+            window.removeEventListener('scroll', measure);
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('load', measure);
+        };
+    }, []);
 
+    useEffect(() => {
+        const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const sync = () => setHoverCapable(mq.matches);
+        sync();
+        mq.addEventListener('change', sync);
+        return () => mq.removeEventListener('change', sync);
+    }, []);
+
+    const navRef = useRef<HTMLElement>(null);
+    const navRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+    const indexListRef = useRef<HTMLOListElement>(null);
+    const categoryCueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastAnnouncedIndex = useRef<number | null>(null);
+    const layoutWasVisible = useRef(false);
+
+    /* ⚠ THE CUE IS WHAT MAKES THE GLYPH LEGIBLE AS NAVIGATION.
+
+       Four lines drawn quietly at the right edge are a mark, not a label, and
+       a mark that has never done anything is furniture - the visitor has no
+       reason to think it is the category index rather than a decoration. So
+       on entering a category the name of that category appears beside it for
+       a couple of seconds and then withdraws. The mark moves and names
+       something; that is the whole lesson, and it teaches itself once per
+       section change without ever needing to be clicked.
+
+       This was cut for one round on the reasoning that the cue was redundant
+       against the 40px category headings already on the page. The headings do
+       say where you are - but they say nothing about what the mark at the
+       right edge is FOR, which is the job the cue was actually doing. */
+    const flashCategoryCue = useCallback(() => {
+        if (categoryCueTimer.current) clearTimeout(categoryCueTimer.current);
+        setCategoryCueVisible(true);
+        categoryCueTimer.current = setTimeout(() => {
+            setCategoryCueVisible(false);
+            categoryCueTimer.current = null;
+        }, 2200);
+    }, []);
+
+    useEffect(() => () => {
+        if (categoryCueTimer.current) clearTimeout(categoryCueTimer.current);
+    }, []);
+
+    /* Which category is being read.
+     *
+     * Was fourteen IntersectionObservers with `rootMargin: -20% 0px -75% 0px`,
+     * i.e. each section marked itself active on crossing a band 20-25% down
+     * the viewport. On a continuous scroll that is fine. On a JUMP it is not:
+     * the band is only ~45px tall at 900px, so an anchor click, a deep link
+     * with a hash, or a restored scroll position lands past it without any
+     * section ever crossing it, and the index keeps pointing at whatever was
+     * active before - which for a first load means category one, forever.
+     *
+     * Measuring instead of observing removes the failure mode entirely: on
+     * every scroll, take the last section whose top has passed the reading
+     * line. It is correct after a jump because it does not depend on having
+     * seen the journey, only on where we are now.
+     */
+    useEffect(() => {
+        const measure = () => {
+            /* A third down the viewport: high enough that the category you are
+               reading has claimed the index before its heading leaves the top,
+               low enough that it does not switch while the previous category's
+               last row still fills the screen. */
+            const line = window.innerHeight * 0.33;
+            let current = 0;
+            for (let i = 0; i < categories.length; i++) {
+                const el = document.getElementById(categories[i].id);
+                if (!el) continue;
+                if (el.getBoundingClientRect().top <= line) current = i;
+                else break;
+            }
+
+            /* Only inside the full menu. Above it the mark is not mounted, so
+               a cue there would be a label with nothing to label; the two
+               conditions are read from the same rect on the same frame so
+               they cannot disagree. */
+            const layout = document.querySelector<HTMLElement>('.menu-layout');
+            const layoutRect = layout?.getBoundingClientRect();
+            const inFullMenu = Boolean(
+                layoutRect && layoutRect.top <= line && layoutRect.bottom > line,
+            );
+
+            if (
+                inFullMenu &&
+                (!layoutWasVisible.current || lastAnnouncedIndex.current !== current)
+            ) {
+                lastAnnouncedIndex.current = current;
+                flashCategoryCue();
+            }
+
+            layoutWasVisible.current = inFullMenu;
+            setActiveIndex(current);
+        };
+
+        measure();
+        window.addEventListener('scroll', measure, { passive: true });
+        window.addEventListener('resize', measure);
+        window.addEventListener('load', measure);
+        return () => {
+            window.removeEventListener('scroll', measure);
+            window.removeEventListener('resize', measure);
+            window.removeEventListener('load', measure);
+        };
+    }, [categories, flashCategoryCue]);
+
+    /* Escape closes, and so does a press anywhere outside. The second one is
+       what makes the panel usable on touch, where there is no pointer to
+       leave with. */
+    useEffect(() => {
+        if (!indexOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setIndexOpen(false);
+        };
+        const onPointerDown = (e: PointerEvent) => {
+            if (!navRef.current?.contains(e.target as Node)) setIndexOpen(false);
+        };
+        window.addEventListener('keydown', onKey);
+        document.addEventListener('pointerdown', onPointerDown);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.removeEventListener('pointerdown', onPointerDown);
+        };
+    }, [indexOpen]);
+
+    /* Keep the selected row visible inside the five-row window. This scrolls
+       only the window, never the page. */
+    useEffect(() => {
+        if (!indexOpen) return;
+        const list = indexListRef.current;
+        const active = navRefs.current[activeIndex];
+        if (!list || !active) return;
+
+        const frame = window.requestAnimationFrame(() => {
+            list.scrollTo({
+                top: Math.max(0, active.offsetTop - list.clientHeight / 2 + active.clientHeight / 2),
+                behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+            });
+        });
+        return () => window.cancelAnimationFrame(frame);
+    }, [activeIndex, indexOpen]);
+
+    /* The landing offset is `.menu-category`'s own `scroll-margin-top`, so the
+       header clearance is stated once in CSS rather than as a number here that
+       drifts away from it. */
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, index: number, id: string) => {
         e.preventDefault();
-        setActiveIndex(index);
         const el = document.getElementById(id);
-        if (el) {
-            const y = el.getBoundingClientRect().top + window.scrollY - 140;
-            window.scrollTo({ top: y, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-        }
-    };
-
-    const railPressed = useRef(false);
-    const railRef = useRef<HTMLElement>(null);
-
-    const focusFromPoint = useCallback((clientX: number, clientY: number) => {
-        const items = railRef.current?.querySelectorAll('[data-index]');
-        if (!items) return;
-        let closest: Element | null = null;
-        let closestDist = Infinity;
-        items.forEach(item => {
-            const rect = item.getBoundingClientRect();
-            const cy = rect.top + rect.height / 2;
-            const dist = Math.abs(clientY - cy);
-            if (dist < closestDist) { closestDist = dist; closest = item; }
+        if (!el) return;
+        setActiveIndex(index);
+        setIndexOpen(false);
+        flashCategoryCue();
+        el.scrollIntoView({
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+            block: 'start',
         });
-        if (closest) {
-            const idx = parseInt((closest as HTMLElement).getAttribute('data-index') || '', 10);
-            if (!isNaN(idx)) setFocusedIndex(idx);
-        }
-    }, []);
-
-    const jumpTo = useCallback((index: number) => {
-        const category = categories[index];
-        const el = document.getElementById(category.id);
-        if (el) {
-            const y = el.getBoundingClientRect().top + window.scrollY - 120;
-            window.scrollTo({ top: y, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
-            setActiveIndex(index);
-        }
-    }, [categories]);
-
-    const handleRailStart = useCallback((clientX: number, clientY: number) => {
-        railPressed.current = true;
-        setMobileMenuOpen(true);
-        focusFromPoint(clientX, clientY);
-    }, [focusFromPoint]);
-
-    const handleRailMove = useCallback((clientY: number) => {
-        if (!railPressed.current) return;
-        focusFromPoint(0, clientY);
-    }, [focusFromPoint]);
-
-    const handleRailEnd = useCallback(() => {
-        if (railPressed.current && focusedIndex !== null) {
-            jumpTo(focusedIndex);
-        }
-        railPressed.current = false;
-        setMobileMenuOpen(false);
-        setFocusedIndex(null);
-    }, [focusedIndex, jumpTo]);
+    };
 
     return (
         <>
         {/* Menu hero.
 
-            The previous hero was a cluster of three transparent cut-outs
-            suspended at different scales with drop-shadows under them - the
-            floating-dish treatment, which is exactly what the client rejected,
-            still sitting at the top of the page after the dishes below it had
-            been rebuilt as photographs.
+            ROUND 9: it has a picture in it.
 
-            Now: the title centred on the field, and beneath it a full-bleed
-            band of three plated photographs that runs edge to edge and
-            dissolves into the menu below. Nothing floats, nothing is masked
-            into a silhouette, and the band is the transition into the list
-            rather than a divider before it. */}
-        <section className="menu-hero bg-orange-field">
-            <div className="menu-hero-copy reveal-hidden">
+            The hero was a title, a lede and a dish count centred on plain
+            white, with a draggable carousel underneath. Two client notes, and
+            they are the same note twice: the hero "doesn't have any visuals",
+            and the carousel "has a white space on the left, and it starts from
+            the middle". The second is literally true and it is by design -
+            `.dish-carousel-track` carried `padding-inline: 21.5%` so the first
+            slide would centre with its neighbours peeking, which means the row
+            opens with a fifth of the page empty on the left and the plate off
+            the page's own axis. On a page whose next section is a full stage of
+            dish photography, that row was doing a job that no longer needed
+            doing at all.
+
+            So: the wok footage, full-bleed, with the title over it. The
+            carousel is gone (components/ui/dish-carousel.tsx deleted - the
+            showcase below supersedes it) and with it the empty left margin.
+
+            The footage is the Chapter II clip from the homepage, reused
+            deliberately: it is the only moving asset that is ABOUT cooking
+            rather than about a room, which is what a menu page's hero should
+            open on. */}
+        <section className="menu-hero">
+            <BackgroundVideo
+                src="/assets/video-web/theatre-craft.mp4"
+                poster="/assets/posters/theatre-craft.webp"
+                priority
+                className="menu-hero-media"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+            />
+            {/* A pool of shade behind the copy rather than a blanket wash over
+                the frame - the same principle as the homepage hero's lighting,
+                composed separately so the two are not identical. The footage
+                is a bright orange sauce pour, so the copy needs real shade
+                under it, not a tint. */}
+            <div className="menu-hero-light" aria-hidden="true"></div>
+
+            <div className="menu-hero-copy">
                 <h1 className="menu-hero-title">A journey through fire.</h1>
                 <p className="menu-hero-lede">
                     From fiery street-stall classics to whole-fish showpieces &mdash; every plate carries the char, spice and balance of Bangkok.
                 </p>
-                <p className="menu-hero-count">
-                    {categories.reduce((sum, c) => sum + c.items.length, 0)} dishes across {categories.length} chapters
-                </p>
-            </div>
-
-            <div className="menu-hero-band" aria-hidden="true">
-                {[
-                    '/assets/menu-plated/B. Soups/Tom Yum Goong.webp',
-                    '/assets/menu-plated/E. Noodles/Pad Thai.webp',
-                    '/assets/menu-plated/D. Salads/Som Tam (Thai Papaya Salad).webp',
-                ].map((src, i) => (
-                    <div className="menu-hero-plate" key={src}>
-                        <Image
-                            src={src}
-                            alt=""
-                            fill
-                            style={{ objectFit: 'cover' }}
-                            sizes="34vw"
-                            priority={i === 0}
-                        />
-                    </div>
-                ))}
+                {/* "across 14 chapters" removed at the client's request. The
+                    dish count is the part that sells; the category count read
+                    as an index rather than an invitation. */}
+                <p className="menu-hero-count">{dishCount} dishes</p>
             </div>
         </section>
 
-        {railVisible && createPortal(
-        <>
-        <div
-            aria-hidden="true"
-            className={`menu-rail-backdrop ${mobileMenuOpen ? 'menu-rail-backdrop--active' : ''}`}
-        />
-        <nav
-            ref={railRef}
-            className={`menu-rail ${mobileMenuOpen ? 'menu-rail--active' : ''}`}
-            aria-label="Menu sections"
-            onTouchStart={(e) => { e.preventDefault(); const t = e.touches[0]; handleRailStart(t.clientX, t.clientY); }}
-            onTouchMove={(e) => { e.preventDefault(); const t = e.touches[0]; handleRailMove(t.clientY); }}
-            onTouchEnd={() => handleRailEnd()}
-            onTouchCancel={() => handleRailEnd()}
-            onPointerDown={(e) => { if (e.pointerType === 'mouse') handleRailStart(e.clientX, e.clientY); }}
-            onPointerMove={(e) => { if (e.pointerType === 'mouse') handleRailMove(e.clientY); }}
-            onPointerUp={(e) => { if (e.pointerType === 'mouse') handleRailEnd(); }}
-        >
-            {categories.map((category, index) => {
-                const refIndex = focusedIndex !== null ? focusedIndex : activeIndex;
-                const isActive = index === activeIndex;
-                const isRef = index === refIndex;
-                const distance = Math.abs(index - refIndex);
-                const showName = mobileMenuOpen;
-                const dashW = distance === 0 ? 30 : distance === 1 ? 18 : distance === 2 ? 11 : 6;
-                const nameScale = distance === 0 ? 1 : distance === 1 ? 0.9 : 0.82;
-                const nameOpacity = distance === 0 ? 1 : distance === 1 ? 0.72 : distance === 2 ? 0.45 : 0.28;
-                const dashOpacity = isActive ? 1 : 0.25 + (1 - Math.min(distance, 3) / 3) * 0.55;
-                return (
-                    <button
-                        key={category.id}
-                        type="button"
-                        data-index={index}
-                        aria-current={isActive ? 'true' : undefined}
-                        className="menu-rail-item"
-                        onClick={() => jumpTo(index)}
+        {/* The pinned showcase - five categories, one signature plate each.
+            See components/ui/menu-showcase.tsx for how the pin works and, more
+            importantly, why it is sticky rather than a wheel handler. */}
+        {showcase.length > 0 && <MenuShowcase steps={showcase} />}
+
+        {/* The full menu. The dishes get the whole measure - the category
+            index rides the right edge over it rather than taking a column
+            from it. */}
+        <div className="menu-layout">
+
+        {/* The category index. ONE control for every screen size: there were
+            two - an in-grid sticky one above 1024px and a portalled fixed one
+            below - with identical inner markup and two sets of refs, handlers
+            and open state to keep in step. They have converged on the same
+            design, so they are one component now.
+
+            It stays here in the document, first inside the layout, so a
+            screen reader and a tab sequence meet the table of contents before
+            seventy-five dishes. It is sticky rather than fixed because fixed
+            does not work inside `.page-transition` - see 08-menu.css. */}
+        {railVisible && (
+            <nav
+                ref={navRef}
+                className={`menu-index${indexOpen ? ' is-open' : ''}`}
+                aria-label="Menu categories"
+                onMouseEnter={hoverCapable ? () => setIndexOpen(true) : undefined}
+                onMouseLeave={hoverCapable ? () => setIndexOpen(false) : undefined}
+                onFocus={() => setIndexOpen(true)}
+                onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                        setIndexOpen(false);
+                    }
+                }}
+            >
+                <button
+                    type="button"
+                    className="menu-index-trigger"
+                    aria-expanded={indexOpen}
+                    aria-controls="menu-category-window"
+                    aria-label={`Browse menu categories. Current section: ${categories[activeIndex]?.name ?? ''}`}
+                    onClick={() => setIndexOpen((open) => !open)}
+                >
+                    <span
+                        className={`menu-index-current${categoryCueVisible ? ' is-visible' : ''}`}
+                        aria-live="polite"
                     >
-                        <span
-                            className="menu-rail-name"
-                            data-index={index}
-                            style={{
-                                opacity: showName ? nameOpacity : 0,
-                                transform: `translateY(-50%) translateX(${showName ? 0 : 12}px) scale(${nameScale})`,
-                                color: isRef ? 'var(--color-primary)' : 'var(--color-text-primary)',
-                            }}
-                        >
-                            {category.name}
-                        </span>
-                        <span
-                            className="menu-rail-dash"
-                            data-index={index}
-                            style={{
-                                width: `${dashW}px`,
-                                backgroundColor: isActive ? 'var(--color-primary)' : '#fff',
-                                opacity: dashOpacity,
-                                boxShadow: isActive ? '0 0 10px var(--color-primary)' : 'none',
-                            }}
-                        />
-                    </button>
-                );
-            })}
-        </nav>,
-        </>,
-        document.body)}
+                        {categories[activeIndex]?.name}
+                    </span>
+                    {/* Four lines, the last one short: a list of things, not a
+                        hamburger. Bare - the box it used to sit in is what the
+                        client was seeing and did not want to. */}
+                    <span className="menu-index-glyph" aria-hidden="true">
+                        <span />
+                        <span />
+                        <span />
+                        <span />
+                    </span>
+                </button>
 
-        {/* Index and menu share one field, side by side, so the index can
-            stay sticky beside the dishes rather than floating over them. */}
-        <div className="menu-layout bg-orange-field--quiet">
-        {/* Desktop category index.
-
-            Replaces a sticky horizontal pill bar. With 13 categories the bar
-            was always wider than its container, so most categories were
-            off-screen behind an internal horizontal scroll - the visitor had
-            to scroll inside the nav to discover that more of the menu existed,
-            which is the one thing a menu index must never do. A vertical
-            column shows all thirteen at once, permanently, and doubles as a
-            position indicator while you read.
-
-            Desktop only. The phone rail below is untouched. */}
-        <nav className="menu-index" aria-label="Menu categories">
-            <div className="menu-index-panel">
-            <span className="menu-index-title">Contents</span>
-            <ol className="menu-index-list">
-                {categories.map((category, index) => (
-                    <li key={category.id}>
-                        <a
-                            href={`#${category.id}`}
-                            ref={el => { navRefs.current[index] = el; }}
-                            onClick={(e) => handleClick(e, index, category.id)}
-                            className={`menu-index-link${activeIndex === index ? ' is-active' : ''}`}
-                            aria-current={activeIndex === index ? 'true' : undefined}
-                        >
-                            <span className="menu-index-mark" aria-hidden="true" />
-                            {category.name}
-                        </a>
-                    </li>
-                ))}
-            </ol>
-            </div>
-        </nav>
+                <div
+                    id="menu-category-window"
+                    className="menu-index-window"
+                    aria-hidden={!indexOpen}
+                >
+                    <ol className="menu-index-list" ref={indexListRef}>
+                        {categories.map((category, index) => (
+                            <li key={category.id}>
+                                <a
+                                    href={`#${category.id}`}
+                                    ref={el => { navRefs.current[index] = el; }}
+                                    onClick={(e) => handleClick(e, index, category.id)}
+                                    className={`menu-index-link${activeIndex === index ? ' is-active' : ''}`}
+                                    aria-current={activeIndex === index ? 'true' : undefined}
+                                    tabIndex={indexOpen ? undefined : -1}
+                                    title={category.name}
+                                >
+                                    <span className="menu-index-name">{category.name}</span>
+                                    <span className="menu-index-count" aria-hidden="true">{category.items.length}</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            </nav>
+        )}
 
         <div className="menu-sections">
             {categories.map((category) => (
                 <section key={category.id} id={category.id} className="menu-category">
-                    <div className="container">
-                        {/* The category name IS the divider. No rule, no band, no
-                            eyebrow - the client asked for one continuous menu
-                            rather than a stack of separated sections, so the
-                            only thing marking a new category is the change in
-                            typographic scale. */}
-                        <h2 className="menu-category-title">{category.name}</h2>
+                    {/* The category name IS the divider. No rule, no band, no
+                        eyebrow - the client asked for one continuous menu
+                        rather than a stack of separated sections, so the
+                        only thing marking a new category is the change in
+                        typographic scale. */}
+                    <h2 className="menu-category-title">{category.name}</h2>
 
-                        <ul className="menu-list">
-                            {category.items.map((item) => (
-                                <MenuRow
-                                    key={item.number}
-                                    title={item.title}
-                                    imageSrc={item.imageSrc}
-                                    portionNote={item.portionNote}
-                                    description={item.description}
-                                    badges={item.badges}
-                                    addOnNote={item.addOnNote}
-                                />
+                    <ul className="menu-list">
+                        {category.items.map((item) => (
+                            <MenuRow
+                                key={item.number}
+                                title={item.title}
+                                imageSrc={item.imageSrc}
+                                description={item.description}
+                                badges={item.badges}
+                                portionNote={item.portionNote}
+                                addOnNote={item.addOnNote}
+                            />
+                        ))}
+                    </ul>
+
+                    {category.addOns && category.addOns.length > 0 && (
+                        <p className="menu-addons">
+                            <span className="menu-addons-label">Add ons</span>
+                            {/* Add-on prices dropped with the rest of the pricing. */}
+                            {category.addOns.map((addOn) => (
+                                <span className="menu-addons-item" key={addOn.title}>{addOn.title}</span>
                             ))}
-                        </ul>
-
-                        {category.addOns && category.addOns.length > 0 && (
-                            <p className="menu-addons">
-                                <span className="menu-addons-label">Add ons</span>
-                                {/* Add-on prices dropped with the rest of the pricing. */}
-                                {category.addOns.map((addOn) => (
-                                    <span className="menu-addons-item" key={addOn.title}>{addOn.title}</span>
-                                ))}
-                            </p>
-                        )}
-                    </div>
+                        </p>
+                    )}
                 </section>
             ))}
         </div>
         </div>
 
-        <section style={{ backgroundColor: 'var(--color-surface-elevated)', padding: '56px 0', borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+        <section className="menu-legal">
             <div className="container">
-                {/* Drawn icons, not emoji - and the same ones the rows use, so
-                    the legend actually explains the marks on the page. Emoji
-                    render differently on every platform and were a different
-                    set from the lucide icons on the dishes themselves. */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '32px' }}>
-                    {(Object.keys(BADGE_META) as MenuBadge[]).map((b) => (
-                        <span className="menu-tag" key={b}>
-                            {BADGE_META[b].icon}
-                            {BADGE_META[b].label}
-                        </span>
-                    ))}
-                </div>
-                {/* The two BDT/pricing lines are gone with the prices themselves -
-                    a note about what prices include reads oddly on a menu that
-                    no longer shows any. VAT and service charge still apply, so
-                    they are stated without referring to listed prices. */}
-                <ul style={{ listStyle: 'none', padding: 0, color: 'var(--color-text-secondary)', fontSize: '0.85rem', lineHeight: 2, maxWidth: '640px' }}>
+                {/* The badge legend is back with the badges - a legend has to
+                    explain something that is on the page, and as of this round
+                    the marks are on the page again. */}
+                <ul className="menu-legal-terms">
                     <li>5% VAT and applicable SD are included.</li>
                     <li>A 5% service charge is applied on the final bill.</li>
                     <li>All meat served is 100% halal.</li>

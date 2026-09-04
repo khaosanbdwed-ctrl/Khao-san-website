@@ -12,54 +12,130 @@
    exactly what dulled it last time. Underneath, the blue field carries the
    text at its documented 10:1 and the film stays untouched.
    ============================================================ */
-/* The split is weighted, not even. It was `flex: 1 1 500px` against
-   `flex: 1 1 300px` with an 8vw gutter, which in practice gave the film only
-   about half the row and a third of the viewport - it read as an embedded clip
-   rather than a scene. The video column now takes roughly 62% and the gutter
-   is tighter, so the frame is materially bigger while the section keeps the
-   contained side-by-side composition it always had. */
-/* The film breaks out past the page's 1280 measure. This is the one place on
-   the homepage that does, and it is deliberate: this chapter's job is to be a
-   peak in the scroll, and a frame that obeys the same container as a paragraph
-   of body copy cannot be one.
+/* ⚠ ROUND 9 - the breakout is gone and the split is balanced.
 
-   Two earlier attempts under-delivered and are worth recording so they are not
-   retried:
-     1. A column ratio alone (1.62fr / 1fr inside .container) measured only
-        ~4% wider than the original `flex: 1 1 500px` / `flex: 1 1 300px`. The
-        old layout's real constraint was never the ratio - it was the 8vw
-        gutter, which ate more width than the columns did.
-     2. Capping the copy column inside .container got the frame to ~800px, but
-        .container's own max-width: 1280 and 8vw padding put a hard ceiling on
-        it. On a 1440 screen that is barely half the viewport.
-   Escaping the container is what actually moves it: ~1080px of film at 1440,
-   ~1240px at 1920. Still a frame - both side margins are intact and the copy
-   sits beside it - not the full-bleed hero treatment that was rejected.
+   Two defects, and they were the same defect seen from opposite ends. The
+   chapter sat in a `min(94vw, 1660px)` box while every other section on the
+   homepage sits in `.container`'s `max-width: 1280px` with a
+   `max(8vw, 24px)` gutter. At 1440 that put the film's left edge ~72px
+   OUTSIDE the gutter every heading above and below it aligns to, and the
+   copy's right edge outside the other one - so the section read as
+   misaligned with the whole page, which is what the client meant by the
+   right and left alignment not matching.
 
-   94vw keeps a real margin at every width; 1660px stops it growing without
-   limit on ultrawide displays, where an unbounded frame stops reading as a
-   composition. */
-.craft-split {
-    width: min(94vw, 1660px);
-    margin-inline: auto;
-    display: grid;
-    /* The copy is the quiet half. Capped at 420px so the film takes ~70% of
-       the row; 420 rather than 360 because at 360 the heading broke to three
-       lines ("The / Theatre / of Fire."), the same trade-off Round 4 hit on
-       the gift chapter. */
-    grid-template-columns: minmax(0, 1fr) clamp(300px, 26%, 420px);
+   And inside that oversized box the columns ran ~70/30 against a `clamp(300px,
+   26%, 420px)` cap, so a 948px 16:9 film sat beside a 420px column: the frame
+   dominated the viewport while the copy was squeezed into a measure too narrow
+   to give the heading and paragraph any presence. "Less focus on the right"
+   was literally true - the right column had a quarter of the row.
+
+   Now: the page's own measure and gutter, and a 57/43 split. The film still
+   leads, because it is the subject, but by a margin the eye reads as a
+   composed pair rather than as a large frame with a caption wedged beside it.
+
+   Do not restore the breakout to fix a "the video feels small" note. The
+   frame's presence comes from its ASPECT (see .craft-stage) and from the
+   column ratio, not from overrunning the page it sits in. */
+/* ⚠ THE CHAPTER FILLS THE SCREEN. THE COMPOSITION INSIDE IT DOES NOT CHANGE.
+
+   It was 616px tall in a 900px viewport - 0.68 of the screen - and the client
+   asked for full screen. `min-height` plus centring is the whole of it: the
+   section grows to the viewport and the row sits in the middle of it. The
+   film, the 1.32/1 split and the copy are exactly as they were.
+
+   Two wrong answers are on record, so do not reach for either:
+
+     1. A 70/30 breakout to min(94vw, 1660px). It made the frame big by taking
+        the row's width from the copy AND by running past the gutter every
+        other section aligns to.
+     2. Resizing the frame off viewport height (a 3:4 portrait frame at 68svh)
+        so the content itself filled the screen. It worked and it doubled the
+        visible footage, and the client rejected it: it changed the
+        composition, and the ask was about the section, not the row.
+
+   The section is the thing that was short. Only the section changed. */
+.craft-chapter {
+    min-height: 100svh;
+    display: flex;
     align-items: center;
-    gap: clamp(32px, 3.4vw, 64px);
+}
+.craft-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    /* Capped against the viewport, not a flat 120px. On a short laptop the
+       fixed macro padding pushed the section 16px past the screen - the film
+       had clamped down as designed, but the padding had not, so the one thing
+       that could not scale was the one thing deciding the height. */
+    padding-block: min(var(--space-macro), 12svh);
+}
+.craft-split {
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: max(8vw, 24px);
+    display: grid;
+    grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(32px, 4vw, 72px);
 }
 .craft-stage {
     position: relative;
     z-index: 1;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    /* 3:2, not 16:9.
+
+       16:9 is a letterbox, and inside a balanced split it read exactly like
+       one - "too broad", and short enough that the copy column beside it
+       stood taller than the film it was captioning, which is what left the
+       row looking unresolved at both ends.
+
+       3:2 is the photographic proportion the rest of the site's stills use,
+       and at 57% of a 1280 measure it renders ~660x440 - tall enough to sit
+       level with the heading-plus-paragraph-plus-button block opposite, so
+       the two halves of the row terminate on the same two lines. That is the
+       whole of "proportionate": equal weight, matched height, shared edges.
+
+       ⚠ KNOWN AND ACCEPTED, NOT AN OVERSIGHT: theatre-craft.mp4 is 720x1280,
+       a PORTRAIT clip, so this landscape frame crops 62.5% of it away - a
+       564x376 frame shows 720x480 of a 720x1280 source. A 3:4 frame was built
+       and shown to the client; it doubled the visible footage to 75% and
+       filled the screen, and the client rejected it because it changed the
+       composition. The split and the frame are the client's call and this is
+       the shape they chose. If the crop is ever revisited, the fix is either
+       this ratio or a landscape master for the slot - do not "improve" the
+       frame without asking. */
+    aspect-ratio: 3 / 2;
+
+    /* ⚠ THE FRAME IS A CROP, NOT A FEATHER. This film used to carry
+       `.media-feather` - a 20px mask that dissolved all four edges into the
+       blue field. The intent was a bleed, like ink on a printed page; what it
+       actually produced was a soft grey halo on every side and corners that
+       melted away, so the frame read as a smudge rather than an edge, and the
+       film looked like it was sitting behind frosted glass rather than IN
+       something.
+
+       A rounded crop instead, at the same radius the dish photographs and the
+       menu showcase use, so the site has one corner language and this is
+       recognisably the same treatment as every other picture on it. Hard
+       edges, clean corners, nothing drawn around it - no border, no ring, no
+       drop shadow. On a saturated blue field a dark shadow is invisible and a
+       light one is a glow, and the edge does not need help: near-black film
+       against brand blue is already a strong boundary.
+
+       `overflow: hidden` is what does the clipping, and it is required - the
+       radius is on this box while the video fills it, so without the clip the
+       corners stay square. */
+    overflow: hidden;
+    border-radius: clamp(16px, 1.5vw, 24px);
 }
 .craft-copy {
     position: relative;
     z-index: 2;
+    /* A comfortable reading measure inside its own column. Without a cap the
+       paragraph runs the full 43% - about 78 characters at 1440 - which is
+       well past the 45-75ch band and reads as a wall rather than as a caption
+       to the film. */
+    max-width: 34rem;
 }
 @media (max-width: 900px) {
     /* Stacked, film first - at this width a 70/30 split leaves the copy column
@@ -67,11 +143,18 @@
        breakout only means something when there is a container to break out of,
        and on a phone there effectively isn't. */
     .craft-split {
-        width: auto;
-        margin-inline: max(8vw, 24px);
         grid-template-columns: 1fr;
         gap: clamp(28px, 5vw, 48px);
     }
+    /* The copy is the full column width now, so the desktop reading cap has
+       nothing left to do and would only pull the paragraph off the gutter the
+       film aligns to. */
+    .craft-copy { max-width: none; }
+    /* Back to 16:9 stacked. A 3:2 frame at full phone width is ~250px of
+       vertical film before the heading even starts, which pushes the copy
+       below the fold on a short device. The "too broad" problem only exists
+       beside a copy column. */
+    .craft-stage { aspect-ratio: 16 / 9; }
 }
 
 /* CHAPTER III - Heritage: an art-directed mosaic, not an image-plus-paragraph
@@ -91,8 +174,15 @@
     margin: 0 auto;
     padding: 0 max(8vw, 24px);
 }
+/* ⚠ NO READING CAP HERE ANY MORE, AND THAT IS THE POINT. This block held a
+   quote plus a paragraph once, so 800px was a sensible measure. The paragraph
+   is long gone and the cap stayed, which meant a one-sentence display line was
+   being folded onto two rows by a constraint meant for prose - a left-aligned
+   two-liner with a short second row, which is the worst shape a headline can
+   take. The line is short enough to set on one row now; the cap that would
+   re-break it is off. If a paragraph ever comes back here, give IT the
+   measure, not the whole block. */
 .heritage-head {
-    max-width: 800px;
     margin-bottom: 56px;
 }
 /* .heritage-eyebrow removed with the rest of the section labels ("Our
@@ -158,257 +248,152 @@
    moving to the next, so reading order is column-major, not left-to-right.
    That is fine for an unordered gallery; do not use this layout for anything
    where sequence carries meaning. */
-/* --- Drifting columns ---
-   A fixed-height window with columns translating through it. The frame is
-   masked top and bottom so plates dissolve in and out rather than being
-   guillotined by the frame edge - the same dissolve language as
-   .media-feather and the chapter seams. */
-.interior-drift-wrap {
+/* ============================================================
+   The room gallery - a sideways strip, not a masonry
+
+   Replaces `.interior-drift*`: three columns translating upward at different
+   rates inside a masked window. Seen as a screenshot rather than as
+   measurements, that design was slicing its own photographs at the top and
+   bottom of the section at every moment, staggering every plate so the eye had
+   no line to rest on, and needing a "PAUSE GALLERY" button to stop motion the
+   page never needed.
+
+   The shape here is the one the client described: a wide frame with two
+   stacked beside it, that group repeating, running off the right edge so the
+   strip reads as continuing. Uniform frames on one top and bottom line, every
+   image whole inside its own frame.
+
+   No JavaScript at all - it is an `overflow-x: auto` element, so touch,
+   trackpad, shift+wheel and keyboard scrolling are the browser's, not ours.
+   ============================================================ */
+.room-gallery {
+    /* Full-bleed to the right: the strip must look like it continues past the
+       viewport, which is the whole affordance for scrolling it. */
+    margin-right: calc(-1 * max(8vw, 24px));
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    /* ⚠ NO SCROLL SNAP, AND IT WAS REMOVED ON PURPOSE WHEN THE DRIFT LANDED.
+       Snap points and a continuous drift are contradictory models: snap wants
+       the strip to come to rest on discrete positions, the drift never comes
+       to rest. In practice `x proximity` fought every pause - the moment the
+       visitor's pointer entered and the drift stopped, the browser pulled the
+       strip to the nearest group, which read as the gallery flinching away
+       from the cursor. Manual scrolling is unaffected; it is free rather than
+       snapped now. */
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+.room-gallery::-webkit-scrollbar { display: none; }
+.room-gallery:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 6px;
+}
+.room-gallery-track {
+    display: flex;
+    gap: clamp(12px, 1.2vw, 20px);
+    width: max-content;
+}
+.room-group {
+    display: flex;
+    gap: clamp(12px, 1.2vw, 20px);
+}
+/* HISTORICAL: `.room-gallery-clone` lived here - a `display: contents` wrapper
+   around a second, identical copy of all nine photographs, so the drift could
+   wrap seamlessly by jumping back one repeat-length. The arithmetic worked and
+   the seam was genuinely invisible, but it doubled the images in the DOM to
+   buy an effect nobody asked for, and every room in the chapter appeared twice
+   to anyone who scrolled far enough. The drift turns around at the ends now
+   and there is only ever one set. */
+/* One height for every frame in the strip - this is the line the masonry
+   never had. The stacked pair splits it, minus the gap between them.
+
+   ⚠ ROUND 9 - the strip is the chapter now, not a band inside it.
+
+   The frames were `clamp(300px, 42vh, 460px)`, which rendered 378px on a
+   900px-tall viewport: the photographs occupied barely a third of the screen
+   while the section around them ran 2,700px, so the rooms - the entire
+   subject of this chapter - were the smallest thing in it. The client's note
+   was exactly that: the pictures take half the screen and should take the
+   whole one.
+
+   72vh, floored at 460 and ceilinged at 860. 72 rather than 100 is
+   deliberate and measured: the quote above the strip is ~150px plus its 56px
+   margin, so a full-height strip would push the heading off-screen and the
+   chapter would open on a photograph with no line to introduce it. At 72vh
+   the quote and the top of the strip share the first screen and the
+   photographs then fill it as you scroll - which is what "full screen" means
+   for a band that follows a heading.
+
+   Widths scale with it so the frames keep their proportions rather than
+   turning into tall slivers. */
+.room-frame {
     position: relative;
-}
-.interior-drift {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: clamp(18px, 2.2vw, 30px);
-    height: clamp(520px, 74vh, 860px);
+    margin: 0;
+    height: clamp(460px, 72vh, 860px);
+    width: clamp(260px, 30vw, 420px);
     overflow: hidden;
-    /* No overflow: auto anywhere in here. See the component's header comment:
-       a nested vertical scroll container inside a vertically scrolling page
-       captures the wheel and fights the visitor. */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 11%, #000 89%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0, #000 11%, #000 89%, transparent 100%);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-tint);
 }
-.interior-drift-col {
-    position: relative;
-    overflow: hidden;
+.room-frame--lead {
+    /* The big one. Roughly 5:4 against the stack's landscape halves. */
+    width: clamp(380px, 46vw, 700px);
 }
-.interior-drift-track {
+.room-stack {
     display: flex;
     flex-direction: column;
-    gap: clamp(18px, 2.2vw, 30px);
-    /* -50% exactly: the track holds two identical copies of the column, so at
-       -50% the second copy sits precisely where the first started and the loop
-       is seamless. Any other distance shows a jump. */
-    animation-name: interiorDrift;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    will-change: transform;
+    gap: clamp(12px, 1.2vw, 20px);
 }
-@keyframes interiorDrift {
-    from { transform: translate3d(0, 0, 0); }
-    to   { transform: translate3d(0, -50%, 0); }
+.room-stack .room-frame {
+    height: auto;
+    flex: 1 1 0;
+    min-height: 0;
 }
-.interior-drift-track > .hg {
-    padding-bottom: 0;
-}
-/* The accent rule under each plate is a hover affordance from the static
-   grid; on a plate that is continuously moving it reads as a stray mark. */
-.interior-drift-track > .hg::after {
-    display: none;
-}
-
-/* --- Phone: horizontal filmstrip ---
-   A different composition, not the column grid squeezed. All plates share one
-   height and take their width from their own aspect-ratio, so the band stays
-   level while portrait and landscape still vary the rhythm. Masked left and
-   right rather than top and bottom, because the travel is sideways. */
-.interior-strip {
-    position: relative;
-    width: 100vw;
-    /* Break the section gutter so the strip runs edge to edge - on a phone a
-       band inset by 24px each side wastes a fifth of the screen. */
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
-}
-.interior-strip-track {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 14px;
-    height: clamp(300px, 46vh, 420px);
-    width: max-content;
-    animation-name: interiorStrip;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    will-change: transform;
-}
-@keyframes interiorStrip {
-    from { transform: translate3d(0, 0, 0); }
-    to   { transform: translate3d(-50%, 0, 0); }
-}
-.interior-strip-track > .hg {
-    height: 100%;
-    padding-bottom: 0;
-    flex: none;
-}
-.interior-strip-track > .hg::after { display: none; }
-/* Height is fixed by the track; aspect-ratio (inline, per shot) then sets the
-   width. This is what keeps the band level with mixed orientations. */
-.interior-strip-track .hg-card {
-    height: 100%;
-    width: auto;
-}
-@media (prefers-reduced-motion: reduce) {
-    .interior-strip-track {
-        animation: none !important;
-        transform: none !important;
-    }
-    /* Nothing is moving, so the strip becomes a swipeable row instead of a
-       band the visitor can only watch. Horizontal, so it still does not
-       compete with the page scroll. */
-    .interior-strip {
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        -webkit-mask-image: none;
-        mask-image: none;
-    }
-    .interior-strip-track > .hg { scroll-snap-align: center; }
-}
-
-.interior-drift-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 18px;
-    padding: 9px 18px;
-    border: 1.5px solid var(--color-primary);
-    border-radius: var(--radius-pill);
-    background: transparent;
-    color: var(--color-primary);
-    font-family: var(--font-sans);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.interior-drift-toggle:hover,
-.interior-drift-toggle:focus-visible {
-    background: var(--color-primary);
-    /* The field's ink, not white: --color-primary on .bg-orange-field resolves
-       to brand blue, and white on brand blue is fine, but on the cream fields
-       it resolves to terracotta where white would be marginal. The surface
-       token tracks whichever field the section is on. */
-    color: var(--color-surface-base);
-}
-.interior-drift-toggle:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 3px;
-}
-
-/* Belt and braces alongside the component's own reduced-motion check: if the
-   preference flips after mount, or JS has not run, the drift must not move. */
-@media (prefers-reduced-motion: reduce) {
-    .interior-drift-track {
-        animation: none !important;
-        transform: none !important;
-    }
-    .interior-drift {
-        height: auto;
-        -webkit-mask-image: none;
-        mask-image: none;
-    }
-}
-/* Wrapper exists so the accent rule can sit *outside* the card's
-   overflow:hidden, which is what clips the image to its rounded corners. */
-.hg {
-    position: relative;
-    padding-bottom: 14px;
-}
-.hg::after {
-    content: "";
-    position: absolute;
-    left: 10%;
-    right: 10%;
-    bottom: 0;
-    height: 4px;
-    border-radius: var(--radius-pill);
-    /* Field-scoped accent: brand blue on the orange field, butter on blue -
-       so the rule always separates from the background it is drawn on. */
-    background: var(--color-primary);
-    transition: left 0.55s cubic-bezier(0.16, 1, 0.3, 1), right 0.55s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.hg:hover::after {
-    left: 2%;
-    right: 2%;
-}
-/* aspect-ratio comes from the inline `ratio` on each figure - see
-   HERITAGE_ROOMS. 3/4 is only the fallback if one is ever omitted. */
-.hg-card {
-    position: relative;
-    display: block;
-    aspect-ratio: 3 / 4;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: 0 26px 52px rgba(141, 54, 31, 0.30);
-}
-/* No .img-feather here on purpose: a soft-edged mask reads as an unfinished
-   crop inside a hard-cornered card. These want a crisp edge. */
-.hg-card img {
-    object-fit: cover;
+.room-frame img {
     transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.hg:hover .hg-card img {
-    transform: scale(1.05);
+.room-frame:hover img {
+    transform: scale(1.03);
 }
-/* Bottom-weighted so the caption has something to sit on while the top two
-   thirds of the room stay untouched. */
-.hg-scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background: linear-gradient(to top, rgba(8, 12, 20, 0.72) 0%, rgba(8, 12, 20, 0.28) 26%, rgba(8, 12, 20, 0) 55%);
+
+@media (max-width: 700px) {
+    /* The stack collapses on a phone: two frames splitting a 300px height are
+       150px each, which is too small to show a room. One frame per group,
+       still scrolling sideways. */
+    .room-stack { display: none; }
+    .room-frame--lead { width: 82vw; }
+    /* The desktop 72vh would render a 300x580 slot on a phone - a portrait
+       sliver that crops a wide room shot to a doorway. Back to a 4:5-ish
+       plate, which is the tallest a 82vw frame can be and still show a room. */
+    .room-frame { height: clamp(360px, 52vh, 520px); }
 }
-.hg-cap {
-    position: absolute;
-    left: 22px;
-    right: 22px;
-    bottom: 20px;
-    z-index: 2;
-    color: #ffffff;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    text-shadow: 0 2px 10px rgba(8, 12, 20, 0.6);
+@media (prefers-reduced-motion: reduce) {
+    .room-frame img { transition: none; }
 }
-/* The closing note sits under the gallery on its own line rather than inside
-   the grid, so the three plates stay a clean uninterrupted row. */
+
+/* HISTORICAL, Round 8: the `.hg*` family (`.hg`, `.hg-card`, `.hg-scrim`,
+   `.hg-cap`) styled the drifting masonry's plates - rounded card, accent rule,
+   gradient scrim and a burnt-in location caption. All of it went with
+   InteriorDrift; RoomGallery's frames need none of it. `.interior-strip` and
+   its AutoScroller wiring went too, and with the strip gone AutoScroller had
+   no remaining consumer, so `components/ui/auto-scroller.tsx` is deleted. */
+/* The landing point after the strip. It held a paragraph and a button in a
+   `space-between` row; with the paragraph gone (see app/page.tsx) a
+   space-between row would pin a lone button to the left gutter, hard against
+   the edge of a 72vh wall of photographs, reading as an orphan rather than as
+   the chapter's close. Centred under the strip it is unmistakably the next
+   thing to do. */
 .heritage-note {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 32px;
-    margin-top: clamp(40px, 5vw, 64px);
-}
-.heritage-note p {
-    color: var(--color-text-secondary);
-    line-height: 1.8;
-    max-width: 58ch;
-    font-size: 1.05rem;
-}
-@media (max-width: 900px) {
-    .interior-drift {
-        grid-template-columns: repeat(2, 1fr);
-        height: clamp(440px, 62vh, 620px);
-    }
+    margin-top: clamp(44px, 5vw, 72px);
 }
 @media (max-width: 560px) {
-    /* Two columns of phone-width plates are too small for interior
-       photography to carry any detail. One column, and the drift keeps
-       running - a single moving column still reads as a gallery. */
-    .interior-drift {
-        grid-template-columns: 1fr;
-        height: clamp(380px, 56vh, 520px);
-    }
-    .heritage-note { flex-direction: column; align-items: flex-start; gap: 24px; }
+    .heritage-note { gap: 24px; }
 }
 
 /* Gift card stack hover - replaces inline JS onMouseEnter/Leave */
@@ -505,8 +490,250 @@
     max-width: none;
     transform: translate(-130vw, 0);
     animation: brushSweep 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    filter: drop-shadow(0 20px 30px rgba(141, 54, 31, 0.22));
+    filter: drop-shadow(0 20px 30px rgba(30, 65, 123, 0.16));
 }
 @keyframes brushSweep {
     to { transform: translate(130vw, 0); }
+}
+
+/* HISTORICAL, Round 8: `.auto-scroller*` styled a self-drifting horizontal
+   scroll container. Its last consumer was the interior strip, which went with
+   the masonry, so the component and these rules are both deleted. If a
+   drifting row is ever wanted again, note the reason it existed: a
+   transform-animated track looks identical to a scroll container and is
+   useless to anyone who wants to skip ahead, because it is not scrollable. */
+.signature-row-head {
+    max-width: 1280px;
+    /* The top space is load-bearing: this block follows the Heritage note
+       directly, and with no margin the heading overlapped the paragraph and
+       button above it. */
+    margin: clamp(64px, 8vw, 120px) auto clamp(28px, 3vw, 44px);
+    padding: 0 max(8vw, 24px);
+}
+.signature-row-head .display-2 { margin-bottom: 0; }
+
+/* HISTORICAL, Round 9: `.dish-carousel*` and `.dish-slide*` lived here - the
+   centred signature carousel (one plate held in the middle, its neighbours
+   peeking in dimmed at both edges, arrows overlaid on the photograph). It was
+   built for the homepage in Round 8, moved to the menu hero in the same round,
+   and is deleted now along with `components/ui/dish-carousel.tsx`.
+
+   Why, so it is not rebuilt: the peek was produced by
+   `padding-inline: 21.5%` on the track, which is what centres the first slide
+   - and therefore what opens the row with a fifth of the page empty on the
+   left and the plate off the page's own axis. That is exactly the client's
+   note ("the left side has a white space, and it starts from the middle"). It
+   was not a bug; it is what `centeredSlides` MEANS, and there is no version of
+   this component that both peeks and starts flush.
+
+   Its job - a way in to seventy-five dishes - is done properly now by the
+   pinned category showcase (components/ui/menu-showcase.tsx, styled in
+   08-menu.css), which shows five categories rather than six arbitrary plates
+   and links into each. Nothing in any .tsx references these selectors - 
+   checked, not assumed. */
+
+/* ============================================================
+   The feature dish chapter - ruled split rows
+
+   Structure, from the client's reference (lotusofsiamlv.com): each row is two
+   equal boxes separated and bracketed by hairline rules, one box holding a
+   photograph and the other centred copy, with alternate rows swapping sides.
+   No card, no fill, no shadow, no button - the rules are the only structure
+   and the photograph is the only colour.
+
+   ⚠ These ARE straight lines, and that is not a lapse. The client's "no
+   straight lines" note is about section seams - a rule stacked BETWEEN two
+   chapters, announcing a boundary. These run WITH the reading direction as a
+   frame around content, the way a printed menu is set, which is the opposite
+   move. Do not remove them; without them this is three floating photographs.
+
+   Rules are drawn once each: the row owns its outer pair and `.feature-box +
+   .feature-box` owns the middle one. Putting a left and right border on every
+   box (as the reference does) doubles the middle rule to 2px.
+   ============================================================ */
+.feature-grid {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 max(8vw, 24px);
+}
+.feature-row {
+    display: flex;
+    align-items: stretch;
+    border-left: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    --rule: rgba(30, 65, 123, 0.20);
+}
+/* Rows stack flush so their side rules join into two continuous verticals
+   down the whole chapter. A gap here would break them into ladders. */
+.feature-row + .feature-row {
+    border-top: 1px solid var(--rule);
+}
+.feature-row.is-inverse {
+    flex-direction: row-reverse;
+}
+.feature-box {
+    flex: 1 1 50%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    /* Was `justify-content: center`, which floated a narrow copy island in the
+       middle of a half-page box. The copy now starts on the box's own inner
+       edge, so it shares a vertical line with the photograph opposite. */
+    justify-content: flex-start;
+    /* Tightened hard. At 68px on both boxes each row carried ~100px of dead
+       space above and below its own content, so three rows of one dish each
+       ran nearly 1,400px for three photographs. The row should hug the
+       photograph. */
+    padding: clamp(24px, 2.4vw, 36px) clamp(24px, 2.6vw, 44px);
+}
+/* The photo box keeps its centring - a photograph centred in its half is
+   correct; a paragraph centred in its half is not. */
+.feature-box:has(.feature-photo) { justify-content: center; }
+.feature-box + .feature-box {
+    border-left: 1px solid var(--rule);
+}
+/* row-reverse puts the copy box first in visual order, so the middle rule has
+   to move to its other edge or it lands on the outside of the row. */
+.is-inverse .feature-box + .feature-box {
+    border-left: none;
+    border-right: 1px solid var(--rule);
+}
+/* Bigger. It was capped at 500px inside a ~520px box and rendered around
+   360px, so the photograph - the entire subject of the chapter - was the
+   smallest thing in its own row. */
+ /* 1:1, matching the plated asset. A 4:3 frame here would `cover`-crop 25%
+    off a square plate whose dish already fills 82% of it - straight into the
+    food. Frame aspect and scripts/plate-dishes.py's W,H move together. */
+.feature-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+}
+.feature-photo img {
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.feature-row:hover .feature-photo img {
+    transform: scale(1.03);
+}
+.feature-copy {
+    text-align: left;
+    max-width: 30rem;
+}
+/* HISTORICAL, Round 9: `.feature-index` styled a ghosted "01 / 02 / 03" above
+   each dish name. It was the third thing to occupy this slot - the reference's
+   three lotus glyphs (illegible at 13px), then the numeral, now the marks. The
+   numeral was removed at the client's request: it implied a ranking across
+   three dishes that are not ranked. `.feature-tags` below inherits the slot
+   and its spacing exactly, so the row's vertical rhythm is unchanged.
+
+   The marks themselves are `.menu-tag` (08-menu.css), shared with the menu
+   page - the same dish carries the same mark in both places. This rule only
+   positions the group. */
+.feature-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 0 0 clamp(14px, 1.4vw, 20px);
+    /* Terracotta, and the choice is measured, not decorative.
+
+       `.menu-tag` resolves its colour from `--color-primary`, which on this
+       white field is the brand navy - the same value `.feature-name` uses
+       directly below it, so the marks would read as a smaller line of the
+       heading rather than as a separate register.
+
+       The obvious alternative is the accent the removed numeral used,
+       `--color-brand-orange` #ff964f. It measures 2.13:1 on white. These are
+       10.5px marks, so the applicable floor is 4.5:1 and orange misses it by
+       more than half - the numeral failed the same way and simply had not been
+       caught. #8D361F is the token set's own deep terracotta, measures 7.8:1,
+       and is unambiguously the warm accent rather than a second navy. */
+    color: var(--color-deep-terracotta);
+}
+.feature-tags .menu-tag { color: inherit; }
+.feature-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 3.2vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: 0.012em;
+    color: var(--color-brand-blue);
+    margin: 0 0 clamp(16px, 1.6vw, 24px);
+    font-weight: 600;
+    text-wrap: balance;
+}
+/* Three small lotus marks. The reference sets a row of tiny glyphs here and it
+   does real work: it separates the name from the description without a rule,
+   and it is the one place on this page the brand gets to be ornamental. */
+.feature-ornament {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--color-brand-blue);
+    opacity: 0.55;
+    margin: clamp(20px, 2.4vw, 32px) 0;
+}
+.feature-blurb {
+    color: var(--color-text-secondary);
+    font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+    line-height: 1.7;
+    margin: 0;
+    max-width: 42ch;
+    text-wrap: pretty;
+}
+/* A text link with an arrow, not a button. A filled CTA in every row would put
+   three loud controls on a page whose subject is three photographs - and the
+   Heritage note directly above already carries the page's real button. */
+.feature-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: clamp(22px, 2.4vw, 32px);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-brand-blue);
+    text-decoration: none;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s ease, gap 0.3s ease;
+}
+.feature-link:hover,
+.feature-link:focus-visible {
+    border-bottom-color: var(--color-brand-blue);
+    gap: 15px;
+}
+.feature-link svg {
+    transition: transform 0.3s ease;
+}
+
+@media (max-width: 900px) {
+    /* Stacked, and the side rules come off with the split: a single column
+       bracketed by two verticals is a box, which is the container this design
+       is defined by not being. The horizontal rule between rows stays - it is
+       what keeps the chapter reading as one ruled sheet. */
+    .feature-row,
+    .feature-row.is-inverse {
+        flex-direction: column;
+        border-left: none;
+        border-right: none;
+    }
+    .feature-box + .feature-box,
+    .is-inverse .feature-box + .feature-box {
+        border-left: none;
+        border-right: none;
+    }
+    .feature-box {
+        padding: clamp(24px, 6vw, 40px) 0;
+    }
+    .feature-photo { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .feature-photo img,
+    .feature-link,
+    .feature-link svg { transition: none; }
 }

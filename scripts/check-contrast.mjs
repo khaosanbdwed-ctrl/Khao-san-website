@@ -56,11 +56,17 @@ const CHECKS = [
     { page: '/',     sel: '.footer-bottom p',                label: 'Footer legal',        min: 4.5 },
     { page: '/',     sel: '.haven-card-hours',               label: 'Haven hours',         min: 4.5 },
     { page: '/menu', sel: '.menu-hero-copy h1',              label: 'Menu headline',       min: 3.0, large: true },
-    { page: '/menu', sel: '.menu-hero-copy .body-large',     label: 'Menu hero body',      min: 4.5 },
-    { page: '/menu', sel: '.menu-category .display-2',       label: 'Category heading',    min: 3.0, large: true },
-    { page: '/menu', sel: '.menu-card h3',                   label: 'Dish title',          min: 4.5 },
-    { page: '/menu', sel: '.menu-card p',                    label: 'Dish description',    min: 4.5 },
-    { page: '/menu', sel: '.menu-nav-item',                  label: 'Menu nav pill',       min: 4.5 },
+    { page: '/menu', sel: '.menu-hero-lede',                 label: 'Menu hero body',      min: 4.5 },
+    { page: '/menu', sel: '.menu-category-title',            label: 'Category heading',    min: 3.0, large: true },
+    { page: '/menu', sel: '.menu-row-title',                 label: 'Dish name',           min: 4.5 },
+    /* The rail's names are opacity:0 until their category is the one being
+       read, so the check has to name the ACTIVE one - `.menu-index-name` alone
+       samples an invisible element and measures nothing. */
+    { page: '/menu', sel: '.menu-index-link.is-active .menu-index-name', label: 'Rail name', min: 4.5 },
+    /* The homepage dish chapter, added in Round 8. */
+    { page: '/',     sel: '.feature-name',                   label: 'Feature dish name',   min: 3.0, large: true },
+    { page: '/',     sel: '.feature-blurb',                  label: 'Feature blurb',       min: 4.5 },
+    { page: '/',     sel: '.feature-link',                   label: 'Feature link',        min: 4.5 },
 ];
 
 /** Runs in the page. Walks up for the first opaque ancestor background. */

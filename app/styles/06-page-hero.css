@@ -55,6 +55,31 @@
     line-height: 0.94;
     letter-spacing: 0.005em;
     text-transform: uppercase;
+    /* One line, always.
+
+       This is hand-painted brush lettering, and a brush phrase broken across
+       two lines stops reading as one stroke of the hand - which is the entire
+       reason the brand sets these two phrases ("The Thai Way", "Taste the
+       fire.") in this face rather than in the display serif. `text-wrap:
+       balance` inherited from `.display-2` made it worse, not better: given a
+       measure it could not fit, it split the phrase into two EVEN lines rather
+       than letting one long line run.
+
+       Good Brush renders this phrase at about 6.4x the font size, and the
+       clamp below is sized so 6.4x always fits the narrowest box the phrase
+       sits in (the 700px closing-chapter container, and `.container`'s own
+       gutter on a 360px phone). It caps below `.display-2`'s 4.5rem for that
+       reason - the brush face sets much wider than the serif at the same
+       nominal size, so matching their font-size would not match their
+       presence.
+
+       The wrap is also what fails when the webfont has not landed: the
+       Montserrat fallback sets this phrase far wider than Good Brush does, so
+       during a font swap the balanced wrap would fire and the line would
+       reflow as the face arrived. nowrap holds the composition still. */
+    white-space: nowrap;
+    text-wrap: nowrap;
+    font-size: clamp(1.9rem, 6.2vw, 4rem);
 }
 
 /* Opt-in pretty-wrap for body copy and longer paragraphs: avoids typographic

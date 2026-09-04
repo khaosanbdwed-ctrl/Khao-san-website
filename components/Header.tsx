@@ -89,6 +89,16 @@ export default function Header() {
                 opacity: 0 !important;
                 pointer-events: none;
             }
+            /* On mobile, always keep the hamburger accessible so users can
+               navigate even while the hero is the only thing visible.
+               The logo duplication with the hero mark is intentional here:
+               the full header remains hidden but the button stays live. */
+            @media (max-width: 1024px) {
+                .header-container.in-hero .mobile-menu-btn {
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                }
+            }
             /* Resting height is 14 + 50 + 14 = 78px, down from 120px. At the old
                size the bar covered the top eighth of the hero with a milky
                blurred slab. It stays translucent rather than going fully
@@ -316,12 +326,12 @@ export default function Header() {
                     zIndex: 99
                 }}
             >
-                <Link href={pathname === '/menu' ? "/" : "/menu"} style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
+                <Link href={pathname === '/menu' ? "/" : "/menu"} style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
                     {pathname === '/menu' ? "Home" : "Menu"}
                 </Link>
-                <Link href="/#locations" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
-                <Link href="/#heritage" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
-                <Link href="/#gift" style={{fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
+                <Link href="/#locations" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
+                <Link href="/#heritage" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
+                <Link href="/#gift" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
                 <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Contact Us</a>
             </nav>
         </header>

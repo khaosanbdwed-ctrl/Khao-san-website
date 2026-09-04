@@ -8,7 +8,26 @@
        wordmark it is the hero's first beat and has the full column width. */
     width: clamp(120px, 14vw, 200px);
     height: auto;
-    filter: brightness(0) invert(1) drop-shadow(0 3px 12px rgba(8, 14, 28, 0.5));
+    /* ⚠ TWO SHADOWS, AND THEY ARE THE MARK'S ONLY SEPARATION FROM THE FILM.
+       With `.hero-cinematic-light` deleted there is nothing behind this logo
+       but moving footage, and the footage is a warm interior: measured over
+       the clip, mean luminance behind the mark is 111/255, so a white knockout
+       runs about 4.9:1 and drops to 2.8:1 on the brightest frames, where it
+       washes into the orange Khao San sign.
+
+       `object-position` cannot fix that, which is worth recording so nobody
+       tries again: the source is 720x1280 PORTRAIT, so at 375x812 the cover
+       fit leaves 82px of horizontal travel and ZERO vertical. Sweeping the
+       whole 0-100% range moves worst-case contrast by 0.18. There is no
+       framing that avoids the bright areas because the whole room is one.
+
+       So the separation is carried here instead, on the mark itself: a tight
+       shadow for edge definition against a busy ground, and a wider one for
+       mass. This is a filter on one element, not a wash over the video - the
+       client's standing note is that the footage stays visible, and it does. */
+    filter: brightness(0) invert(1)
+            drop-shadow(0 1px 2px rgba(8, 14, 28, 0.55))
+            drop-shadow(0 3px 14px rgba(8, 14, 28, 0.62));
     opacity: 0.96;
 }
 
@@ -50,56 +69,31 @@
     z-index: 1;
 }
 
-/* Cinematic hero lighting: a vignette that darkens the edges and a soft
-   warm directional glow, so the copy reads as the lit focal point over
-   video/photo - editorial-photography lighting, not a flat scrim. Hero-only. */
-/* Cinematic hero lighting - a single layered composition that darkens the
-   frame edges, keeps the top readable under the nav, pulls the sides in, and
-   lifts a warm key light behind the headline so the eye lands on the type.
-   This is the HOMEPAGE HERO's signature treatment only - do not reuse it on
-   other media (see the brief: hero lighting is unique). */
-/* Three layers only, each doing one job, so the footage stays the subject:
-   a soft pool that sits *behind the copy* to carry the type, a short band at
-   the very top for the fixed header to rest on, and a base gradient that
-   grounds the frame. The previous version stacked seven full-frame washes -
-   four of them edge-to-edge - which closed over the whole video and read as
-   fog rather than lighting. Nothing here covers the mid-frame at full
-   strength, so the room, the neon and the movement all stay legible. */
-.hero-cinematic-light {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse 44% 40% at 50% 50%, rgba(10, 16, 32, 0.56) 0%, rgba(10, 16, 32, 0.30) 48%, rgba(10, 16, 32, 0) 74%),
-        linear-gradient(to bottom, rgba(10, 16, 32, 0.30) 0%, rgba(10, 16, 32, 0) 14%),
-        linear-gradient(to top, rgba(10, 16, 32, 0.42) 0%, rgba(10, 16, 32, 0) 30%);
-}
-/* Phone hero.
+/* REMOVED: `.hero-cinematic-light`, the homepage hero's shade.
+   It was three layered gradients over the footage - a soft pool behind the
+   copy, a band at the top for the fixed header to rest on, and a base
+   gradient grounding the frame - and it is gone at the client's request. The
+   element is out of app/page.tsx too, not just unstyled.
 
-   The pool above is sized in PERCENTAGES OF THE VIEWPORT, which quietly
-   inverts its behaviour on a phone: 44% of 1440px is a broad ellipse that
-   comfortably contains the centred copy, but 44% of 390px is a 172px-wide
-   ellipse sitting behind a copy block that runs nearly edge to edge. The
-   headline's outer half then had no shade under it at all.
+   ⚠ THE HERO TYPE NOW HAS NO LEGIBILITY AID AT ALL. There is deliberately no
+   `hero-text-shadow` on that copy either (a separate, earlier client note:
+   the shadow under the hero type had to go entirely), so white type sits
+   directly on moving footage and its contrast is whatever the frame happens
+   to be at that moment. That is the intended state, not an oversight. If it
+   ever needs rescuing, the two options in order of least damage are: bias the
+   video's visible window with `object-position` on `.hero-ken-burns` so the
+   bright sign never lands behind the lockup, or put `hero-text-shadow` back
+   on the copy. Do not quietly reintroduce a full-frame wash - the client's
+   standing note from Round 2 is that the video must stay visible.
 
-   That is what made the mobile hero unreadable, and it is also why the white
-   logo lockup appeared to collide with the big orange Khao San sign in the
-   footage: with no pool separating them, two bright marks of similar size sat
-   directly on top of one another with nothing between.
-
-   Fixed by widening the pool to span the copy at this size rather than
-   strengthening it (a stronger blanket wash would close over the footage,
-   which the client explicitly asked to keep visible), and by biasing the
-   video's visible window down and left, away from the sign in the frame's
-   top-right. */
+   The phone override went with it. It existed because the pool was sized in
+   PERCENTAGES OF THE VIEWPORT, which inverted its behaviour on a phone: 44%
+   of 1440px is a broad ellipse, but 44% of 390px is a 172px ellipse sitting
+   behind a copy block that runs nearly edge to edge. With no pool at any size
+   there is nothing left to correct for. `object-position` stays - it biases
+   the video's window down and left, away from the orange sign in the frame's
+   top-right, and that is independent of the shade. */
 @media (max-width: 768px) {
-    .hero-cinematic-light {
-        background:
-            radial-gradient(ellipse 96% 42% at 50% 46%, rgba(10, 16, 32, 0.62) 0%, rgba(10, 16, 32, 0.40) 54%, rgba(10, 16, 32, 0) 82%),
-            linear-gradient(to bottom, rgba(10, 16, 32, 0.38) 0%, rgba(10, 16, 32, 0) 16%),
-            linear-gradient(to top, rgba(10, 16, 32, 0.46) 0%, rgba(10, 16, 32, 0) 32%);
-    }
     .hero-ken-burns {
         object-position: 34% 68%;
     }
@@ -254,4 +248,39 @@ textarea:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px rgba(240, 139, 67, 0.4), 0 0 12px rgba(240, 139, 67, 0.8);
     border-radius: 4px;
+}
+
+/* ============================================================
+   Scroll parallax - see components/ui/scroll-parallax.tsx
+
+   The frame clips; the media inside it is taller than the frame and is moved
+   through that excess by a transform on scroll. Height and top are set inline
+   per instance (they carry the shift percentage), so everything that is the
+   same for every instance lives here.
+
+   `will-change: transform` is deliberate and narrow: these are a handful of
+   large photographs being transformed every frame while on screen, which is
+   exactly the case the hint exists for. Do not spread it to other elements.
+   ============================================================ */
+.parallax-frame {
+    position: relative;
+    overflow: hidden;
+}
+.parallax-media {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    will-change: transform;
+}
+/* The image fills the over-tall media box rather than the frame, which is what
+   guarantees the overhang exists to travel through. */
+.parallax-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+@media (prefers-reduced-motion: reduce) {
+    /* Component bails out before touching the transform, so the media just
+       needs to sit centred in its frame. */
+    .parallax-media { will-change: auto; }
 }

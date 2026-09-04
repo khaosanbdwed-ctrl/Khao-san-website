@@ -1249,3 +1249,358 @@ builds with zero dishes is worse than a build that stops.
 Verified by reproducing the failure (`NEXT_PUBLIC_SUPABASE_URL= npm run build`)
 and confirming the new message replaces `supabaseUrl is required`; a normal
 build passes 15/15 static pages with `/menu` prerendered at 1h revalidate.
+
+## 16. Round 8 — 2026-08-21: simplification, and orange out of the background
+
+The brief, in the client's words: *"a little bit overdo it... make it simple"*.
+Then five specific asks, and one direction that arrived in two steps and
+reversed a standing assumption.
+
+### 16.1 THE COLOUR DIRECTION CHANGED — read this before §15.1
+
+§15.1 records that re-toning the orange field got fully reverted, and its rule
+stands: **a contrast complaint is not a licence to change a brand hex.** That
+rule was not broken here. Every brand hex is byte-for-byte what it was.
+
+What changed is *where orange is allowed to be*, and the client asked for it
+directly — twice, escalating:
+
+1. *"The orange thing looks very bad. It's hurting the eyes."* → the fields
+   moved from a 0.84–0.92 wash of `#ff964f` to the warm cream already in the
+   token set, with the brand lattice tinted orange over it as texture.
+2. On seeing that: *"Remove the orange background vibe at all... go with white
+   and normal blue... it attracts attention towards the background."* → the
+   tracery came out too, and the surface became plain white.
+
+**The resolved system, and it is deliberately only three moves:**
+
+| Role | Colour | Where |
+|---|---|---|
+| Surface | `#ffffff` | every reading surface |
+| Structure | `#1e417b` | blue fields, ink accents, rules, marks, ornament |
+| Action | `#ff964f` | the primary button, and the rail's active mark |
+
+Support tints (butter `#f9eb9b`, powder `#cadbe9`) stay available but are not
+surfaces. `.bg-orange-band` exists for a genuine full-strength orange moment;
+nothing uses it yet, and it is a *band*, never a canvas.
+
+The warm neutrals went with the orange, because they are low-chroma members of
+the same family and leaving them would have kept the warm cast the client was
+objecting to: `--color-surface-base` `#FFF8EC` → `#ffffff`,
+`--color-text-secondary` `#6B5A46` → `#55606E` (cool slate, 6.0:1 on white),
+`--color-primary` / `--color-accent` on light ground: deep terracotta → brand
+blue (10.01:1). Every terracotta-tinted shadow is navy-tinted now — the Round 1
+no-black-shadows rule is unchanged, only which brand colour tints them.
+
+**The class names `.bg-orange-field` / `--quiet` survive and are white
+surfaces.** Renaming four call sites was churn without a payoff. The ink scale
+on them says so in a comment; do not read the name as the colour.
+
+### 16.2 The seams are gone
+
+Client: remove the shadows between sections, and merge chapters the way the
+menu page merged its two.
+
+Three separate boundary treatments were doing this, all removed:
+
+- The tall `::before` cross-fade bands in `10-backgrounds.css` (110–200px of
+  the previous section's colour fading in at each section's top). Built in
+  Round 5 to replace an inset black shadow, and it *was* a genuine dissolve —
+  but a tall dark band at the top of a section is still a dark band, and the
+  blue→orange seam put a navy haze across the first 200px of the brightest
+  chapter on the site.
+- `.hero::after`, the hero's own fade into the blue below.
+- `.section-blend-top` / `.section-blend-bottom` — two 120px cream gradients at
+  every section's top and bottom, plus their component
+  (`components/ui/section-blend.tsx`), only ever mounted by
+  `section-overlay.tsx`, which was itself **unused**. Both files deleted, and
+  the dead `section-blend` class stripped from every `<section>` in `page.tsx`.
+
+What made the merge possible was the colour change, not a softer seam: with
+every reading surface on one white ground, most seams no longer exist.
+Consecutive same-ground sections get `padding-top: 0` and simply continue.
+The genuine shifts that remain (white → blue at the Theatre and the Havens,
+white → dark footage at the close) get a **clean edge and nothing else** — per
+the client, where the colour shifts the edge is the line; where it does not,
+there is no line.
+
+**Do not reintroduce** a gradient band, an inset shadow, a divider rule or a
+`.section-seam` mark. Four attempts, four times read as the same defect.
+
+### 16.3 The menu page — three dishes, nothing else
+
+Reference: naracuisine.com/menu, then a screenshot the client sent of that
+grid. *"I can see just three dishes, nothing else on the screen."*
+
+- **Three across**, square photographs, `border-radius: 0`. Measured at
+  1440×900: one full row plus the top of the next, 5 dish blocks intersecting
+  the viewport, 3 fully visible. One column below 900px, two below 1280px.
+- **The row is a photograph, a category and a name.** Description, tags,
+  portion note and add-on note are all removed from the presentation.
+  ⚠ **The Supabase columns are untouched and still editable in admin** — this
+  is a presentation decision, not a data one. Do not drop the columns.
+- The category label is a deliberate exception to the project's own
+  no-eyebrows rule: with the category heading usually scrolled off above, it is
+  the only thing saying what you are looking at. Italic at body scale, not
+  tracked-out uppercase, so it reads as a caption rather than a badge.
+- **The badge legend is gone** with the badges — a legend has to explain
+  something that is on the page. Its `borderTop` hairline went with it.
+- `.menu-tag` survives (unused by rows) and lost its outline.
+
+**All 73 dishes re-plated**, twice this round, and the second time fixed a real
+bug: the plates were 900×900 squares rendering into a 4:3 box with
+`object-fit: cover`, which cropped 25% of the height off every dish — and since
+the dish filled 80% of the square, that crop was cutting into the food. The
+script now renders at the frame's own ratio (1000×1000). Ground moved warm sand
+→ warm putty → **cool stone `(222,224,228)`**, and the contact shadow terracotta
+→ navy. Field colour and plate ground remain coupled (§15.1): if the page
+surface changes, re-run `scripts/plate-dishes.py`.
+
+### 16.4 The desktop index → a right-hand rail
+
+Client: keep it, move it right, and *"it shouldn't be visible like that... it
+should be a little bit invisible... whenever I'm scrolling down the dishes it
+should pop up the name from the side, the other names hidden"* — the phone
+rail's behaviour, done properly for a pointer.
+
+Third design for this control. The Round 7 contents-leaf solved discovery and
+created a new problem: on a page whose whole subject is photographs, the
+loudest object was the navigation.
+
+Now: fourteen hairline dashes fixed to the right edge. **The only name set at
+rest is the one you are reading**, fading in beside its own mark; hover or
+keyboard focus reveals all fourteen. The active mark is 30px of brand orange —
+the one orange thing on the page, marking reading position. `position: fixed`,
+out of the layout, which is what gave the grid the width for three across.
+
+Phone rail (`.menu-rail`) untouched, as instructed for the third round running.
+
+### 16.5 The carousel, and where each reference landed
+
+- **Menu hero** = the centred carousel (client: *"in the menu hero section,
+  implement that scrolling menu"*). One plate centred, neighbours peeking and
+  dimmed, draggable, arrows on the photograph. Replaced a static full-bleed
+  band of three plated stills.
+- **Homepage dish chapter** = ruled split rows, from lotusofsiamlv.com. Photo
+  one side, centred name + lotus ornament + blurb + "View Menu →" the other,
+  hairline rules, alternating sides. Replaced the carousel, which had replaced
+  a drifting marquee, which had replaced two full-width spreads.
+
+**The carousel needs no library.** Nara runs Swiper at `slidesPerView: 1.75`
+with `centeredSlides`; that is `padding-inline: 21.5%` on a scroll-snap
+container, which leaves the slide at 57% and 21.5% of each neighbour showing.
+Measured live: slide 57.0%, peek 21.5%. Neighbour opacity 0.6 over 700ms are
+Nara's own numbers. Drag, touch, trackpad and keyboard are native because it is
+a real `overflow-x: auto` element.
+
+⚠ **`flex: 0 0 100%`, not 57%.** A percentage flex-basis resolves against the
+content box, which the padding has *already* narrowed to 57%. Writing 57%
+compounds the two and yields a 32.5% slide.
+
+⚠ **`.dish-carousel-track` needs `position: relative`.** The active slide is
+found by comparing `slide.offsetLeft` against the track's `scrollLeft`, which
+are only in the same coordinate space when the slide's offsetParent is the
+scroller. Without it the marking sticks on slide one.
+
+### 16.6 Scroll parallax — kiintoronto.com
+
+`components/ui/scroll-parallax.tsx`. Frame is `overflow: hidden`; the media
+inside is `shift`% taller and is moved through that excess by a transform as
+the frame crosses the viewport. Because the image always overhangs, no edge is
+ever exposed — which is what separates it from `background-attachment: fixed`.
+
+Verified against the reference rather than guessed: containers 460px holding
+images of 561/635/667/676px, i.e. `data-shift-percent` of 22/38/45/47. **The
+variation is the point** — a uniform rate reads as the whole page sliding.
+Applied to the three Havens room photographs at 22/30/26.
+
+### 16.7 Two real bugs found while verifying
+
+Both are pre-existing and both had the same shape: **an IntersectionObserver
+reports transitions it witnesses, so a jump past the trigger leaves the state
+stale.**
+
+1. The category indicator used fourteen observers with
+   `rootMargin: -20% 0px -75% 0px` — a band ~45px tall at 900px. An anchor
+   click, a `/menu#e-noodles` deep link or a restored scroll position lands
+   past it without any section crossing it, and the rail keeps pointing at
+   category one.
+2. The phone rail's mount gate had the same flaw against `.menu-hero`, so a
+   deep link could leave the rail **unmounted on the page it navigates**.
+
+Both now measure position directly, in the passive scroll handler, plus a
+`load` listener because the hero's height is not final until its photographs
+decode. **Not in a `requestAnimationFrame`**: there is no style write to batch,
+fourteen rect reads are cheap, and rAF is throttled wherever frames are — which
+is exactly where both were seen sticking.
+
+### 16.8 Dead code removed
+
+`components/ui/section-overlay.tsx`, `components/ui/section-blend.tsx`;
+`.dish`, `.dish--angled`, `.dish-img` and the whole `.spread*` family
+(~165 lines of the floating-cutout treatment and the two-up spread that used
+it); `.menu-hero-band` / `.menu-hero-plate`; `.menu-row-desc` / `-tags` /
+`-addon` / `-portion`; `.menu-index-panel` / `-title`; an empty
+`@media (min-width: 768px) {}`.
+
+`AutoScroller` was **kept** — `interior-drift.tsx` still uses it.
+
+### 16.9 Verified
+
+- `tsc --noEmit` clean, `eslint` clean.
+- `npm run check:contrast` — **15/15 pass**. Five of its selectors were stale
+  from before Round 6 (`.menu-card h3`, `.menu-nav-item`, …) and now point at
+  the live ones; three homepage feature-dish checks added. Lowest measured
+  ratio anywhere is 6.39:1, against a 4.5 floor.
+- 1440×900: three-column grid at 415px square photos, rail fixed right with
+  active-only names, no horizontal overflow.
+- 390px: single column, phone rail hidden over the hero and present past it,
+  carousel at 78% slide / 11% peek, no horizontal overflow.
+- Category tracking measured correct at every probe: Appetizers → Soups →
+  Salads → Noodles → Seafood → Rice.
+
+**Environment note for whoever verifies next.** In the in-app browser pane,
+`window.scrollTo()` does not reliably emit `scroll` events and
+`behavior: 'smooth'` is a no-op. Several readings looked like stuck state and
+were not — dispatching a synthetic `scroll` event confirmed the logic each
+time. Also: the HMR websocket fails in this pane, so **CSS and component edits
+need a full reload**, and a stale Turbopack cache will happily keep serving a
+broken build after the source is fixed. Stop the server, clear `.next`, restart
+(§15.3).
+
+### 16.10 Still open
+
+- Dish photography is placeholder: the plates are composited cut-outs on a
+  stone ground. The client is supplying real photographs, at which point
+  `platedSrc()` in `app/menu/page.tsx` and the plating script may both become
+  unnecessary.
+- `BrushTransition` (the saffron brush sweep at the hero seam) was **kept**.
+  It is brand identity per §11 rather than a section shadow, but it is also a
+  boundary signal on a page that just had every other boundary signal removed.
+  Flagged for the client, not removed unilaterally.
+
+## 17. Round 9 — 2026-08-21: looking at the page
+
+### 17.1 The process failure that caused Round 8's defects
+
+Round 8 was verified with contrast ratios, grid measurements and DOM probes.
+All of it passed. None of it caught what the client saw immediately: copy
+floating in dead space, a grey box behind every dish, the word "Appetizers"
+printed nine times under a heading that said "Appetizers", a gallery slicing
+its own photographs in half.
+
+The cause was mechanical, not aesthetic. The in-app browser pane cannot
+composite frames, so its screenshot tool times out — and instead of fixing
+that, Round 8 worked around it and substituted measurement for looking.
+Measurement cannot see alignment, rhythm, weight or crowding.
+
+**`scripts/shoot.sh` and `scripts/shoot.mjs` now exist so this cannot recur.**
+Getting a real render out of this machine took several attempts; the working
+recipe and every dead end are recorded in those files. In short:
+
+- Chrome's **CLI** `--screenshot` with `--virtual-time-budget` works.
+- **CDP** `Page.captureScreenshot` does **not** — `fromSurface: true` returns
+  solid black, `fromSurface: false` returns a half-rasterised page, and
+  `--disable-gpu`, swiftshader, `Page.bringToFront` and a headed window parked
+  off-screen change none of it.
+- The CLI cannot scroll, so scrolled views come from `#anchors` — but those
+  render blank white unless `--force-prefers-reduced-motion` is passed,
+  because `.reveal-hidden` holds everything at `opacity: 0` until the
+  IntersectionObserver fires, and it does not fire under virtual time.
+- The full-page trick (one very tall window) works for `/menu` but **not** for
+  `/`, because `.hero` is `min-height: 100vh` — a 9,200px window makes the hero
+  9,200px tall and the capture shows nothing else. `shoot_home_tall()` pins the
+  hero for the duration of the shot and restores it after. **Force a rebuild
+  (curl the page twice) before capturing, or the shot uses the pre-patch CSS.**
+- **Clear `.next` after re-running the plating script.** The image optimiser
+  caches by URL, so regenerated dishes keep serving the old bytes — this cost
+  one full round of "why has the ground not changed".
+
+### 17.2 What the screenshots showed, and what changed
+
+**The plate ground — the worst of it.** Three rounds had run a *flat* fill
+(warm sand → warm putty → cool stone). On a white page, seventy-five flat
+rectangles read as unloaded image placeholders — a grey box behind every dish,
+which is worse than the floating cut-out the plating exists to remove. A
+photograph's background is never one flat value. It is a **radial falloff**
+now, warm taupe, brighter under the dish and deepening to the corners, which
+reads as a lit surface. Depth also had to increase: the first attempt at
+`(244,241,236)` was only 4% off the page and still looked washed out;
+`(232,226,216) → (203,194,180)` reads as a deliberate studio backdrop.
+
+**The per-dish category caption — my error, not the client's.** It was copied
+from the client's reference, where it carries information because that grid is
+a *mixed* "recommended" selection. This page is grouped **by** category under a
+50px heading, so it printed "Appetizers" nine times directly beneath the word
+"Appetizers". Removed. The project's own no-eyebrows rule was right; the
+reference simply was not analogous. `MenuRowProps` lost `category`.
+
+**Dish-name typography.** Was the display face at ~29px / weight 600, seventy-
+five times down one page — not typography, noise, and every two-line name
+staggered the row beneath it. Now `clamp(1.05rem, 1.15vw, 1.3rem)` at weight
+400 on a fixed two-line measure (`min-height: calc(2 * 1.28em)`), so rows share
+a baseline. Row gap tightened 72px → 52px; it read as three separate columns.
+
+**The gallery — rebuilt, per the client's description.** `InteriorDrift` (three
+columns translating upward inside a masked window) was replaced by
+`RoomGallery`: one wide frame with two stacked beside it, that group repeating,
+scrolling sideways off the right edge. The old one was slicing its photographs
+at the section edges at every moment, staggering every plate so the eye had no
+line to rest on, burning a location label into each image (so "DHANMONDI" and
+"UTTARA" each appeared twice in one view), and needing a **"PAUSE GALLERY"
+button** — a control that exists only to stop motion the page never needed.
+`RoomGallery` ships **zero JavaScript**; it is an `overflow-x: auto` element, so
+touch, trackpad, shift+wheel and keyboard are the browser's.
+
+**The homepage feature rows.** The client's note was that centre alignment
+"doesn't look good", and the screenshot showed why: a small centred copy island
+in a 520px-tall box with ~150px of dead space above and below. Copy is
+left-aligned now, on the same axis as the photograph's edge; box padding cut
+68px → 36px so the row hugs its photograph. The three 13px lotus glyphs
+rendered as illegible smudges and are replaced by a numeral (01/02/03).
+
+**One alignment bug only a screenshot could find.** `.menu-hero` sets
+`text-align: center` for its title block, and that cascaded into the carousel
+caption — so the hero caption centred itself while every dish caption in the
+grid below stayed left. Two alignment languages on one page, invisible in the
+CSS. `.dish-slide-copy` now sets `text-align: left` explicitly.
+
+### 17.3 Removed
+
+`components/ui/interior-drift.tsx`; `components/ui/auto-scroller.tsx` (the
+strip was its last consumer); the `.hg*` plate family; `.interior-drift*` and
+its two dead media queries; `.auto-scroller*`; `.menu-row-category`. The
+`location` and `ratio` fields are gone from the gallery data — frames are
+uniform now, so `object-fit: cover` handles any source aspect.
+
+### 17.4 Verified — by looking, then measuring
+
+- `tsc` clean, `eslint` clean, **14/14 contrast assertions pass**.
+- Screenshots reviewed at 1440 for the menu grid, the gallery strip and the
+  feature rows; the fixes above are all visible in the after-shots.
+- 390px measured in the live DOM: `scrollWidth` 390, **no horizontal
+  overflow**, single column at 350px, dish names wrapping inside their column.
+  ⚠ A 390×2600 CLI capture *looked* like the title was running off the edge;
+  the DOM says it is not. A very tall window changes vh-based sizing — trust
+  the DOM probe over a tall-window screenshot for overflow questions.
+
+### 17.5 Still not right, honestly
+
+- **The dish photography is the ceiling on this page.** Every plate is a
+  cut-out composited onto a synthetic ground. The radial falloff makes it read
+  as a studio backdrop rather than a placeholder, which is as far as
+  compositing can take it — it will never look like the client's reference
+  photography, which is shot on real surfaces. Real photographs would let
+  `platedSrc()` and the whole plating script be deleted.
+- **Camera Obscura at caption size.** It is a heavy deco face, and long dish
+  names ("Crispy Chicken Cabbage Roll with Sweet Chili Sauce") are dense at two
+  lines. The references both set dish names in a *light* serif. Worth putting a
+  lighter face in front of the client rather than deciding unilaterally.
+- **Orphan grid rows.** A category with 7 dishes leaves one alone on the last
+  row, 14 times down the page. Normal for editorial grids, but it is visible.
+- **The Heritage "EXPLORE THE MENU" button** sits in a pale blue pill with a
+  soft glow, floating right of the paragraph on a different baseline. It reads
+  as a disabled control. Not touched this round; flagged.
+- **Section-heading hierarchy.** "Signature Spreads" and the dish names beneath
+  it are both heavy blue display type, so the section title and its items carry
+  the same weight.

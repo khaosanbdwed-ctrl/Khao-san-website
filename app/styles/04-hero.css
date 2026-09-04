@@ -14,22 +14,77 @@
        rather than the near-black used on the flat colour fields. Scoping the
        tokens here re-points every `var(--color-text-*)` reference inside the
        hero without touching a single call site. */
-    --color-text-primary: #FFF8EC;
-    --color-text-secondary: rgba(255, 248, 236, 0.86);
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.86);
     --hero-text-shadow: 0 2px 10px rgba(8, 14, 28, 0.28), 0 1px 3px rgba(8, 14, 28, 0.18);
 }
 
-/* Hero lockup - the mark sits centred ABOVE the wordmark, not beside it, so the
-   hero reads top-to-bottom as mark -> tagline -> description -> actions. The
-   side-by-side arrangement it replaced put the mark and the copy in competition
-   for the optical centre and pushed the wordmark off-axis. */
+/* ⚠ THE LANDING HERO IS CENTRED. THE MENU HERO IS NOT. That difference is
+   deliberate and it is not an oversight to be tidied up: this hero is a brand
+   lockup - mark, tagline, two actions - and a lockup is a symmetrical object,
+   so it is set on the frame's axis. `.menu-hero` is a headline with a lede
+   and a count, which is running copy, and that reads left-aligned. Both are
+   vertically centred.
+
+   Two things have to agree for this to hold:
+
+     1. This block sets the horizontal alignment.
+     2. `.hero` in page.tsx keeps `align-items: center` on the section for the
+        vertical half, and the section's top and bottom padding are both
+        --header-h so the copy sits on the true optical centre rather than
+        below it.
+
+   There used to be a third: a pool of shade that had to sit under the copy
+   wherever the copy went. It is deleted (see 05-motion.css), so this type now
+   has nothing behind it and its contrast is whatever the film is doing.
+
+   The 800px measure is what keeps a centred column from spreading across the
+   full frame, where the eyebrow and the buttons would drift too far from the
+   wordmark to read as one lockup. */
+.hero-copy {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 24px;
+    text-align: center;
+}
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Hero lockup - the mark sits centred ABOVE the wordmark, not beside it, so
+   the hero reads top-to-bottom as mark -> tagline -> actions. The side-by-side
+   arrangement it replaced put the mark and the copy in competition for the
+   optical centre and pushed the wordmark off-axis. */
 .hero-lockup {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: clamp(14px, 2vw, 26px);
-    margin-bottom: 34px;
+    /* Was a flat 34px, which was the right gap when a paragraph sat between the
+       wordmark and the buttons. With that paragraph gone the buttons crowded
+       the brush lettering, so the lockup now holds the space the paragraph
+       used to occupy. */
+    margin-bottom: clamp(40px, 5vw, 68px);
+}
+
+/* Scale the hero mark down on small phones so the CTAs stay above the fold.
+   232×196px is the natural size; at 375px width the mark takes up 62% of the
+   viewport width and the cumulative hero height pushes the CTAs close to or
+   below the fold on sub-600px devices (iPhone SE, older Androids). */
+@media (max-width: 480px) {
+    .hero-mark {
+        max-width: 160px !important;
+        height: auto !important;
+    }
+    .hero-lockup {
+        gap: 8px;
+        margin-bottom: 22px;
+    }
 }
 .hero-lockup-text {
     text-align: center;

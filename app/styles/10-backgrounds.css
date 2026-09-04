@@ -49,14 +49,63 @@
    fails, verified 2.16:1). Text on .bg-blue-field should be white or
    var(--color-brand-butter).
    ============================================================ */
-.bg-orange-field {
+/* ⚠ ROUND 8 - ORANGE IS NO LONGER A CANVAS.
+
+   This class used to paint a 0.84-0.90 wash of #ff964f edge to edge, and
+   `.bg-orange-field--quiet` did the same for the entire 13,000px menu page.
+   That is a brand colour used as a reading surface, and at that surface area
+   a saturated warm at ~0.39 relative luminance is genuinely fatiguing to read
+   against - the client's words were that it "hurts the eyes".
+
+   The fix is NOT a new orange. The hexes are untouched, exactly as PRD §15.1
+   requires. What changed is how much of the screen orange occupies.
+
+   That went in two steps, and the second one matters. The field first became
+   the warm cream already in the token set, with the brand lattice tinted
+   orange over it. The client's response was that the orange still "attracts
+   attention towards the background" - so the tracery came out too and the
+   surface is plain white. Orange now appears on the primary button, on the
+   menu rail's active mark, and on `.bg-orange-band` if a section ever needs a
+   loud moment. Nowhere else.
+
+   Do not restore the wash, and do not restore the tracery. If a section needs
+   to be orange, use `.bg-orange-band` - a band, not a canvas. */
+.bg-orange-field,
+.bg-orange-field--quiet {
+    background-color: var(--color-surface-base);
+    background-image: none;
+}
+
+/* NO TRACERY EITHER.
+
+   An interim version of this round kept the brand lattice here, masked and
+   tinted brand orange at 0.11 over the cream. It was a reasonable idea and it
+   was still wrong: the client's second note was that the orange "attracts
+   attention towards the background", and a patterned ground does that whether
+   the pattern is loud or faint. The surface is plain white now.
+
+   The lattice asset is not deleted and is still worth having - it is the
+   client's own pattern, recovered by autocorrelation from their brand artwork
+   (see the provenance note below). It belongs on a small, deliberate object -
+   the menu index panel already uses it at `soft-light` - not on a full-page
+   ground. Do not put it back behind the reading surfaces.
+
+   The `.bg-orange-field` / `--quiet` class NAMES survive only because they are
+   referenced from four call sites and renaming them is churn without a
+   payoff; they are white surfaces now, and the ink scale below says so. */
+
+/* The orange that IS still orange.
+
+   One narrow, deliberate band - a CTA rail, a divider strip - at the full
+   brand value with navy ink, per the contrast rule above. Nothing on the site
+   uses it yet; it exists so that "we need an orange moment here" has a correct
+   answer that is not "paint the section orange". */
+.bg-orange-band {
     background-color: var(--color-brand-orange);
-    background-image:
-        linear-gradient(rgba(255, 150, 63, 0.84), rgba(255, 150, 63, 0.90)),
-        url('/assets/bg-web/lotus-bg.webp');
-    background-size: cover, cover;
-    background-position: center, center;
-    background-repeat: no-repeat, no-repeat;
+    --color-text-primary: var(--ink-on-orange);
+    --color-text-secondary: var(--ink-on-orange-secondary);
+    --color-primary: var(--ink-on-orange);
+    --color-accent: var(--ink-on-orange);
 }
 
 /* Menu-page dish field.
@@ -109,21 +158,9 @@
    token). Keep the two in step - if this gradient is edited back to the old
    deep #E07B30 while the token stays light, the field flattens to the deep
    value again and the ink loses the headroom it was given. */
-.bg-orange-field--quiet {
-    background-color: var(--color-dish-field);
-    background-image:
-        linear-gradient(rgba(240, 145, 63, 0.90), rgba(240, 145, 63, 0.92)),
-        url('/assets/patterns/thai-lotus-lattice.png');
-    background-size:
-        auto,
-        clamp(118px, 11vw, 168px);
-    background-position:
-        0 0,
-        center top;
-    background-repeat:
-        no-repeat,
-        repeat;
-}
+/* ROUND 8: the wash that used to live here is gone - see the ORANGE IS NO
+   LONGER A CANVAS note above. The lattice survives it, as the masked ::before
+   tracery, which is the use this asset was always best at. */
 
 /* Corner-florals art (lotus blooms anchored in the corners over the
    lattice) on a deep brand-blue field - for structural, hero-scale sections
@@ -168,7 +205,7 @@
 .gift-field {
     background-color: var(--color-surface-base);
     background-image:
-        linear-gradient(rgba(255, 248, 236, 0.955), rgba(255, 248, 236, 0.955)),
+        linear-gradient(rgba(255, 255, 255, 0.955), rgba(255, 255, 255, 0.955)),
         url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp');
     background-size: auto, clamp(340px, 32vw, 520px);
     background-position: 0 0, -9% 104%;
@@ -176,8 +213,8 @@
 
     /* Cream ink scale: brand orange as text on cream is 1.9:1 and fails
        outright; terracotta reaches 6.8:1. Same rule as .bg-warm-white. */
-    --color-primary: var(--color-deep-terracotta);
-    --color-accent: var(--color-deep-terracotta);
+    --color-primary: var(--color-brand-blue);
+    --color-accent: var(--color-brand-blue);
 }
 
 /* ============================================================
@@ -221,46 +258,32 @@
    Two flattened grounds, so every value below is quoted for both:
      .bg-orange-field        -> rgb(255, 150, 79)   (main)
      .bg-orange-field--quiet -> rgb(224, 123, 48)   (menu dish field) */
+/* ROUND 8: these fields are WHITE now, so they simply take the root scale -
+   which is itself the white scale. The whole block is therefore a no-op and
+   is kept only as the place this gets explained.
+
+   Ratios against #ffffff:
+     #161616 near-black   18.1:1   body and headings
+     #55606E cool slate    6.0:1   secondary copy
+     #1e417b brand blue   10.0:1   accents, marks, rules
+   Brand orange as TEXT on white is 1.9:1 and fails outright. The accent is
+   brand blue, not terracotta and not orange: terracotta was the right answer
+   when the ground was cream and the page was warm, and it is the wrong one now
+   - it is an orange-family colour on a page the client asked to take the
+   orange out of.
+
+   On light surfaces orange is a BUTTON FILL and nothing else. */
 .bg-orange-field,
 .bg-orange-field--quiet {
-    /* Navy, not black — see the "INK ON ORANGE" note in 01-tokens.css. Black
-       and warm brown both passed WCAG here and both still read muddy, because
-       they separate from the field on lightness alone while sharing its warm
-       hue. Navy opposes the hue as well, so the same measured ratio looks far
-       crisper. #35251a in particular (the old secondary) was the worst of the
-       set: a warm brown on warm orange is the lowest-chroma-separation pairing
-       available. */
-    --color-text-primary: var(--ink-on-orange);            /* 7.33:1 / 6.65:1 */
-    --color-text-secondary: var(--ink-on-orange-secondary); /* 5.60:1 / 5.07:1 */
-    --color-primary: var(--ink-on-orange);                  /* 7.33:1 / 6.65:1 */
-    --color-accent: var(--ink-on-orange);                   /* 7.33:1 / 6.65:1 */
+    --color-text-primary: var(--color-brand-black);
+    --color-text-secondary: #55606E;
+    --color-primary: var(--color-brand-blue);
+    --color-accent: var(--color-brand-blue);
 }
-/* An orange CTA on an orange field reads as a flat shape with no edge, so the
-   field flips it to the brand's other primary. The label goes back to white,
-   which on brand blue is 10.01:1. */
-.bg-orange-field .btn-primary {
-    background-color: var(--color-brand-blue);
-    border-color: var(--color-brand-blue);
-    color: #ffffff;
-    box-shadow: 0 8px 22px rgba(30, 65, 123, 0.30);
-}
-.bg-orange-field .btn-primary:hover,
-.bg-orange-field .btn-primary:focus-visible {
-    background-color: var(--color-brand-blue-deep);
-    border-color: var(--color-brand-blue-deep);
-    color: #ffffff;
-    box-shadow: 0 18px 38px rgba(30, 65, 123, 0.45);
-}
-/* The powder-blue fill from 03-buttons is already the opposing hue to this
-   field, so nothing needs overriding - only a warmer shadow so the button
-   lifts off the orange rather than floating on it. */
-.bg-orange-field .btn-secondary {
-    box-shadow: 0 10px 26px rgba(90, 40, 10, 0.30);
-}
-.bg-orange-field .btn-secondary:hover,
-.bg-orange-field .btn-secondary:focus-visible {
-    box-shadow: 0 18px 34px rgba(90, 40, 10, 0.38);
-}
+/* The blue-CTA-on-orange override is deleted. It existed because an orange
+   button on an orange field had no edge; on cream the orange button IS the
+   accent, and flipping it to navy here would remove the single loudest piece
+   of brand colour from the page it is most needed on. */
 
 /* Blue field (#1e417b): light ink only. */
 .bg-blue-field {
@@ -280,9 +303,9 @@
    near-white drink shot, so no single ink colour can survive it unaided; the
    headline takes the cream ink and the scrim below gives it a ground to sit on. */
 .section-reservation {
-    --color-text-primary: #FFF8EC;
-    --color-text-secondary: rgba(255, 248, 236, 0.84);
-    --color-primary: #FFF8EC;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.84);
+    --color-primary: #ffffff;
     --color-accent: var(--color-brand-butter);
 
     /* Same cool, deep shadow the hero uses, not the root's warm terracotta one:
@@ -315,8 +338,8 @@
    the "Gifted." accent and every bullet marker would have failed AA while the
    CSS still looked correct. */
 .bg-warm-white {
-    --color-primary: var(--color-deep-terracotta);
-    --color-accent: var(--color-deep-terracotta);
+    --color-primary: var(--color-brand-blue);
+    --color-accent: var(--color-brand-blue);
 }
 
 /* Two consecutive sections on the same field: no gap, no mark. The client's
@@ -334,100 +357,61 @@ section {
 }
 
 /* ============================================================
-   Chapter seams - cross-fade, not a shadow
+   ROUND 8 - THE SEAMS ARE GONE. Read this before adding one back.
 
-   This replaced an inset black box-shadow applied to every section's top
-   edge. That shadow was doing the opposite of what it was for: a dark band
-   at a section's first 40px is itself a boundary marker, so every chapter
-   break was still announced as a line - just a soft-edged one. The client's
-   note is that sections should not read as separated blocks at all.
+   What used to be here: every section painted a 110-200px band at its own top
+   edge carrying the colour of the section above, fading to transparent, so one
+   field dissolved into the next. It was built to replace an inset black
+   box-shadow, and on its own terms it worked.
 
-   The mechanism now is a genuine dissolve. Each section paints a tall band at
-   its own top edge carrying the colour of the section ABOVE it, fading to
-   transparent - so the outgoing field bleeds down into the incoming one and
-   there is no row of pixels where one becomes the other. It is a `::before`
-   inside the section (not an element overhanging the boundary) because
-   several of these sections run overflow:hidden for their own artwork, which
-   would clip anything extending past the edge.
+   It still read as a shadow. A tall dark band at the top of a section is a
+   dark band at the top of a section, whatever gradient produced it - and the
+   blue->orange seam in particular put a deep navy haze across the first 200px
+   of the brightest chapter on the site. The client's note was blunt: remove
+   the shadows between sections, and merge the chapters the way the menu page
+   merged its two.
 
-   z-index 1: above the section's own background, below every content
-   container on the page (all of which are position:relative with z-index >= 1
-   already - .heritage-inner is z-index 2, the rest are their sections'
-   .container). If a new section is added, give its content wrapper a
-   z-index or the band will veil it.
+   The colour re-architecture above is what actually made that possible. With
+   the long reading surfaces all on one cream ground, MOST seams no longer
+   exist - consecutive cream sections simply continue, with nothing to
+   dissolve and no boundary to hide. That is the merge, achieved by removing
+   the reason for the seam rather than by softening it.
+
+   The few genuine colour shifts that remain (cream -> blue at the Theatre and
+   the Havens, cream -> dark footage at the close) get a CLEAN EDGE and nothing
+   else. Per the client: where the colour shifts, the edge itself is the line;
+   where the colour is the same, there must be no line at all.
+
+   Do not reintroduce a gradient band, an inset shadow, a divider rule or a
+   `.section-seam` mark. All four have been tried and all four were read as the
+   same defect.
    ============================================================ */
-.bg-orange-field::before,
-.bg-blue-field::before,
-.gift-field::before,
-.section-reservation::before {
-    content: "";
-    position: absolute;
-    inset: 0 0 auto 0;
-    /* Tall enough to be a passage rather than an edge treatment. Below about
-       90px the gradient itself starts to read as a band. */
-    height: clamp(110px, 15vh, 200px);
-    z-index: 1;
-    pointer-events: none;
+
+/* Consecutive sections on the same ground are one surface. No gap, no mark,
+   no doubled padding at the join - the change of content is the only
+   transition, which is the rule the menu page already follows. */
+.bg-orange-field + .bg-orange-field,
+.bg-orange-field + .bg-orange-field--quiet,
+.bg-orange-field--quiet + .bg-orange-field,
+.bg-orange-field + .bg-warm-white,
+.bg-warm-white + .bg-orange-field,
+.bg-warm-white + .bg-warm-white,
+.gift-field + .bg-orange-field,
+.bg-orange-field + .gift-field,
+.bg-blue-field + .bg-blue-field {
+    padding-top: 0;
 }
 
-/* --- the seams that actually occur, in page order --- */
+/* Sections stay a positioning context - the lattice ::before above depends on
+   it, and so does every absolutely-positioned piece of section artwork. */
+section {
+    position: relative;
+}
 
-/* hero (full-bleed footage) -> Theatre of Fire.
-
-   This seam cannot be solved from the incoming side alone. A band inside the
-   next section fades ITS colour in, but the hero above ends on whatever frame
-   the video happens to be showing - often a bright one - so the join still
-   read as a step from a light frame to a dark band.
-
-   So the hero fades out instead: its own bottom edge dissolves into the blue
-   of the section below, and the craft video's top edge (masked in
-   09-home-sections.css) dissolves back in out of that same blue. Light frame
-   -> blue -> footage, with no row of pixels where one becomes the other.
-
-   ::after rather than ::before because .hero-cinematic-light already owns the
-   hero's overlay layer; z-index 1 puts this above the video (z-index 0) and
-   below the copy (z-index 2). */
-.hero::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0 0;
-    height: clamp(120px, 18vh, 240px);
-    z-index: 1;
-    pointer-events: none;
-    /* rgb(28,59,111), not the raw --color-brand-blue #1e417b. .bg-blue-field is
-       a 0.86-0.92 wash of that token over dark lotus artwork, so it composites
-       DARKER than the token itself. Fading to #1e417b left a measured
-       rgb(32,66,123) -> rgb(28,59,111) step at the join - small, but a visible
-       line. Sampled from the rendered page; re-measure if the field's wash
-       opacities or artwork change. */
-    background: linear-gradient(to bottom, rgba(28, 59, 111, 0) 0%, rgb(28, 59, 111) 100%);
-}
-/* blue -> orange (Theatre -> Heritage) */
-.bg-blue-field + .bg-orange-field::before {
-    background: linear-gradient(to bottom, rgb(30, 65, 123) 0%, rgba(30, 65, 123, 0) 100%);
-}
-/* orange -> blue (Exhibition -> Locations) */
-.bg-orange-field + .bg-blue-field::before {
-    background: linear-gradient(to bottom, rgb(255, 150, 63) 0%, rgba(255, 150, 63, 0) 100%);
-}
-/* blue -> cream (Locations -> Gift) */
-.bg-blue-field + .gift-field::before {
-    background: linear-gradient(to bottom, rgb(30, 65, 123) 0%, rgba(30, 65, 123, 0) 100%);
-}
-/* cream -> dark footage (Gift -> closing). Fades the cream DOWN into the
-   video rather than the video up into the cream, which would dirty the
-   footage the client asked to keep visible. */
-.gift-field + .section-reservation::before {
-    background: linear-gradient(to bottom, rgb(255, 248, 236) 0%, rgba(255, 248, 236, 0) 100%);
-    /* This section stacks a background still, a tint layer and the video all at
-       z-index 0-1, and they come after ::before in DOM order - at z-index 1 the
-       band would paint underneath the footage and be invisible. z-index 2 puts
-       it over the video; the copy container is also z-index 2 but later in the
-       DOM, so the text still sits on top of the band. */
-    z-index: 2;
-}
-/* Same field twice in a row (Heritage -> Exhibition): nothing to dissolve. */
-.bg-orange-field + .bg-orange-field::before,
-.bg-blue-field + .bg-blue-field::before {
-    display: none;
-}
+/* HISTORICAL, Round 8: the per-seam gradient rules that used to close this
+   file - `.hero::after` fading to blue, `.bg-blue-field + .bg-orange-field
+   ::before`, `.bg-orange-field + .bg-blue-field::before`, `.bg-blue-field +
+   .gift-field::before` and `.gift-field + .section-reservation::before` -
+   are all deleted. They were the "shadows between sections". The ::before
+   slot on the orange fields now carries the lattice tracery instead, so
+   restoring any of them would also blank the texture. */

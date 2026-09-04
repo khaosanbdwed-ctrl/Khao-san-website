@@ -55,3 +55,9 @@ graphify-out/
 .claude/skills/
 .agents/
 .claude/settings.local.json
+
+# Screenshot workspace for design review (scripts/shoot.sh)
+scratch-shots/
+
+# Stale stylesheet backups (superseded by git history)
+*.bak

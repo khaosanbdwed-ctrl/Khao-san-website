@@ -45,15 +45,45 @@
     --ink-on-orange:           #16233d;  /* 7.33:1 main field / 6.65:1 dish field */
     --ink-on-orange-secondary: #26364f;  /* 5.60:1 main field / 5.07:1 dish field */
 
-    --color-primary: #ff964f;
+    /* ============================================================
+       ROUND 8 - WHITE SURFACE, BLUE STRUCTURE, ORANGE ON THE CTA ONLY.
+
+       Two client notes, in order. First: orange as a 13,000px reading canvas
+       "hurts the eyes" - so the fields went cream and the orange became a
+       lattice tracery over them. Then, on seeing that: remove the orange from
+       the background entirely, because even as texture "it attracts attention
+       towards the background". Both notes are the same note, and the second is
+       the right one - a background's job is to not be looked at.
+
+       The resolved system, and it is deliberately only three moves:
+         SURFACE    white. The brand's own #ffffff, not a warm off-white.
+         STRUCTURE  brand blue - fields, ink accents, rules, marks.
+         ACTION     brand orange, on the primary button and nothing else.
+       Support tints (butter, powder) stay available but are not surfaces.
+
+       Every warm neutral in the old scale went with it. #FFF8EC was a warm
+       cream and #6B5A46 a warm brown: both are low-chroma members of the
+       orange family, so leaving them in place would have kept the warm cast
+       the client was objecting to while the loud orange came out. The greys
+       below are cool, drawn off the brand blue rather than off nothing.
+
+       ⚠ The hexes themselves are still untouched. Orange is #ff964f wherever
+       it appears. Nothing here re-tones a brand colour - it only changes what
+       gets to be a surface, which is what PRD §15.1 asks for.
+       ============================================================ */
+    --color-primary: #1e417b;
     --color-secondary: #1e417b;
-    --color-accent: #ff964f;
-    --color-surface-base: #FFF8EC;
+    --color-accent: #1e417b;
+    --color-surface-base: #FFFFFF;
     --color-surface-elevated: #FFFFFF;
-    --color-surface-alt: #ff964f;
-    --color-text-primary: #161616;
-    --color-text-secondary: #6B5A46;
-    --color-border: rgba(22, 22, 22, 0.08);
+    /* The one alternate surface: a cool near-white pulled off Powder Blue, for
+       when two light sections need to be told apart. Not a second brand
+       colour, and never used two sections running. */
+    --color-surface-tint: #F4F7FA;
+    --color-surface-alt: var(--color-surface-tint);
+    --color-text-primary: #161616;      /* 18.1:1 on white */
+    --color-text-secondary: #55606E;    /*  6.0:1 on white - cool slate, was a warm brown */
+    --color-border: rgba(30, 65, 123, 0.12);
 
     /* Brand Accent Colors */
     --color-burnt-saffron: #D76F30;
@@ -105,12 +135,17 @@
     --radius-md: 14px;
     --radius-lg: 22px;
     --radius-pill: 9999px;
-    --shadow-float: 0 20px 40px rgba(141, 54, 31, 0.22);
+    /* Blue-tinted, not terracotta. The no-black-shadows rule from Round 1
+       stands; what changed is which brand colour tints them. A terracotta
+       shadow under every card and video was one more warm orange presence on
+       a page the client wants cool and quiet. Navy at low opacity reads as
+       shadow rather than as colour. */
+    --shadow-float: 0 20px 40px rgba(30, 65, 123, 0.16);
 
     /* Hero-only text shadow - never used outside a hero. Just enough to
        separate text from busy video/photo behind it; should not read as a
        visible glow. */
-    --hero-text-shadow: 0 2px 6px rgba(141, 54, 31, 0.12), 0 1px 2px rgba(141, 54, 31, 0.08);
+    --hero-text-shadow: 0 2px 6px rgba(30, 65, 123, 0.14), 0 1px 2px rgba(30, 65, 123, 0.10);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

@@ -47,110 +47,264 @@
     color: var(--color-text-primary);
 }
 .site-footer__inner { position: relative; z-index: 2; }
-.footer-top {
+/* ============================================================
+   ROUND 9 - the outlets are the footer, in ONE grid.
+
+   The class it replaced, `.footer-top`, was a four-column grid of a brand
+   block and three link columns, one of which ("Visit") carried a single phone
+   number for a restaurant with three branches. Addresses now lead.
+
+   WARNING - the first attempt at that rebuilt it as FOUR stacked bands -
+   lede / outlets / utility / bottom - each opened by its own hairline and each
+   running its own column system, one of them with vertical rules between
+   cells. It measured 804px tall on an 805px viewport, 278px of which was
+   three vertical link lists: `.footer-link` carries a 44px minimum touch
+   target (WCAG 2.5.5, and it stays), and stacked vertically that is 44px of
+   largely empty row per link. The result read as a ruled spreadsheet the
+   height of the screen.
+
+   What is here instead - one grid and two lines:
+
+     ZONE 1  `.footer-grid`   four columns: brand, then the three outlets.
+                              No internal rules. Space separates columns; that
+                              is what a grid is for.
+     ZONE 2  `.footer-nav`    one hairline, then a single INLINE row. Same 44px
+                              targets, side by side instead of stacked - which
+                              is the whole of the 278px fix.
+     ZONE 3  `.footer-bottom` copyright and legal, one line.
+
+   If this needs to carry more, put it in a column of the existing grid. Do
+   not add a fifth band.
+   ============================================================ */
+
+/* ZONE 1 --------------------------------------------------------------- */
+.footer-grid {
     display: grid;
-    grid-template-columns: 1.7fr 1fr 1fr 1.1fr;
-    gap: 30px 48px;
-    padding-bottom: 34px;
+    /* The brand column is wider: it holds a mark, a line, two hours rows and a
+       button, against three short address blocks. Equal columns would leave
+       the button wrapping while the outlets ran short. */
+    grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
+    gap: clamp(28px, 3.4vw, 56px);
+    padding-bottom: clamp(34px, 4vw, 52px);
+    align-items: start;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 /* The source mark is solid brand navy on transparent. On this dark ground
-   that is 1.16:1, so it must be knocked out to cream. Requires the image to
-   keep its alpha channel - see the `unoptimized` note in Footer.tsx. Pair
-   this rule with the surface: light footer -> no filter, dark footer -> this. */
+   that is 1.16:1, so it must be knocked out to cream - which requires the
+   image to keep its alpha channel (see the `unoptimized` note in Footer.tsx).
+   Pair this rule with the surface: light footer -> no filter, dark footer ->
+   this. */
 .footer-logo {
-    height: 50px;
+    height: clamp(52px, 5vw, 68px);
     width: auto;
-    margin-bottom: 18px;
+    margin: 0 0 20px;
     opacity: 1;
     filter: brightness(0) invert(1);
 }
 .footer-tagline {
-    color: var(--color-text-secondary);
-    font-size: 0.96rem;
-    line-height: 1.55;
-    max-width: 32ch;
-    margin-bottom: 20px;
+    color: var(--color-text-primary);
+    font-size: 1.02rem;
+    line-height: 1.5;
+    max-width: 26ch;
+    margin: 0 0 20px;
     text-wrap: pretty;
 }
-.footer-reserve {
-    display: inline-block;
+/* Two rows, not a run-on sentence: opening times are scanned, not read, and
+   the two lines let the eye land on a day range and a time without parsing
+   punctuation. */
+.footer-hours {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0 0 26px;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+}
+.footer-hours-mer {
+    font-size: 0.78em;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+}
+.footer-cta { white-space: nowrap; }
+
+/* The outlets. Three identical blocks - no card, no rule, no shadow. */
+.footer-outlet {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    /* Optical alignment: the brand column opens with an image, these open with
+       type, so a shared `align-items: start` puts the headings a touch high
+       against the tagline they should sit level with. */
+    padding-top: 4px;
+}
+.footer-outlet-name {
+    font-family: var(--font-display);
+    font-size: clamp(1.1rem, 1.35vw, 1.35rem);
+    line-height: 1.2;
+    letter-spacing: 0.014em;
+    font-weight: 600;
+    color: var(--color-brand-butter);   /* 10.4:1 on this ground */
+    margin: 0 0 10px;
+}
+/* <address> italicises by default in every browser, which on a three-line
+   postal address reads as an aside rather than as the address it is. */
+.footer-outlet-address {
+    font-style: normal;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 30ch;
+}
+/* 44px minimum touch target on both, without moving the text off its own line
+   - the padding grows the hit area, not the type. The small negative margins
+   pull the surplus back out of the layout so the column does not gain ~30px
+   of air it never uses. */
+.footer-outlet-tel {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: -4px;
+    transition: color 0.3s ease;
+}
+.footer-outlet-tel:hover,
+.footer-outlet-tel:focus-visible { color: var(--color-brand-butter); }
+/* An underlined text link, not a third button. The brand column already
+   carries the footer's one filled control; three more would make the footer
+   the loudest block on the page. */
+.footer-outlet-map {
     color: var(--color-brand-butter);
     font-family: var(--font-sans);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-decoration: none;
-    padding: 8px 0;
-    border: none;
-    border-bottom: 1.5px solid var(--color-brand-butter);
-    background: none;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    margin-top: -6px;
+    line-height: 1;
+    border-bottom: 1.5px solid rgba(249, 235, 155, 0.4);
+    padding-bottom: 3px;
     transition: color 0.3s ease, border-color 0.3s ease;
 }
-/* Deepens rather than brightening, matching the button rule in 03-buttons.
-   This is a text link, not a filled control, so it stays butter at rest and
-   goes to the deeper butter on hover instead of jumping to white. */
-.footer-reserve:hover,
-.footer-reserve:focus-visible {
+.footer-outlet-map:hover,
+.footer-outlet-map:focus-visible {
     color: var(--color-brand-butter-deep);
     border-color: var(--color-brand-butter-deep);
 }
-.footer-outlets {
-    margin-top: 22px;
+
+/* ZONE 2 --------------------------------------------------------------- */
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px clamp(24px, 3vw, 48px);
+    padding: 4px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.footer-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 clamp(18px, 2.2vw, 34px);
+}
+.footer-nav-list--social .footer-link {
     color: var(--color-text-secondary);
-    font-size: 0.76rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-size: 0.86rem;
+    letter-spacing: 0.06em;
 }
-.footer-col h4 {
-    font-family: var(--font-sans);
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-brand-butter);
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-.footer-col ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; }
+/* 44px minimum touch target (WCAG 2.5.5). Inline, so the height costs the
+   row nothing - it IS the row's height. This is the same rule that made the
+   old vertical lists 176px tall. */
 .footer-link {
     color: var(--color-text-primary);
     text-decoration: none;
-    font-size: 0.95rem;
-    display: inline-block;
-    padding: 4px 0;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     transition: color 0.3s ease;
 }
 .footer-link:hover,
 .footer-link:focus-visible { color: var(--color-brand-butter); }
-.footer-hours { color: var(--color-text-secondary); font-size: 0.92rem; display: inline-block; padding: 4px 0; }
-.footer-divider { height: 1px; background: rgba(255, 255, 255, 0.14); }
+
+/* ZONE 3 --------------------------------------------------------------- */
 .footer-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 14px;
-    padding-top: 22px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.8rem;
+    gap: 4px 24px;
+    /* No hairline. Two rules in a footer this short would put a line every
+       ~60px down its lower half; the change of type size and colour is enough
+       of a break, and zone 2's rule already marks where the substance ends. */
+    color: rgba(255, 255, 255, 0.62);
+    font-size: 0.78rem;
 }
-.footer-legal { display: flex; gap: 24px; }
+.footer-bottom p { margin: 0; }
+.footer-legal { display: flex; gap: clamp(16px, 2vw, 28px); }
+/* 44px minimum touch target (WCAG 2.5.5) - these measured 30px tall. */
 .footer-legal a {
     color: inherit;
     text-decoration: none;
-    padding: 4px 0;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
     transition: color 0.3s ease;
 }
 .footer-legal a:hover,
 .footer-legal a:focus-visible { color: var(--color-brand-butter); }
-@media (max-width: 900px) {
-    .footer-top { grid-template-columns: 1fr 1fr; gap: 36px 32px; }
-    .footer-brand { grid-column: 1 / 3; }
+
+/* HISTORICAL, Round 9: `.footer-reserve` styled an underlined butter text
+   link that opened WhatsApp. The brand column uses the site's real
+   `.btn-primary` now - the footer's single call to action deserves the same
+   control the rest of the site uses for the same job.
+
+   HISTORICAL, Round 9: `.footer-outlets` used to be a 0.76rem letterspaced
+   caps line reading "Gulshan - Dhanmondi - Uttara". If you are looking for
+   that line, it is gone deliberately: three neighbourhood names with no
+   address, phone or directions is the least useful thing a restaurant footer
+   can say about its branches. `.footer-col` went with the link columns. */
+
+/* Responsive ----------------------------------------------------------- */
+@media (max-width: 1024px) {
+    /* Brand across the top, outlets in a row of three beneath it. A 1.5fr
+       brand column beside three address blocks starts squeezing addresses to
+       four lines each below this width. */
+    .footer-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(26px, 3vw, 40px);
+    }
+    .footer-brand {
+        grid-column: 1 / -1;
+        padding-bottom: clamp(8px, 1.5vw, 16px);
+    }
+    .footer-outlet { padding-top: 0; }
 }
-@media (max-width: 560px) {
-    .footer-top { grid-template-columns: 1fr 1fr; }
-    .footer-brand { grid-column: 1 / 3; }
+@media (max-width: 700px) {
+    .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+    .footer-grid { grid-template-columns: 1fr; gap: 26px; }
+    /* Rows sit left-aligned under each other rather than pushing to opposite
+       edges of a 360px screen, where `space-between` strands one word a side. */
+    .footer-nav { justify-content: flex-start; gap: 0 22px; }
     .footer-bottom { justify-content: flex-start; }
 }
 

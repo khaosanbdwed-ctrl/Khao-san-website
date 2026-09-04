@@ -76,13 +76,40 @@
 
    The copy column is NOT squeezed to buy that gap, though - at 0.68fr the
    heading dropped to three lines ("An" / "evening," / "Gifted."), which is a
-   worse outcome than a slightly tighter gap. 0.82fr keeps "An evening," on one
-   line at its clamp ceiling while still leaving the cards a wide column. */
+   worse outcome than a slightly tighter gap. The current ratio keeps
+   "An evening," on one line at its clamp ceiling. */
 .landing-gift-grid {
     display: grid;
-    grid-template-columns: 0.82fr 1.18fr;
-    grid-template-rows: auto auto;
-    gap: clamp(32px, 5vw, 80px);
+    /* Was 0.82 / 1.18. The copy column rendered 410px, and once the three
+       bullets became a four-row label/value ledger two of the values wrapped
+       to a second line inside a 222px value column - a ragged block where the
+       whole point of the ledger is that it scans. 0.95 / 1.05 gives the copy
+       475px and every value one line, and costs the artwork column 65px it
+       does not need: the cards are a composition on open cream, not a diagram
+       with a minimum legible size. */
+    grid-template-columns: 0.95fr 1.05fr;
+    /* ⚠ `1fr`, NOT `auto`, ON THE SECOND ROW - and this is what actually made
+       the heading look detached, not the gap value. The artwork spans rows
+       1/3, and with both rows `auto` the grid distributed the card
+       composition's surplus height ACROSS BOTH of them. Row one inflated,
+       `align-items: start` pinned the heading to the top of it, and the
+       measured distance from heading to paragraph came out at 83px against a
+       28px gap. A flexible second row absorbs the whole surplus instead, so
+       row one is exactly the heading and the gap is the gap. Measured: 83px
+       -> 28px, with the heading and the card column unchanged at 139px and
+       460px. */
+    grid-template-rows: auto 1fr;
+    /* ⚠ TWO AXES, TWO VALUES. This was one `gap`, so the distance from the
+       heading down to its own paragraph was the same 80px as the distance
+       across to the artwork column - a column gutter used as a typographic
+       one. Nothing else on this site separates a heading from its body by
+       more than 28px (Chapter II sets exactly that), so this chapter read as
+       though its heading had come loose from its copy.
+
+       Row gap matches that 28px ceiling; the column gutter is unchanged,
+       because keeping the brush off the text is a genuinely different job
+       from setting a heading over a paragraph. */
+    gap: clamp(18px, 2vw, 28px) clamp(32px, 5vw, 80px);
     align-items: start;
     max-width: 1440px;
     margin: 0 auto;
@@ -90,14 +117,249 @@
 .landing-gift-head {
     grid-column: 1;
     grid-row: 1;
+    /* Was a style-prop clamp(2.5rem, 4vw, 3.5rem) - its own private scale, a
+       full step under `.display-2`, which is why this chapter's heading read
+       quieter than every other one on the page despite being a peer of them. */
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 4.4vw, 4rem);
+    line-height: 1.1;
+    letter-spacing: 0.014em;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    text-wrap: balance;
+    margin: 0;
+}
+/* Brand blue on "Gifted." - the accent this field's ink scale resolves
+   `--color-primary` to. Italic, matching the emphasis in `.heritage-quote`. */
+.landing-gift-head em {
+    color: var(--color-primary);
+    font-style: italic;
 }
 .landing-gift-body {
     grid-column: 1;
     grid-row: 2;
 }
+.gift-lede {
+    color: var(--color-text-primary);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    opacity: 0.9;
+    max-width: 46ch;
+    margin: 0 0 clamp(28px, 3vw, 40px);
+    text-wrap: pretty;
+}
+
+/* ============================================================
+   The gift ledger
+
+   Replaces three dot-bulleted lines. A 6px filled disc beside a sentence is
+   the default list treatment of every UI kit ever shipped, and on a page whose
+   entire structural vocabulary is hairline rules and typographic scale it was
+   the one element that looked bought rather than drawn.
+
+   A definition list is also the honest markup: these are four labelled facts,
+   not three items of equal rank in a sequence. The label/value split is what
+   makes the column scannable - the eye can run down the labels alone and stop
+   at the one it wants, which a bulleted paragraph never allows.
+
+   The rule is a bottom border per row and none on the last, so the block ends
+   on a value rather than on a line - a trailing rule under the final row would
+   read as a divider between the ledger and the button beneath it, which is the
+   seam-line pattern this project spent a round removing.
+   ============================================================ */
+.gift-spec {
+    margin: 0;
+    max-width: 34rem;
+}
+
+/* ============================================================
+   The gift details panel
+
+   The four facts used to sit open on the page under the lede, which put a
+   ruled table between the pitch and the only button that sells anything. They
+   are reference, not persuasion: nobody decides to buy a gift card because of
+   the validity row, but everybody wants it findable before they pay. So they
+   move behind a Details button and the section leads with its offer.
+
+   ⚠ PROGRESSIVE ENHANCEMENT, AND THE BASE CASE IS THE OLD DESIGN. Everything
+   outside the @supports block below is what a browser WITHOUT the Popover API
+   renders: the ledger inline, exactly where it used to be, and no Details
+   button pointing at a panel that is already open on the page. The enhanced
+   path only switches on where `:popover-open` is a real selector.
+   ============================================================ */
+.gift-details {
+    margin: 0 0 clamp(32px, 3.5vw, 44px);
+}
+/* Panel chrome has nothing to do in the inline fallback - there is no panel. */
+.gift-details-head,
+.gift-details-trigger { display: none; }
+
+.gift-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+}
+
+@supports selector(:popover-open) {
+    .gift-details-trigger { display: inline-flex; }
+
+    .gift-details {
+        /* Top layer, so this is positioned against the VIEWPORT and not
+           against any ancestor - which is the whole reason it survives the
+           section's `overflow: hidden`. `inset: 0` plus `margin: auto` is
+           what centres a fixed box of intrinsic width. */
+        position: fixed;
+        inset: 0;
+        margin: auto;
+        width: min(430px, calc(100vw - 40px));
+        max-height: min(70vh, 560px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: clamp(20px, 2.6vw, 28px);
+        background: var(--color-surface-base);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-float);
+        color: var(--color-text-primary);
+
+        /* `overlay` and `display` transition with `allow-discrete` so the
+           panel can animate OUT as well as in - without them the browser
+           yanks it from the top layer on the first frame of the close and the
+           exit is never seen. */
+        opacity: 0;
+        transform: translateY(10px) scale(0.985);
+        transition:
+            opacity 200ms ease,
+            transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+            overlay 280ms allow-discrete,
+            display 280ms allow-discrete;
+    }
+    .gift-details:popover-open {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    /* The opening frame. A popover goes display:none -> block, and without a
+       starting style there is no previous value to animate from. */
+    @starting-style {
+        .gift-details:popover-open {
+            opacity: 0;
+            transform: translateY(10px) scale(0.985);
+        }
+    }
+
+    .gift-details::backdrop {
+        background: rgba(8, 14, 28, 0);
+        transition:
+            background 240ms ease,
+            overlay 240ms allow-discrete,
+            display 240ms allow-discrete;
+    }
+    .gift-details:popover-open::backdrop { background: rgba(8, 14, 28, 0.46); }
+    @starting-style {
+        .gift-details:popover-open::backdrop { background: rgba(8, 14, 28, 0); }
+    }
+
+    .gift-details-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 6px;
+    }
+    .gift-details-title {
+        font-family: var(--font-display);
+        font-size: 1.32rem;
+        line-height: 1.2;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin: 0;
+    }
+    .gift-details-close {
+        all: unset;
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        /* 36px box, but the hit area is padded out to the 44px minimum by the
+           negative margin, so the control is small without being small to
+           tap. */
+        width: 36px;
+        height: 36px;
+        margin: -4px -4px -4px 0;
+        border-radius: var(--radius-pill);
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        transition: background-color 160ms ease, color 160ms ease;
+    }
+    .gift-details-close:hover {
+        background: rgba(30, 65, 123, 0.08);
+        color: var(--color-text-primary);
+    }
+    .gift-details-close:focus-visible {
+        outline: 2px solid var(--color-brand-blue);
+        outline-offset: 2px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gift-details,
+    .gift-details::backdrop,
+    .gift-details-close { transition: none; }
+}
+.gift-spec-row {
+    display: grid;
+    /* Fixed label column so all four values start on one vertical line. `auto`
+       would let the longest label ("Denominations") set the column and the
+       rest rag against it. */
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 8px 20px;
+    align-items: baseline;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+.gift-spec-row:last-child { border-bottom: none; }
+.gift-spec dt {
+    font-family: var(--font-sans);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+.gift-spec dd {
+    margin: 0;
+    font-size: 0.98rem;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+}
+/* The one value worth reading as a price. Same size as its neighbours - it is
+   emphasised by weight and colour, not by being bigger, so the ledger keeps
+   one baseline grid. */
+.gift-spec-row:first-child dd {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+@media (max-width: 560px) {
+    /* Stacked: a 9.5rem label column leaves ~8rem for the value on a 360px
+       screen, which wraps "Gulshan · Dhanmondi · Uttara" to three lines. */
+    .gift-spec-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 11px 0;
+    }
+}
 .landing-gift-cards {
     grid-column: 2;
     grid-row: 1 / 3;
+    /* Centred in the row span, not top-aligned. The copy column runs ~690px
+       and the card composition ~460px, so `align-items: start` on the grid
+       left 230px of empty cream under the artwork and the two halves of the
+       chapter shared neither a top nor a bottom line. Centring is what makes
+       an unequal pair read as balanced. */
+    align-self: center;
     /* Nudged right so the brush has open cream to its left instead of running
        straight into the copy column. */
     padding-left: clamp(0px, 4vw, 64px);
@@ -154,7 +416,13 @@
 :root {
     --feather-edge: 20px;
 }
-.media-feather,
+/* `.media-feather` was the other half of this selector and is retired: the
+   only element that carried it was Chapter II's film, and the dissolved edge
+   read as a halo against the blue field rather than as a bleed. It is a
+   rounded crop now (`.craft-stage`). The mask stays for `.img-feather`, where
+   it does work - those stills sit on white, so the ramp has somewhere to fade
+   TO. If a video ever needs an edge treatment again, frame it; do not bring
+   this back. */
 .img-feather {
     -webkit-mask-image:
         linear-gradient(to right, transparent 0, #000 var(--feather-edge), #000 calc(100% - var(--feather-edge)), transparent 100%),
@@ -166,7 +434,7 @@
     mask-composite: intersect;
 }
 .media-soft {
-    box-shadow: 0 30px 60px rgba(141, 54, 31, 0.22);
+    box-shadow: 0 30px 60px rgba(30, 65, 123, 0.16);
 }
 
 /* ============================================================
@@ -178,35 +446,17 @@
 .section-pad-t { padding-top: var(--space-macro); }
 .section-pad-b { padding-bottom: var(--space-macro); }
 
-/* Stills use the identical mask (declared with .media-feather above) and add
-   a rounded corner. The old separate 15%/18% ramp is gone - it was nearly
-   twice the video's fade and was what made the Heritage stills and the
-   Chapter II block look like two unrelated treatments. */
+/* The mask above plus a rounded corner. The old separate 15%/18% ramp is
+   gone - it was a percentage, so it scaled with the element and every still
+   dissolved by a different amount. */
 .img-feather {
     border-radius: var(--radius-lg);
 }
 
-/* ============================================================
-   Section dissolve - hard horizontal cuts between sections
-   become soft editorial transitions. Each section's top edge
-   fades in from noir and its bottom edge dissolves back,
-   matching the .media-feather / .img-feather dissolve language.
-   ============================================================ */
-.section-blend-top,
-.section-blend-bottom {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    z-index: 1;
-    pointer-events: none;
-}
-.section-blend-top {
-    top: 0;
-    height: 120px;
-    background: linear-gradient(to bottom, var(--color-surface-base) 0%, transparent 100%);
-}
-.section-blend-bottom {
-    bottom: 0;
-    height: 120px;
-    background: linear-gradient(to top, var(--color-surface-base) 0%, transparent 100%);
-}
+/* HISTORICAL, Round 8: `.section-blend-top` / `.section-blend-bottom` lived
+   here - two 120px cream gradients painted at every section's top and bottom
+   edge. Same defect as the seam bands in 10-backgrounds.css: a pale haze over
+   the first and last 120px of a section is a boundary marker, and on the blue
+   fields it read as a glow. Removed with their component
+   (`components/ui/section-blend.tsx`), which was only ever mounted by
+   `section-overlay.tsx` - itself unused, and deleted in the same pass. */

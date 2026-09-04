@@ -172,9 +172,9 @@
        white-on-cream. --color-primary becomes terracotta rather than the brand
        orange, which at this label's size manages only 2.1:1 here. */
     --color-text-primary: #161616;
-    --color-text-secondary: #6B5A46;
-    --color-primary: var(--color-deep-terracotta);
-    --color-accent: var(--color-deep-terracotta);
+    --color-text-secondary: #55606E;
+    --color-primary: var(--color-brand-blue);
+    --color-accent: var(--color-brand-blue);
 }
 /* The cream outline is invisible on the white card - same treatment as the
    orange field, keyed to the card's own ink. */
@@ -232,7 +232,7 @@
     position: absolute;
     inset: 0 -1px 0 auto;
     width: 22%;
-    background: linear-gradient(to left, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+    background: linear-gradient(to left, var(--color-surface-base) 0%, rgba(255, 255, 255, 0) 100%);
     pointer-events: none;
 }
 /* Below 900px the plate stacks, so the dissolve turns to run downward. */
@@ -249,7 +249,7 @@
         inset: auto 0 -1px 0;
         width: auto;
         height: 32%;
-        background: linear-gradient(to top, var(--color-surface-base) 0%, rgba(255, 248, 236, 0) 100%);
+        background: linear-gradient(to top, var(--color-surface-base) 0%, rgba(255, 255, 255, 0) 100%);
     }
 }
 

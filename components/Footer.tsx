@@ -2,21 +2,132 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React from 'react';
+import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
 
-const WHATSAPP_NUMBER = '8801600068193';
-const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+/**
+ * The footer, rebuilt around what a restaurant footer is actually FOR.
+ *
+ * What it was: a mark, a tagline, a "Contact Us" link, and three short link
+ * columns - Explore, Connect, and a "Visit" column carrying one set of hours
+ * and ONE phone number. For a three-outlet restaurant that last part is the
+ * defect, not a detail. A visitor who reaches the bottom of the page is
+ * looking for where to go and how to get there, and the footer answered with
+ * a bare list of three neighbourhood names and a number that reaches only
+ * Gulshan.
+ *
+ * What the research says (multi-location restaurant footers, 2026):
+ *
+ *  - Full NAP - name, address, phone - per location, in the footer, on every
+ *    page, matching the Google Business Profile character for character. This
+ *    is the single highest-value thing a restaurant footer can carry and it is
+ *    also a local-search ranking signal.
+ *  - Hours and directions visible without navigating anywhere.
+ *  - One Restaurant/LocalBusiness JSON-LD block per outlet, each with its own
+ *    @id, using `openingHoursSpecification` rather than the flat
+ *    `openingHours` string so day-by-day times are unambiguous.
+ *  - Navigation grouped into a few scannable columns matched to intent, not
+ *    one long list.
+ *  - A clear signal that the page has ended. This footer's dark navy over the
+ *    elephant landscape already does that, so the surface is unchanged.
+ *
+ * ⚠ The first attempt at this got the CONTENT right and the form badly wrong,
+ * and the failure is worth recording because it is easy to repeat. It stacked
+ * four full-width bands - brand / outlets / links / legal - each opened by its
+ * own hairline, each running its own column count (3, then 3-with-vertical-
+ * rules, then 3 again). Measured: 804px tall on an 805px viewport, of which
+ * 278px was three columns of four links each, because `.footer-link` carries a
+ * 44px minimum touch target and in a VERTICAL list that becomes 44px of mostly
+ * empty row per link. A footer the height of the screen, ruled like a
+ * spreadsheet.
+ *
+ * The shape below is one grid and two lines:
+ *
+ *   ZONE 1  a single four-column grid - brand, then the three outlets. No
+ *           internal rules; the columns are separated by space, which is what
+ *           a grid is for.
+ *   ZONE 2  one hairline, then ONE row: navigation inline on the left, social
+ *           inline on the right. Inline is the fix for the 278px band - the
+ *           same 44px targets sit side by side instead of stacking.
+ *   ZONE 3  copyright and legal on one line.
+ *
+ * Hours live in the brand column, not repeated per outlet: all three branches
+ * keep the same times, and printing them three times would be noise in a band
+ * whose entire point is that the three ADDRESSES differ. If one outlet ever
+ * diverges, move hours into the outlet block - lib/locations.ts already
+ * carries them per-location.
+ *
+ * NAP comes from lib/locations.ts, shared with the Locations chapter on the
+ * homepage. Do not inline an address or a phone number here.
+ */
+
+const EXPLORE = [
+    { href: '/menu', label: 'Menu' },
+    { href: '/#locations', label: 'Locations' },
+    { href: '/#heritage', label: 'Our Story' },
+    { href: '/#gift', label: 'Gift Cards' },
+];
+
+const SOCIAL = [
+    { href: 'https://www.instagram.com/khaosandhaka/', label: 'Instagram' },
+    { href: 'https://www.facebook.com/KhaoSanDhaka', label: 'Facebook' },
+];
+
+/**
+ * One Restaurant node per outlet, each with a stable `@id` so the three are
+ * distinct entities rather than three descriptions of one. Emitted from the
+ * footer because the footer is the thing that appears on every page - the
+ * markup and the visible NAP above it are then guaranteed to agree, which is
+ * the requirement that actually matters.
+ */
+function outletSchema() {
+    return {
+        '@context': 'https://schema.org',
+        '@graph': LOCATIONS.map((loc) => ({
+            '@type': 'Restaurant',
+            '@id': `https://khaosan.com.bd/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
+            name: `Khao San ${loc.name}`,
+            servesCuisine: 'Thai',
+            url: 'https://khaosan.com.bd',
+            telephone: loc.tel,
+            image: `https://khaosan.com.bd${loc.imageSrc}`,
+            address: {
+                '@type': 'PostalAddress',
+                streetAddress: loc.address,
+                addressLocality: 'Dhaka',
+                addressCountry: 'BD',
+            },
+            openingHoursSpecification: loc.openingHours.map((h) => ({
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: h.days,
+                opens: h.opens,
+                closes: h.closes,
+            })),
+            hasMenu: 'https://khaosan.com.bd/menu',
+        })),
+    };
+}
 
 export default function Footer() {
     return (
         <footer className="site-footer">
+            <script
+                type="application/ld+json"
+                // The payload is built from a typed local constant, never from
+                // user input, so there is nothing here to escape.
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(outletSchema()) }}
+            />
             <div className="container site-footer__inner">
-                <div className="footer-top">
+
+                {/* ZONE 1 - one grid. Brand, then the three rooms. */}
+                <div className="footer-grid">
+
                     <div className="footer-brand">
-                        {/* unoptimized: see the same note on the hero mark in
-                            app/page.tsx - the optimiser strips this WebP's alpha
+                        {/* unoptimized: the optimiser strips this WebP's alpha
                             channel, which silently defeats the cream knock-out
-                            filter and renders the mark invisible on the blue
-                            footer. Alpha must survive for the knock-out to work. */}
+                            filter and renders the mark invisible on the dark
+                            footer. Alpha must survive for the knock-out to work -
+                            see .footer-logo in 12-footer.css, which is paired with
+                            this surface being dark. */}
                         <Image
                             className="footer-logo"
                             src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
@@ -27,42 +138,62 @@ export default function Footer() {
                             unoptimized
                         />
                         <p className="footer-tagline">
-                            Bangkok street craft, quietly elevated &mdash; three rooms across Dhaka.
+                            Bangkok street craft, quietly elevated.
                         </p>
-                        <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" className="footer-reserve">Contact Us</a>
-                        <p className="footer-outlets">Gulshan &middot; Dhanmondi &middot; Uttara</p>
+                        <p className="footer-hours">
+                            <span>Sat&ndash;Thu &middot; 12<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
+                            <span>Friday &middot; 2<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
+                        </p>
+                        <a
+                            href={waLink("Hi, I'd like to reserve a table at Khao San.")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="btn btn-primary footer-cta"
+                        >Reserve a Table</a>
                     </div>
 
-                    <div className="footer-col">
-                        <h4>Explore</h4>
-                        <ul>
-                            <li><Link href="/menu" className="footer-link">Menu</Link></li>
-                            <li><Link href="/#locations" className="footer-link">Locations</Link></li>
-                            <li><Link href="/#heritage" className="footer-link">Our Story</Link></li>
-                            <li><Link href="/#gift" className="footer-link">Gift Cards</Link></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer-col">
-                        <h4>Connect</h4>
-                        <ul>
-                            <li><a href="https://www.instagram.com/explore/tags/khaosandhaka/" target="_blank" rel="noopener noreferrer" className="footer-link">Instagram</a></li>
-                            <li><a href="https://www.facebook.com/KhaoSanDhaka" target="_blank" rel="noopener noreferrer" className="footer-link">Facebook</a></li>
-                        </ul>
-                    </div>
-
-                    <div className="footer-col">
-                        <h4>Visit</h4>
-                        <ul>
-                            <li><span className="footer-hours">Sat&ndash;Thu &middot; 12&ndash;11 PM</span></li>
-                            <li><span className="footer-hours">Friday &middot; 2&ndash;11 PM</span></li>
-                            <li><a href="tel:+8801600068193" className="footer-link">+880 1600-068193</a></li>
-                        </ul>
-                    </div>
+                    {LOCATIONS.map((loc) => (
+                        <div className="footer-outlet" key={loc.name}>
+                            <h3 className="footer-outlet-name">{loc.name}</h3>
+                            {/* <address> is the correct element and it italicises
+                                by default in every browser - reset in the CSS. */}
+                            <address className="footer-outlet-address">{loc.address}</address>
+                            <a className="footer-outlet-tel" href={`tel:${loc.tel}`}>{loc.phoneDisplay}</a>
+                            <a
+                                className="footer-outlet-map"
+                                href={mapLink(loc.mapQuery)}
+                                target="_blank"
+                                rel="noreferrer"
+                            >Directions</a>
+                        </div>
+                    ))}
                 </div>
 
-                <div className="footer-divider" aria-hidden="true"></div>
+                {/* ZONE 2 - one row. Inline, not columns: these are six short
+                    links and they were occupying 278px as three vertical lists. */}
+                <nav className="footer-nav" aria-label="Footer">
+                    <ul className="footer-nav-list">
+                        {EXPLORE.map((item) => (
+                            <li key={item.href}>
+                                <Link href={item.href} className="footer-link">{item.label}</Link>
+                            </li>
+                        ))}
+                    </ul>
+                    <ul className="footer-nav-list footer-nav-list--social">
+                        {SOCIAL.map((item) => (
+                            <li key={item.href}>
+                                <a
+                                    href={item.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="footer-link"
+                                >{item.label}</a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
 
+                {/* ZONE 3 - one line. */}
                 <div className="footer-bottom">
                     <p>&copy; {new Date().getFullYear()} Khao San Dhaka. All rights reserved.</p>
                     <div className="footer-legal">
