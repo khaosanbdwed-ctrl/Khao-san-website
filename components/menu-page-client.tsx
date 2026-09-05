@@ -93,10 +93,6 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
     const [activeIndex, setActiveIndex] = useState(0);
     const [indexOpen, setIndexOpen] = useState(false);
     const [railVisible, setRailVisible] = useState(false);
-    /* Hover-to-open is a pointer affordance and nothing else. Left on
-       unconditionally it fires on touch too, where a tap raises mouseenter
-       and then click - opening and immediately re-toggling the panel. */
-    const [hoverCapable, setHoverCapable] = useState(false);
     const [categoryCueVisible, setCategoryCueVisible] = useState(false);
 
     const showcase = useMemo(() => buildShowcase(categories), [categories]);
@@ -134,20 +130,13 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
         };
     }, []);
 
-    useEffect(() => {
-        const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
-        const sync = () => setHoverCapable(mq.matches);
-        sync();
-        mq.addEventListener('change', sync);
-        return () => mq.removeEventListener('change', sync);
-    }, []);
-
     const navRef = useRef<HTMLElement>(null);
     const navRefs = useRef<(HTMLAnchorElement | null)[]>([]);
     const indexListRef = useRef<HTMLOListElement>(null);
     const categoryCueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const lastAnnouncedIndex = useRef<number | null>(null);
     const layoutWasVisible = useRef(false);
+    const lastIndexPointerType = useRef<string | null>(null);
 
     /* ⚠ THE CUE IS WHAT MAKES THE GLYPH LEGIBLE AS NAVIGATION.
 
@@ -354,6 +343,7 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
             from it. */}
         <div className="menu-layout">
 
+
         {/* The category index. ONE control for every screen size: there were
             two - an in-grid sticky one above 1024px and a portalled fixed one
             below - with identical inner markup and two sets of refs, handlers
@@ -369,8 +359,16 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
                 ref={navRef}
                 className={`menu-index${indexOpen ? ' is-open' : ''}`}
                 aria-label="Menu categories"
-                onMouseEnter={hoverCapable ? () => setIndexOpen(true) : undefined}
-                onMouseLeave={hoverCapable ? () => setIndexOpen(false) : undefined}
+                /* Ask the pointer that actually entered the control, rather
+                   than the browser's primary-input media query. On hybrid
+                   laptops that query can report touch even while a mouse is
+                   being used, which made this desktop control click-only. */
+                onPointerEnter={(event) => {
+                    if (event.pointerType !== 'touch') setIndexOpen(true);
+                }}
+                onPointerLeave={(event) => {
+                    if (event.pointerType !== 'touch') setIndexOpen(false);
+                }}
                 onFocus={() => setIndexOpen(true)}
                 onBlur={(e) => {
                     if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
@@ -384,7 +382,17 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
                     aria-expanded={indexOpen}
                     aria-controls="menu-category-window"
                     aria-label={`Browse menu categories. Current section: ${categories[activeIndex]?.name ?? ''}`}
-                    onClick={() => setIndexOpen((open) => !open)}
+                    onPointerDown={(event) => {
+                        lastIndexPointerType.current = event.pointerType;
+                    }}
+                    onClick={(event) => {
+                        /* Mouse/pen already opened the panel on hover. Tap
+                           remains the phone interaction; detail 0 preserves
+                           keyboard and assistive-technology activation. */
+                        if (lastIndexPointerType.current === 'touch' || event.detail === 0) {
+                            setIndexOpen((open) => !open);
+                        }
+                    }}
                 >
                     <span
                         className={`menu-index-current${categoryCueVisible ? ' is-visible' : ''}`}

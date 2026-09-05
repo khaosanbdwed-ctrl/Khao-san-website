@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
 
 /**
@@ -149,6 +149,9 @@ function outletSchema() {
 }
 
 export default function Footer() {
+    const [activeLocationIndex, setActiveLocationIndex] = useState<number | null>(null);
+    const activeLocation = activeLocationIndex === null ? null : LOCATIONS[activeLocationIndex];
+
     return (
         <footer className="site-footer">
             <script
@@ -179,7 +182,7 @@ export default function Footer() {
                             unoptimized
                         />
                         <p className="footer-tagline">
-                            Bangkok street craft, quietly elevated.
+                            Reinventing the Thai way.
                         </p>
                         <p className="footer-hours">
                             <span>Sat&ndash;Thu &middot; 12<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
@@ -193,8 +196,11 @@ export default function Footer() {
                         >Reserve a Table</a>
                     </div>
 
+                    {/* Desktop retains the three complete outlet blocks. The
+                        phone selector below is a separate compact treatment,
+                        so the desktop NAP layout does not need to compromise. */}
                     {LOCATIONS.map((loc) => (
-                        <div className="footer-outlet" key={loc.name}>
+                        <div className="footer-outlet footer-outlet--desktop" key={loc.name}>
                             <h3 className="footer-outlet-name">{loc.name}</h3>
                             {/* <address> is the correct element and it italicises
                                 by default in every browser - reset in the CSS. */}
@@ -208,6 +214,54 @@ export default function Footer() {
                             >Directions</a>
                         </div>
                     ))}
+
+                    {/* Phone-only: names stay horizontal and compact; the
+                        selected branch supplies the useful NAP details. */}
+                    <section className="footer-location-picker" aria-label="Khao San locations">
+                        <div className="footer-location-tabs">
+                            {LOCATIONS.map((loc, index) => {
+                                const isActive = activeLocationIndex === index;
+
+                                return (
+                                    <button
+                                        key={loc.name}
+                                        type="button"
+                                        className={`footer-location-tab${isActive ? ' is-active' : ''}`}
+                                        aria-expanded={isActive}
+                                        onClick={() => setActiveLocationIndex(current => current === index ? null : index)}
+                                    >
+                                        {loc.name}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {activeLocation && (
+                            <div className="footer-location-panel">
+                                <h3 className="footer-location-panel-name">{activeLocation.name}</h3>
+                                <address className="footer-location-panel-address">{activeLocation.address}</address>
+                                <a
+                                    className="footer-location-panel-tel"
+                                    href={`tel:${activeLocation.tel}`}
+                                >
+                                    {activeLocation.phoneDisplay}
+                                </a>
+                                <a
+                                    className="footer-location-panel-map"
+                                    href={mapLink(activeLocation.mapQuery)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Directions
+                                </a>
+                                <p className="footer-location-panel-hours">
+                                    {activeLocation.hours.map((hours) => (
+                                        <span key={hours}>{hours}</span>
+                                    ))}
+                                </p>
+                            </div>
+                        )}
+                    </section>
                 </div>
 
                 {/* ZONE 2 - one row. Inline, not columns: these are six short

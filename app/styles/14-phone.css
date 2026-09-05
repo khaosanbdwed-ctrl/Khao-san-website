@@ -1,0 +1,623 @@
+/* ============================================================
+   THE PHONE CONTRACT — 320–767px
+
+   ⚠ THIS FILE IS THE ONLY PLACE THE PHONE RULES ARE DECIDED. Before it, the
+   phone was whatever fell out of nine files' worth of desktop-first media
+   queries: gutters were `max(8vw, 24px)` here and `max(5vw, 24px)` there and
+   `0 24px` somewhere else, so the left edge of the page moved between
+   chapters as you scrolled. Chapter spacing was a flat 120px designed for a
+   1440 screen. Heroes were sized in `vh`, which on a phone means "taller than
+   the screen, and the amount changes as the browser chrome hides".
+
+   Four rules, and everything below is one of them:
+
+     1. ONE GUTTER. `--phone-gutter`, 24px, 20px below 360px. Every container
+        that sets its own inline padding is re-pointed at it here, so the
+        reading edge is a single number and moving it is a one-line change.
+     2. SAFE AREAS ARE ADDITIVE. The gutter is `calc(gutter + env(inset))`.
+        In portrait every inset is 0 and this is exactly the gutter; in
+        landscape on a notched phone the content clears the notch instead of
+        sliding under it. Requires `viewportFit: 'cover'`, which app/layout.tsx
+        sets — without it every inset reports 0 and this silently does nothing.
+     3. CHAPTERS BREATHE ONCE. `--space-macro` is the site's section rhythm and
+        it is re-pointed here rather than overridden per section, so all seven
+        chapters change together and cannot drift apart again.
+     4. NOTHING CLIPS SIDEWAYS. `overflow-x: clip` on the document is a net,
+        not a fix — `clip` rather than `hidden` because `hidden` would make the
+        body a scroll container and break every `position: sticky` on the site.
+
+   ⚠ EVERY RULE IN THIS FILE IS INSIDE A PHONE MEDIA QUERY. Desktop is not
+   allowed to change. If you add something here that is not wrapped, you have
+   broken that promise.
+   ============================================================ */
+
+@media (max-width: 767px) {
+    :root {
+        --phone-gutter: 24px;
+
+        /* The section rhythm. 120px was a 1440-screen value; on a 375 screen
+           it is a third of the viewport spent on nothing between every pair of
+           chapters, which is what made the page feel like scrolling through
+           empty rooms. 48–72px is a real pause at this size. */
+        --space-macro: clamp(48px, 9vw, 72px);
+    }
+
+    /* Very narrow. 320px is the floor we support (iPhone SE 1st gen, older
+       Androids, and any phone with display zoom turned up); 24px each side
+       there costs 15% of the screen width. */
+    @media (max-width: 359px) {
+        :root { --phone-gutter: 20px; }
+    }
+
+    /* The net. Anything that overflows is a bug to be fixed at its source -
+       this only stops one mistake from making the whole page slide. */
+    html,
+    body {
+        overflow-x: clip;
+    }
+
+    /* ONE READING EDGE.
+
+       Every container below previously set its own inline padding, and they
+       disagreed: 8vw here (30px at 375), 5vw there (24px), a flat 24px on the
+       hero, 4vw on the menu. Re-pointed at the one token, plus the safe-area
+       inset so landscape clears the notch. */
+    .container,
+    .hero-copy,
+    .craft-split,
+    .heritage-inner,
+    .menu-hero-copy,
+    .menu-stage-pin,
+    .menu-layout,
+    .landing-gift-grid {
+        padding-left: calc(var(--phone-gutter) + env(safe-area-inset-left, 0px));
+        padding-right: calc(var(--phone-gutter) + env(safe-area-inset-right, 0px));
+    }
+
+    /* ⚠ HEROES ARE `svh`, NOT `vh` OR `dvh`, AND THE CHOICE MATTERS.
+
+       `vh` on a phone is the LARGE viewport - the height with browser chrome
+       hidden - so a `100vh` hero is taller than the screen you are actually
+       looking at on load, and its last line sits under the URL bar. `dvh`
+       tracks the chrome live, which fixes that and introduces a worse problem:
+       the hero resizes while you scroll, so the copy inside it reflows and
+       jitters on every scroll gesture.
+
+       `svh` is the small viewport - the height with chrome VISIBLE - so the
+       hero fits on load, never reflows, and the only cost is a strip of the
+       next section showing once the chrome retracts, which is a scroll cue
+       rather than a defect. */
+    .hero,
+    .craft-chapter {
+        min-height: 100svh;
+        display: flex;
+        align-items: center;
+    }
+
+    /* The menu hero was `clamp(520px, 56.25vw, 100svh)` - a 16:9 frame, which
+       at 375px wide is 211px tall and nowhere near a screen. A story hero
+       owns the screen on a phone. */
+    .menu-hero {
+        min-height: 100svh;
+        aspect-ratio: auto;
+        max-height: none;
+    }
+}
+
+/* ============================================================
+   /menu, recomposed for a thumb — 320–767px
+
+   The desktop menu page is three desktop ideas stacked: a 16:9 hero, a pinned
+   showcase that scroll-jacks five categories past a fixed stage, and a
+   fourteen-item index docked to the right edge. On a phone the first is a
+   letterbox, the second is five full screens of scrolling before the menu
+   even starts, and the third is a floating tap target over a column you are
+   already dragging with your thumb.
+
+   The phone gets the same content in three different shapes: a hero that owns
+   one screen, a strip you swipe once, and a bar that tells you where you are
+   without asking for a tap.
+   ============================================================ */
+@media (max-width: 767px) {
+
+    /* --- The story hero. Full screen, copy anchored low. ------------- */
+    .menu-hero { align-items: flex-end; }
+    .menu-hero-copy { padding-bottom: clamp(24px, 6vh, 56px); }
+
+    /* --- The signature strip. One swipe, not five screens. ---------- */
+    .menu-stage-track { height: auto; }
+    .menu-stage-pin {
+        position: static;
+        height: auto;
+        display: block;
+        overflow: visible;
+        padding-block: var(--space-macro);
+    }
+    .menu-stage-intro { margin-bottom: clamp(18px, 4vw, 26px); }
+    .menu-stage-heading {
+        font-family: var(--font-display);
+        font-size: clamp(1.6rem, 7vw, 2.1rem);
+        line-height: 1.14;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin: 0;
+        text-wrap: balance;
+    }
+    .menu-stage-hint {
+        display: block;
+        margin: 10px 0 0;
+        font-family: var(--font-sans);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-text-secondary);
+    }
+
+    /* The rail is the desktop's navigation for a stage that no longer exists
+       here. The strip navigates itself. */
+    .menu-stage-rail { display: none; }
+
+    /* ⚠ THE STRIP BLEEDS PAST THE GUTTER ON PURPOSE. Negative margin out to
+       the screen edge and matching padding back in means card one still lines
+       up with the page's reading edge, while the NEXT card is visibly cut by
+       the screen rather than by a container. That cut is the whole
+       affordance - it is what says "there is more this way" without a
+       chevron, a dot row, or the word "scroll". */
+    .menu-stage-plates {
+        position: static;
+        display: flex;
+        gap: 14px;
+        height: auto;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: var(--phone-gutter);
+        margin-inline: calc(-1 * var(--phone-gutter));
+        padding-inline: var(--phone-gutter);
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .menu-stage-plates::-webkit-scrollbar { display: none; }
+
+    .menu-stage-plate {
+        position: static;
+        /* ⚠ `vw`, NOT `%`. A percentage basis resolves against this flex
+           container's content box, and that box is deliberately odd here - it
+           is bled out by a negative margin and padded back in - so `78%`
+           measured 229px on a 390px screen, 59% of the phone rather than the
+           78% it reads as. Viewport units mean the number on the page is the
+           number you get. Capped so the card does not become a slab on a
+           tablet-width phone in landscape. */
+        flex: 0 0 min(78vw, 340px);
+        scroll-snap-align: start;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        transition: none;
+        display: grid;
+        /* ⚠ `minmax(0, 1fr)` IS THE FIX FOR THE OVERLAP, AND IT IS NOT
+           COSMETIC. A grid column defaults to `auto`, which floors at the
+           column's MIN-CONTENT width - the narrowest the content will
+           tolerate. "Fried Whole Fish in Spicy Hot Sauce" refuses to wrap
+           below 418px, so that card's column became 418px inside a 340px
+           flex-basis and everything in it, photograph included, spilled 78px
+           onto the next card. On screen that is the fish dish printed over
+           the mango dish.
+
+           The 0 minimum lets the column shrink to the card instead of the
+           text, and the `min-width: 0` below does the same job one level
+           down, for the same reason: a grid or flex item's automatic minimum
+           size is min-content unless you say otherwise. Long dish names are
+           data, not a layout assumption - the next menu upload can contain
+           anything. */
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        gap: 14px;
+        margin: 0;
+    }
+    .menu-stage-plate > *,
+    .menu-stage-copy,
+    .menu-stage-copy > * {
+        min-width: 0;
+    }
+    .menu-stage-dish,
+    .menu-stage-desc {
+        overflow-wrap: break-word;
+    }
+    /* Kills the stacked-list spacing the ≤900px rules apply. */
+    .menu-stage-plate + .menu-stage-plate { margin-top: 0; }
+
+    .menu-stage-photo {
+        aspect-ratio: 4 / 5;
+        border-radius: clamp(14px, 3.5vw, 18px);
+    }
+    .menu-stage-copy {
+        /* Keep the reading column visibly inside the photo frame. This leaves
+           a little breathing room at the trailing edge and gives long dish
+           names a dependable point at which to wrap. */
+        width: calc(100% - 1.25rem);
+        max-width: calc(100% - 1.25rem);
+        margin-inline: 0;
+        text-align: left;
+    }
+    .menu-stage-tags { justify-content: flex-start; }
+    /* Desktop keeps a single compact stage caption. On a swipeable phone card
+       the card is the measure, so hiding the tail of a dish name is worse than
+       adding one line. */
+    .menu-stage-dish {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+        white-space: normal;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+        font-size: clamp(1.15rem, 5vw, 1.4rem);
+    }
+    .menu-stage-desc { font-size: 0.92rem; line-height: 1.55; }
+
+    /* --- Where am I -------------------------------------------------- */
+    /* ⚠ NOTHING HERE. THE INDEX IS THE SAME CONTROL AT EVERY WIDTH.
+
+       It was briefly rebuilt as a full-width sticky shelf pinned under the
+       header. That was wrong twice over: it put a second bar directly beneath
+       the site header, so the phone had two horizontal bars stacked doing
+       different jobs, and it threw away a control that already worked here.
+       The right-edge mark and its panel were designed to be one control for
+       every screen size and they were verified as such - see the note in
+       08-menu.css. There was no problem to solve.
+
+       If this file ever grows a `.menu-index` rule again, that is the bug. */
+}
+
+/* ============================================================
+   The room gallery, as a carousel — 320–767px
+
+   ⚠ THE GROUPING IS FLATTENED WITH `display: contents`, NOT REBUILT IN JSX.
+   The desktop gallery is three groups of "one wide frame plus two stacked
+   beside it", which is a composition - it only means anything when you can
+   see all three at once. On a 390px screen that same markup renders a wide
+   photo next to two half-height ones, so no photograph is ever shown whole
+   and the smallest are ~120px tall.
+
+   Removing the two grouping boxes from the layout - not from the DOM - hands
+   all nine frames straight to the track as flex items. One component, one
+   markup tree, two genuinely different layouts, and no phone-only branch in
+   the JSX to keep in sync.
+   ============================================================ */
+@media (max-width: 767px) {
+    .room-group,
+    .room-stack { display: contents; }
+
+    .room-gallery {
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: var(--phone-gutter);
+        /* Out to the screen edges, so the next photograph is cut by the phone
+           rather than by the page gutter. */
+        margin-inline: calc(-1 * var(--phone-gutter));
+        padding-inline: var(--phone-gutter);
+        margin-right: calc(-1 * var(--phone-gutter));
+    }
+    .room-gallery-track { gap: 12px; }
+
+    /* 86vw: one photograph complete, with a real slice of the next one
+       showing. That slice is the continuation cue - it is why there is no dot
+       row and no arrows. */
+    .room-frame {
+        flex: 0 0 86vw;
+        height: auto;
+        aspect-ratio: 4 / 5;
+        scroll-snap-align: start;
+        border-radius: clamp(14px, 3.5vw, 18px);
+    }
+    .room-frame--lead { flex: 0 0 86vw; }
+
+    /* Status row: the cue on the left, position on the right. */
+    .room-gallery-hint {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 14px 0 0;
+        font-family: var(--font-sans);
+    }
+    .room-gallery-hint-cue {
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--color-text-secondary);
+    }
+    .room-gallery-status {
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        font-variant-numeric: tabular-nums;
+        color: var(--color-text-secondary);
+        white-space: nowrap;
+    }
+    .room-gallery-status-now { color: var(--color-brand-orange); }
+}
+
+/* The status row is a phone affordance for a phone interaction. On desktop
+   the gallery drifts and shows three frames at once, so a counter would be
+   answering a question nobody is asking. */
+@media (min-width: 768px) {
+    .room-gallery-hint { display: none; }
+}
+
+/* ============================================================
+   The gift chapter, compressed — 320–767px
+
+   The visual order is already right on a phone (`order` puts the artwork
+   between the heading and the copy): heading, image, message, action,
+   details. What was wrong is that the artwork block reserved a flat 460px
+   whatever it contained.
+
+   460px is a desktop number - it exists so the card composition sits level
+   with a heading-plus-paragraph-plus-button column beside it. There is no
+   column beside it here, so it was 460px of held-open space on a 844px
+   screen: more than half a phone, spent on a reservation rather than on
+   anything visible.
+   ============================================================ */
+@media (max-width: 767px) {
+    .landing-gift-cards {
+        min-height: 0;
+        padding: clamp(20px, 5vw, 32px) 0 clamp(24px, 6vw, 36px);
+        justify-content: center;
+    }
+    /* The row rhythm inside the chapter, matching the site's phone spacing
+       rather than the desktop grid's own gap. */
+    .landing-gift-grid { row-gap: clamp(16px, 4vw, 24px); }
+    .gift-lede { margin-bottom: clamp(20px, 5vw, 28px); }
+    /* Full-width, thumb-height, and stacked - two 44px pills side by side on a
+       390px screen leaves each one too narrow to read its own label. */
+    .gift-actions { flex-direction: column; align-items: stretch; gap: 10px; }
+    .gift-actions .btn { width: 100%; justify-content: center; }
+}
+
+/* ============================================================
+   The closing run: video → CTA → footer — 320–767px
+
+   ⚠ THE FOOTER USED TO START ON THE VIDEO'S LAST PIXEL. `.section-reservation`
+   is full-bleed footage with the closing headline over it, and the footer is a
+   dark photographic field of its own. With no space between them the two ran
+   together into one indeterminate dark band, and "Taste the fire." read as the
+   footer's heading rather than the page's last word.
+
+   The gap is the chapter rhythm, so this seam matches every other seam on the
+   page instead of being special-cased.
+   ============================================================ */
+@media (max-width: 767px) {
+    /* ⚠ THE CLOSING FILM NEEDS TO BE A SCREEN, NOT A BAND. It is full-bleed
+       footage with the last headline of the site over it, and at 266px tall
+       on a phone it read as a strip of texture behind some text - you could
+       not see what the video was of, which is the entire reason it is there.
+
+       A real chapter: most of a screen, content centred in it, and the
+       chapter rhythm before the footer's own dark ground begins so the two
+       do not run together into one indeterminate dark band. */
+    .section-reservation {
+        min-height: 72svh;
+        padding-block: var(--space-macro);
+        margin-bottom: var(--space-macro);
+    }
+    .section-reservation .display-2 { margin-bottom: clamp(24px, 6vw, 36px) !important; }
+}
+
+/* ============================================================
+   Retuning what is left to the same system — 320–767px
+   ============================================================ */
+@media (max-width: 767px) {
+
+    /* --- Location cards ------------------------------------------------ */
+    /* The two actions were a side-by-side pair inheriting a desktop row. At
+       this width each pill lands under 150px, which is narrower than its own
+       label wants to be. */
+    .haven-card-actions { flex-direction: column; align-items: stretch; }
+    .haven-card-actions .btn { width: 100%; min-width: 0; justify-content: center; }
+
+    /* --- Signature dishes ---------------------------------------------- */
+    /* The photograph and its copy are one card on a phone. A flex item can
+       otherwise retain its min-content width and let text push past the image
+       frame, so lock every layer to the same available measure. */
+    .feature-grid { padding-inline: var(--phone-gutter); }
+    .feature-row,
+    .feature-row.is-inverse,
+    .feature-box,
+    .feature-photo,
+    .feature-copy {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+    .feature-box { flex: 0 0 auto; }
+    .feature-name,
+    .feature-blurb { overflow-wrap: anywhere; }
+    .feature-link { margin-top: clamp(16px, 4vw, 22px); }
+
+    /* --- Legal pages ---------------------------------------------------- */
+    /* These are the only pages on the site that are pure prose, and they were
+       inheriting a form-page top padding built to clear the header on a
+       desktop. */
+    .legal-page { padding-top: calc(var(--header-h) + var(--space-macro)); }
+    .legal-page h2 { margin-top: clamp(28px, 7vw, 40px); }
+    .legal-page p,
+    .legal-page li { font-size: 0.95rem; line-height: 1.7; }
+
+    /* --- Footer --------------------------------------------------------- */
+    /* The footer opens as a compact sign-off. Branch names are the only
+       location information visible at rest; selecting one reveals its full
+       address, contact details, directions, and opening hours. */
+    .site-footer { padding: 24px 0 16px; }
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        padding-bottom: 18px;
+    }
+    .footer-brand {
+        grid-column: auto;
+        grid-template-columns: 64px minmax(0, 1fr);
+        grid-template-areas: "logo action";
+        gap: 14px;
+        padding-bottom: 18px;
+    }
+    .footer-tagline,
+    .footer-hours { display: none; }
+    .footer-cta {
+        width: auto;
+        padding: 12px 16px;
+        justify-content: center;
+    }
+
+    .footer-outlet--desktop { display: none; }
+    .footer-location-picker {
+        display: block;
+        padding-bottom: 2px;
+    }
+    .footer-location-tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .footer-location-tab {
+        min-width: 0;
+        min-height: 44px;
+        padding: 0 4px;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        background: transparent;
+        color: var(--color-text-secondary);
+        font-family: var(--font-sans);
+        font-size: 0.76rem;
+        font-weight: 700;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: color 0.2s ease, border-color 0.2s ease;
+    }
+    .footer-location-tab:hover,
+    .footer-location-tab.is-active { color: var(--color-brand-butter); }
+    .footer-location-tab.is-active { border-bottom-color: var(--color-brand-butter); }
+    .footer-location-tab:focus-visible {
+        outline: 2px solid var(--color-brand-butter);
+        outline-offset: -2px;
+    }
+    .footer-location-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "name directions"
+            "address telephone"
+            "hours hours";
+        column-gap: 12px;
+        padding: 14px 0 2px;
+    }
+    .footer-location-panel-name {
+        grid-area: name;
+        align-self: center;
+        margin: 0;
+        color: var(--color-brand-butter);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        line-height: 1.2;
+    }
+    .footer-location-panel-address {
+        grid-area: address;
+        min-width: 0;
+        margin: 0;
+        padding-top: 4px;
+        color: var(--color-text-secondary);
+        font-size: 0.8rem;
+        font-style: normal;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+    .footer-location-panel-tel {
+        grid-area: telephone;
+        align-self: start;
+        justify-self: end;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--color-text-primary);
+        font-size: 0.8rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .footer-location-panel-map {
+        grid-area: directions;
+        justify-self: end;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--color-brand-butter);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-decoration: none;
+        text-transform: uppercase;
+    }
+    .footer-location-panel-hours {
+        grid-area: hours;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px 12px;
+        margin: 2px 0 0;
+        color: var(--color-text-secondary);
+        font-size: 0.76rem;
+        line-height: 1.45;
+    }
+
+    .footer-nav { padding-block: 8px; }
+    /* Wrapping a row of six links plus two icons produces ragged rows; giving
+       the two lists their own full-width rows is steadier than letting them
+       interleave. */
+    .footer-nav-list { flex: 1 1 100%; }
+    .footer-nav-list--social { justify-content: flex-start; margin-left: -10px; }
+}
+
+/* ============================================================
+   Landscape phones — the gap the 320–767px range leaves open
+
+   ⚠ A PHONE IN LANDSCAPE IS 844px WIDE AND GETS NONE OF THE ABOVE. The phone
+   contract is a width range, and rotating a phone takes it straight out of
+   that range: an iPhone 14 Pro is 393x852 upright and 852x393 on its side, so
+   every rule above stops applying at exactly the moment the hardware has not
+   changed at all.
+
+   For layout that is mostly correct - 852px really is enough width for the
+   desktop composition. For ONE thing it is badly wrong: the notch and the
+   home indicator move to the SIDES in landscape, which is the only
+   orientation where `env(safe-area-inset-left/right)` is ever non-zero. The
+   contract's safe-area handling was therefore scoped to precisely the
+   orientation that never needs it.
+
+   Matched on orientation and a coarse pointer rather than on width, because
+   the question here is "is this a handheld lying on its side", which width
+   cannot answer - a 1024px tablet and an 844px phone are the same number to a
+   media query, and a laptop can be 800px wide too.
+   ============================================================ */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 540px) {
+    .container,
+    .hero-copy,
+    .craft-split,
+    .heritage-inner,
+    .menu-hero-copy,
+    .menu-stage-pin,
+    .menu-layout,
+    .landing-gift-grid,
+    .legal-page,
+    .site-footer__inner {
+        padding-left: max(var(--phone-gutter, 24px), env(safe-area-inset-left, 0px));
+        padding-right: max(var(--phone-gutter, 24px), env(safe-area-inset-right, 0px));
+    }
+
+    /* A 100vh hero on a 390px-tall screen is a full screen of hero with the
+       actions pushed off the bottom. Let it size to its content instead. */
+    .hero,
+    .craft-chapter,
+    .menu-hero {
+        min-height: 0;
+    }
+    .hero { padding-block: clamp(28px, 9vh, 56px); }
+}

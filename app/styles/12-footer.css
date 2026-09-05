@@ -210,6 +210,9 @@
     color: var(--color-brand-butter-deep);
     border-color: var(--color-brand-butter-deep);
 }
+/* The interactive location picker is only a phone treatment. Keeping it out
+   of desktop preserves the deliberate four-column footer composition. */
+.footer-location-picker { display: none; }
 
 /* ZONE 2 --------------------------------------------------------------- */
 .footer-nav {
