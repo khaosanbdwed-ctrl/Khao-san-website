@@ -9,6 +9,9 @@ import { MEDIA_BUCKET as BUCKET, ensureBucket } from '@/lib/cms/bucket';
  *
  *   GET                         list uploaded files, newest first
  *   POST { name, type, size }   get a signed upload URL for one file
+ *   POST { set: 'video', name, sizes: { large, small, poster } }
+ *                               signed URLs for an optimised video's three
+ *                               files (lib/media.ts has the naming rule)
  *   DELETE { path }             remove a file
  *
  * ⚠ UPLOADS DO NOT PASS THROUGH THIS SERVER. A serverless function on Vercel
@@ -31,15 +34,21 @@ const TYPES: Record<string, { ext: string; kind: 'images' | 'videos'; max: numbe
 
 const mb = (n: number) => `${Math.round(n / 1048576)} MB`;
 
-function safeName(original: string, ext: string) {
+function safeStem(original: string) {
     const base = original.replace(/\.[^.]*$/, '').toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '')
         .slice(0, 60) || 'file';
     // Never trust the uploaded name to be unique: a collision would silently
     // replace a photo that another section is still using.
-    return `${base}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}.${ext}`;
+    return `${base}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
+
+const safeName = (original: string, ext: string) => `${safeStem(original)}.${ext}`;
+
+/** The two companions of an optimised video, hidden from the library list
+ *  and deleted with it. */
+const COMPANION = /\.(web-sm\.mp4|web\.webp)$/;
 
 export async function GET() {
     try {
@@ -53,9 +62,10 @@ export async function GET() {
         const { data, error } = await storage.list(kind, { limit: 500, sortBy: { column: 'created_at', order: 'desc' } });
         if (error) throw new Error(error.message);
         return (data ?? [])
-            .filter(f => f.id && !f.name.startsWith('.'))
+            .filter(f => f.id && !f.name.startsWith('.') && !COMPANION.test(f.name))
             .map(f => {
                 const path = `${kind}/${f.name}`;
+                const optimised = f.name.endsWith('.web.mp4');
                 return {
                     path,
                     kind: kind === 'images' ? 'image' : 'video',
@@ -63,6 +73,8 @@ export async function GET() {
                     size: (f.metadata as { size?: number } | null)?.size ?? null,
                     createdAt: f.created_at,
                     url: storage.getPublicUrl(path).data.publicUrl,
+                    optimised,
+                    poster: optimised ? storage.getPublicUrl(path.replace(/\.web\.mp4$/, '.web.webp')).data.publicUrl : null,
                 };
             });
     })).catch((e: Error) => e);
@@ -74,12 +86,42 @@ export async function GET() {
     return NextResponse.json({ files });
 }
 
+async function sign(path: string) {
+    const storage = createAdminClient().storage.from(BUCKET);
+    const { data, error } = await storage.createSignedUploadUrl(path);
+    if (error || !data) throw new Error(error?.message || 'Could not start the upload.');
+    return { path, token: data.token, publicUrl: storage.getPublicUrl(path).data.publicUrl };
+}
+
+async function signVideoSet(name: string, sizes: unknown) {
+    const s = (typeof sizes === 'object' && sizes ? sizes : {}) as Record<string, unknown>;
+    const limits = { large: TYPES['video/mp4'].max, small: TYPES['video/mp4'].max, poster: TYPES['image/webp'].max };
+    for (const [k, max] of Object.entries(limits)) {
+        const n = s[k];
+        if (typeof n !== 'number' || !(n > 0)) return NextResponse.json({ error: 'The optimised video is empty.' }, { status: 400 });
+        if (n > max) return NextResponse.json({ error: `The optimised video is still ${mb(n)} - try a shorter clip.` }, { status: 413 });
+    }
+    const stem = `videos/${safeStem(name)}`;
+    try {
+        await ensureBucket(BUCKET);
+        const [large, small, poster] = await Promise.all([
+            sign(`${stem}.web.mp4`), sign(`${stem}.web-sm.mp4`), sign(`${stem}.web.webp`),
+        ]);
+        return NextResponse.json({ large, small, poster, publicUrl: large.publicUrl });
+    } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    }
+}
+
 export async function POST(request: Request) {
-    let body: { name?: unknown; type?: unknown; size?: unknown };
+    let body: { name?: unknown; type?: unknown; size?: unknown; set?: unknown; sizes?: unknown };
     try {
         body = await request.json();
     } catch {
         return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
+    }
+    if (body.set === 'video') {
+        return signVideoSet(typeof body.name === 'string' ? body.name : 'video', body.sizes);
     }
     const type = typeof body.type === 'string' ? body.type : '';
     const size = typeof body.size === 'number' ? body.size : NaN;
@@ -103,19 +145,10 @@ export async function POST(request: Request) {
     const path = `${rule.kind}/${safeName(typeof body.name === 'string' ? body.name : 'file', rule.ext)}`;
     try {
         await ensureBucket(BUCKET);
+        return NextResponse.json(await sign(path));
     } catch (e) {
         return NextResponse.json({ error: (e as Error).message }, { status: 500 });
     }
-    const storage = createAdminClient().storage.from(BUCKET);
-    const { data, error } = await storage.createSignedUploadUrl(path);
-    if (error || !data) {
-        return NextResponse.json({ error: error?.message || 'Could not start the upload.' }, { status: 500 });
-    }
-    return NextResponse.json({
-        path,
-        token: data.token,
-        publicUrl: storage.getPublicUrl(path).data.publicUrl,
-    });
 }
 
 export async function DELETE(request: Request) {
@@ -129,7 +162,10 @@ export async function DELETE(request: Request) {
     if (!/^(images|videos)\/[a-z0-9.-]+$/.test(path)) {
         return NextResponse.json({ error: 'Invalid file.' }, { status: 400 });
     }
-    const { error } = await createAdminClient().storage.from(BUCKET).remove([path]);
+    const paths = path.endsWith('.web.mp4')
+        ? [path, path.replace(/\.web\.mp4$/, '.web-sm.mp4'), path.replace(/\.web\.mp4$/, '.web.webp')]
+        : [path];
+    const { error } = await createAdminClient().storage.from(BUCKET).remove(paths);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ success: true });
 }

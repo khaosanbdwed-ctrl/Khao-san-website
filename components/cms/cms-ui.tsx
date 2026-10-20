@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import BackgroundVideo from '@/components/ui/background-video';
 import { safeHref, type Background, type CmsLink } from '@/lib/cms/fields';
 import { waLink } from '@/lib/locations';
@@ -110,16 +111,19 @@ export function RichBlocks({ text, listStyle, linkStyle }: { text: string; listS
     );
 }
 
-const cssUrl = (src: string) => `url("${src.replace(/["\\\n\r]/g, c => encodeURIComponent(c))}")`;
-
 /**
  * Props to spread onto a section that takes a CMS background.
  *
- * Colour and photo go on the section itself, replacing the class's designed
+ * A colour goes on the section itself, replacing the class's designed
  * background (an empty background changes nothing - the section keeps its
- * CSS). Video and the wash are separate layers from <BackgroundLayers>, at
+ * CSS). Photo, video and the wash are layers from <BackgroundLayers>, at
  * z-index -1 inside an isolated stacking context: under every child of the
  * section, including un-positioned ones, but above the section's own paint.
+ *
+ * The photo is a layer rather than a CSS background-image so that it goes
+ * through next/image: each screen downloads a version sized for it, in WebP
+ * or AVIF, instead of every phone fetching the full upload. Like the video,
+ * it is cropped to fill the section at any shape (object-fit: cover).
  */
 export function sectionBackground(bg: Background, base?: React.CSSProperties, className = '') {
     const style: React.CSSProperties = { ...base };
@@ -127,13 +131,8 @@ export function sectionBackground(bg: Background, base?: React.CSSProperties, cl
         style.backgroundColor = bg.color;
         style.backgroundImage = 'none';
     }
-    if (bg.image) {
-        style.backgroundImage = cssUrl(bg.image);
-        style.backgroundSize = 'cover';
-        style.backgroundPosition = 'center';
-        style.backgroundRepeat = 'no-repeat';
-    }
-    if (bg.video || bg.overlayOpacity > 0) {
+    if (bg.image) style.backgroundImage = 'none';
+    if (bg.image || bg.video || bg.overlayOpacity > 0) {
         style.isolation = 'isolate';
         if (!style.position) style.position = 'relative';
     }
@@ -141,12 +140,32 @@ export function sectionBackground(bg: Background, base?: React.CSSProperties, cl
     return { className: `${className}${tone}`.trim(), style };
 }
 
+/** `auto` sets nothing, so a design rule (e.g. the hero's phone framing in
+ *  05-motion.css) still applies. */
+export const FOCUS_POSITION: Record<Background['focus'], string | undefined> = {
+    auto: undefined, center: '50% 50%', top: '50% 0%', bottom: '50% 100%', left: '0% 50%', right: '100% 50%',
+};
+
 export function BackgroundLayers({
     bg, priority = false, videoClassName,
 }: { bg: Background; priority?: boolean; videoClassName?: string }) {
     const layer: React.CSSProperties = { position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: -1, pointerEvents: 'none' };
+    const position = FOCUS_POSITION[bg.focus];
     return (
         <>
+            {bg.image && (
+                <div aria-hidden="true" style={{ ...layer, overflow: 'hidden' }}>
+                    <Image
+                        src={bg.image}
+                        alt=""
+                        fill
+                        sizes="100vw"
+                        priority={priority}
+                        unoptimized={!isOptimizable(bg.image)}
+                        style={{ objectFit: 'cover', objectPosition: position }}
+                    />
+                </div>
+            )}
             {bg.video && (
                 <BackgroundVideo
                     key={bg.video}
@@ -154,7 +173,7 @@ export function BackgroundLayers({
                     poster={bg.poster || undefined}
                     priority={priority}
                     className={videoClassName}
-                    style={{ ...layer, objectFit: 'cover', opacity: bg.videoOpacity / 100 }}
+                    style={{ ...layer, objectFit: 'cover', objectPosition: position, opacity: bg.videoOpacity / 100 }}
                 />
             )}
             {bg.overlayOpacity > 0 && (

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState } from 'react';
-import { TEXT_TONES, type Background, type CmsLink, type Field } from '@/lib/cms/fields';
+import { FOCUS_OPTIONS, TEXT_TONES, type Background, type CmsLink, type Field } from '@/lib/cms/fields';
 import { MediaPickerModal, UploadButton, type MediaKind } from './media-library';
 
 /**
@@ -150,9 +150,14 @@ function BackgroundInput({ value, onChange, allowVideo, defaultValue }: { value:
             {designed && <p className="cms-field__help" style={{ margin: '12px 0 0' }}>Using the designed background.</p>}
             {sub('Colour', 'color', <ColorInput value={value.color} onChange={color => set({ color })} />)}
             {sub('Photo', 'image', <MediaInput kind="image" value={value.image} onChange={image => set({ image })} />)}
-            {allowVideo !== false && sub('Video', 'video', <MediaInput kind="video" value={value.video} onChange={video => set({ video })} />, 'Plays silently on a loop over the colour and photo.')}
-            {allowVideo !== false && value.video && sub('Still shown while the video loads', 'poster', <MediaInput kind="image" value={value.poster} onChange={poster => set({ poster })} />)}
+            {allowVideo !== false && sub('Video', 'video', <MediaInput kind="video" value={value.video} onChange={video => set({ video, poster: '' })} />, 'Plays silently on a loop over the colour and photo. Uploads get a lighter version for phones automatically.')}
+            {allowVideo !== false && value.video && sub('Still shown while the video loads', 'poster', <MediaInput kind="image" value={value.poster} onChange={poster => set({ poster })} />, 'Optional - an uploaded video already has one taken from its first moments.')}
             {allowVideo !== false && value.video && sub('Video strength', 'videoOpacity', <Range value={value.videoOpacity} onChange={videoOpacity => set({ videoOpacity })} />)}
+            {(value.image || (allowVideo !== false && value.video)) && sub('Focus', 'focus', (
+                <select className="cms-select" value={value.focus} onChange={e => set({ focus: e.target.value as Background['focus'] })}>
+                    {FOCUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+            ), 'The photo or video always fills the section on every screen, cropping what does not fit. Choose which part stays in view.')}
             {sub('Darken / tint over everything', 'overlayOpacity', (
                 <div className="cms-row">
                     <ColorInput value={value.overlayColor} onChange={overlayColor => set({ overlayColor: overlayColor || '#000000' })} emptyLabel="Black" />
@@ -267,6 +272,9 @@ export function FieldEditor({ field, value, defaultValue, onChange }: { field: F
         case 'image':
         case 'video':
             control = <MediaInput kind={field.kind} value={value as string} onChange={onChange} />;
+            if (field.kind === 'video') {
+                control = <>{control}<Help text="Uploads are optimised automatically, with a lighter version for phones." /></>;
+            }
             break;
         case 'color':
             control = <ColorInput value={value as string} onChange={onChange} />;
@@ -369,7 +377,13 @@ export function Fields({ fields, value, defaults, onChange }: {
                     field={f}
                     value={value[f.key]}
                     defaultValue={defaults?.[f.key]}
-                    onChange={v => onChange({ ...value, [f.key]: v })}
+                    onChange={v => onChange(
+                        // A new video makes the old still wrong; clear a sibling
+                        // poster so the new video's own still is used instead.
+                        f.kind === 'video' && v !== value[f.key] && fields.some(x => x.key === 'poster')
+                            ? { ...value, [f.key]: v, poster: '' }
+                            : { ...value, [f.key]: v },
+                    )}
                 />
             ))}
         </>

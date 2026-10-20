@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
+import { SMALL_VIDEO_QUERY, videoSources } from '@/lib/media';
 
 export interface BackgroundVideoProps {
     src: string;
@@ -30,11 +31,21 @@ export interface BackgroundVideoProps {
  * fetched eagerly; the rest mount their <source> only once an
  * IntersectionObserver says they are within 300px of the viewport. Until then
  * the element renders its poster, so the section never looks empty.
+ *
+ * Screen size: a video uploaded through the dashboard comes in a phone and a
+ * computer version (lib/media.ts). Both are listed as <source>s and the
+ * browser takes the first whose `media` matches, so a phone never downloads
+ * the larger file - decided before any JavaScript runs. The element is sized
+ * by its container and the footage is cropped to fill it (`object-fit:
+ * cover`, set by every caller), so a portrait or landscape clip fills any
+ * frame shape at any screen ratio. Without a poster of its own, an optimised
+ * video uses the still frame captured at upload.
  */
 export default function BackgroundVideo({
     src, style, className, poster, priority = false, label,
 }: BackgroundVideoProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const sources = videoSources(src);
     const [reducedMotion, setReducedMotion] = useState(false);
     const [shouldLoad, setShouldLoad] = useState(priority);
 
@@ -127,14 +138,17 @@ export default function BackgroundVideo({
             loop
             muted
             playsInline
-            poster={poster}
+            poster={poster || sources.poster}
             preload={priority ? 'auto' : 'none'}
             aria-hidden={label ? undefined : true}
             aria-label={label}
             className={className}
             style={style}
         >
-            {shouldLoad && !reducedMotion && <source src={src} type="video/mp4" />}
+            {shouldLoad && !reducedMotion && sources.small && (
+                <source src={sources.small} type="video/mp4" media={SMALL_VIDEO_QUERY} />
+            )}
+            {shouldLoad && !reducedMotion && <source src={sources.src} type="video/mp4" />}
         </video>
     );
 }

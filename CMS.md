@@ -34,9 +34,26 @@ the designed background, or set a colour, a photo, or a video, plus an
 optional darkening wash. If the new background is much lighter or darker than
 the design's, set **Text colour** to match.
 
-Photos up to 10 MB (JPG, PNG, WebP, AVIF, GIF); videos up to 50 MB (MP4
-recommended, 720p is plenty for a background). Everything uploaded appears in
-**Media Library** and can be reused anywhere.
+**Upload photos and videos straight from a phone or camera. They are prepared
+for the web automatically**, in the browser, before they are sent:
+
+- **Videos** become two files plus a still: a 720p version for computers
+  (~1.2 Mbit/s) and a 480p version for phones (~0.6 Mbit/s), with sound removed
+  (backgrounds always play muted) and trimmed to the first 20 seconds (they
+  loop). A 29 MB, 40-second 1080p clip came out at 2.9 MB / 1.4 MB, about the
+  weight of the site's own hand-compressed clips. Phones download only the
+  phone file. This needs a current Chrome, Edge or Safari; an older browser
+  uploads the original and says so.
+- **Photos** are scaled to at most 2560 px and saved as WebP. The site then
+  serves every screen its own smaller copy (a phone gets ~640 px wide).
+- **Any shape fits any screen.** A photo or video always fills its frame,
+  cropping what does not fit. Nothing is stretched or letterboxed, so a
+  portrait phone video works in a landscape section. Background panels have a
+  **Focus** setting (centre / top / bottom / left / right) for choosing which
+  part stays in view.
+
+Limits: photos 10 MB, videos 50 MB before optimising. Everything uploaded
+appears in **Media Library** and can be reused anywhere.
 
 In text fields, `*words*` sets words in italic (the brand accent, e.g.
 "Bangkok, *quietly elevated.*"). In the legal pages, `[label](https://…)`
@@ -49,7 +66,7 @@ same `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` the menu already
 uses. Buckets are created on first use (`lib/cms/bucket.ts`):
 
 - `site-content` (**private**): `<area>/published.json`, `<area>/draft.json`, `<area>/versions/*.json`, and the login rate-limit counters. Drafts are never readable with the public key.
-- `site-media` (public): uploaded photos and videos. The browser uploads straight to Supabase with a signed URL from `/api/admin/media`, so large videos never pass through Vercel's ~4.5 MB request limit.
+- `site-media` (public): uploaded photos and videos. The browser optimises them first (`components/admin/cms/optimize-media.ts`, WebCodecs via `mediabunny`), then uploads straight to Supabase with signed URLs from `/api/admin/media`, so no file passes through Vercel's ~4.5 MB request limit. An optimised video is `videos/<stem>.web.mp4`, with `.web-sm.mp4` (phone) and `.web.webp` (still) beside it. Only the first is stored in content; `lib/media.ts` derives the others, and `BackgroundVideo` lists the phone file as a `<source media="(max-width: 768px)">`.
 - `dish-images` (public): Menu Control's dish photos. It is now created automatically too (it used to be an undocumented manual step).
 
 Where things live:

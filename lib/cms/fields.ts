@@ -91,12 +91,25 @@ export interface Background {
     overlayOpacity: number;
     /** Ink scale for the section's text. `auto` keeps the design's own. */
     textTone: 'auto' | 'light' | 'dark';
+    /** Which part of the photo / video stays in view when the frame crops
+     *  it. `auto` keeps the design's own framing. */
+    focus: 'auto' | 'center' | 'top' | 'bottom' | 'left' | 'right';
 }
 
 export const EMPTY_BACKGROUND: Background = {
     color: '', image: '', video: '', poster: '',
-    videoOpacity: 100, overlayColor: '#000000', overlayOpacity: 0, textTone: 'auto',
+    videoOpacity: 100, overlayColor: '#000000', overlayOpacity: 0, textTone: 'auto', focus: 'auto',
 };
+
+export const FOCUS_OPTIONS: Option[] = [
+    { value: 'auto', label: 'Design default' },
+    { value: 'center', label: 'Centre' },
+    { value: 'top', label: 'Top' },
+    { value: 'bottom', label: 'Bottom' },
+    { value: 'left', label: 'Left' },
+    { value: 'right', label: 'Right' },
+];
+const FOCUS_VALUES = FOCUS_OPTIONS.map(o => o.value);
 
 export const TEXT_TONES: Option[] = [
     { value: 'auto', label: 'Design default' },
@@ -175,6 +188,7 @@ export function sanitizeBackground(input: unknown, fallback: Background): Backgr
         textTone: (['auto', 'light', 'dark'] as const).includes(v.textTone as Background['textTone'])
             ? (v.textTone as Background['textTone'])
             : fallback.textTone,
+        focus: FOCUS_VALUES.includes(v.focus as string) ? (v.focus as Background['focus']) : (fallback.focus ?? 'auto'),
     };
 }
 

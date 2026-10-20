@@ -12,7 +12,7 @@ import ScrollParallax from '@/components/ui/scroll-parallax';
 import { X } from 'lucide-react';
 import { mapLink, waLink, type Location } from '@/lib/locations';
 import type { HomeContent } from '@/lib/cms/docs/home';
-import { BackgroundLayers, CmsButton, RichText, isOptimizable, sectionBackground } from '@/components/cms/cms-ui';
+import { BackgroundLayers, CmsButton, FOCUS_POSITION, RichText, isOptimizable, sectionBackground } from '@/components/cms/cms-ui';
 
 /**
  * The homepage. Every word, photo, video and background below comes from the
@@ -324,26 +324,29 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
             <section key="invitation" {...sectionBackground(invitation.background, undefined, 'section-reservation')}>
                 {/* The designed ground - the lotus photo under a slate wash -
                     stays exactly as it was unless the dashboard sets a colour
-                    or photo of its own. The layers keep their original order
+                    or photo of its own; then the standard background stack
+                    takes over. The designed layers keep their original order
                     and z-indexes (photo 0, wash 1, film 1 above it). */}
-                {!invitation.background.color && !invitation.background.image && (
+                {invitation.background.color || invitation.background.image ? (
+                    <BackgroundLayers bg={invitation.background} />
+                ) : (
                     <>
                         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
                             <Image src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp" alt="" fill className="img-feather" style={{ objectFit: 'cover' }} />
                         </div>
                         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(30, 41, 59, 0.8)', zIndex: 1 }}></div>
+                        {invitation.background.video && (
+                            <BackgroundVideo
+                                key={invitation.background.video}
+                                src={invitation.background.video}
+                                poster={invitation.background.poster || undefined}
+                                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: FOCUS_POSITION[invitation.background.focus], zIndex: 1, opacity: invitation.background.videoOpacity / 100 }}
+                            />
+                        )}
+                        {invitation.background.overlayOpacity > 0 && (
+                            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', backgroundColor: invitation.background.overlayColor, opacity: invitation.background.overlayOpacity / 100 }} />
+                        )}
                     </>
-                )}
-                {invitation.background.video && (
-                    <BackgroundVideo
-                        key={invitation.background.video}
-                        src={invitation.background.video}
-                        poster={invitation.background.poster || undefined}
-                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 1, opacity: invitation.background.videoOpacity / 100 }}
-                    />
-                )}
-                {invitation.background.overlayOpacity > 0 && (
-                    <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none', backgroundColor: invitation.background.overlayColor, opacity: invitation.background.overlayOpacity / 100 }} />
                 )}
                 <div className="invitation-light" aria-hidden="true"></div>
                 <div className="container reveal-hidden" style={{ position: 'relative', zIndex: 2, maxWidth: '700px', textAlign: 'center' }}>
