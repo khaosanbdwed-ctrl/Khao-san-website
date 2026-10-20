@@ -9,12 +9,18 @@ export interface ShowcaseStep {
     dishTitle: string;
     imageSrc: string;
 }
-export interface MenuShowcaseProps { steps: ShowcaseStep[]; }
+export interface MenuShowcaseProps {
+    steps: ShowcaseStep[];
+    heading?: string;
+    hint?: string;
+    sectionProps?: { className: string; style: React.CSSProperties };
+    layers?: React.ReactNode;
+}
 const wrap = (value: number, length: number) => ((value % length) + length) % length;
 
 /** A continuous position, not a scroll container with endpoints to reset.
  * Slides wrap only offscreen, so crossing the last category never reverses motion. */
-export default function MenuShowcase({ steps }: MenuShowcaseProps) {
+export default function MenuShowcase({ steps, heading = 'A taste of Khao San', hint = 'Drag to discover', sectionProps, layers }: MenuShowcaseProps) {
     const viewportRef = useRef<HTMLDivElement>(null);
     const positionRef = useRef(0);
     const targetRef = useRef(0);
@@ -104,8 +110,14 @@ export default function MenuShowcase({ steps }: MenuShowcaseProps) {
 
     if (!count) return null;
     return (
-        <section id="menu-carousel" className="menu-carousel" aria-label="A taste of Khao San">
-            <h2 className="menu-carousel__title">A taste of Khao San</h2>
+        <section
+            id="menu-carousel"
+            className={`menu-carousel ${sectionProps?.className ?? ''}`.trim()}
+            style={sectionProps?.style}
+            aria-label={heading || 'Dish showcase'}
+        >
+            {layers}
+            {heading && <h2 className="menu-carousel__title">{heading}</h2>}
             <div className="menu-carousel__stage">
                 <div ref={viewportRef} className="menu-carousel__viewport" role="region" aria-roledescription="carousel"
                     aria-label="Menu categories" aria-describedby="menu-carousel-hint" tabIndex={0}
@@ -161,7 +173,7 @@ export default function MenuShowcase({ steps }: MenuShowcaseProps) {
                     <h3>{steps[active].dishTitle}</h3>
                     <a href={`#${steps[active].categoryId}`}>Explore {steps[active].categoryName.toLowerCase()} <span aria-hidden="true">↗</span></a>
                 </div>
-                <p id="menu-carousel-hint" className="menu-carousel__hint">Drag to discover <span aria-hidden="true">⟷</span></p>
+                <p id="menu-carousel-hint" className="menu-carousel__hint">{hint} {hint && <span aria-hidden="true">⟷</span>}</p>
             </div>
         </section>
     );

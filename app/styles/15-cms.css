@@ -1,0 +1,87 @@
+/* ============================================================
+   CMS - text tone overrides and the preview banner.
+
+   Sections ship with an ink scale matched to their designed ground (see
+   10-backgrounds.css: light ink on the blue field, dark ink on white). When
+   an editor gives a section a different background in the dashboard, they
+   pick the matching tone, and these re-point the same custom properties the
+   sections already read - so every heading, paragraph and link follows
+   without per-section rules. A few lines on the homepage carry their own
+   exact tint (e.g. the craft text at 80% white); they read --cms-text-soft /
+   --cms-text-strong with that tint as the fallback, so the default render is
+   untouched and a tone still reaches them.
+   ============================================================ */
+
+.cms-tone-light {
+    --cms-text-strong: #ffffff;
+    --cms-text-soft: rgba(255, 255, 255, 0.8);
+    --color-text-primary: #ffffff;
+    --color-text-secondary: rgba(255, 255, 255, 0.84);
+    --color-primary: var(--color-brand-butter);
+    --color-accent: var(--color-brand-butter);
+    color: #ffffff;
+}
+
+.cms-tone-dark {
+    --cms-text-strong: var(--color-brand-black);
+    --cms-text-soft: #55606E;
+    --color-text-primary: var(--color-brand-black);
+    --color-text-secondary: #55606E;
+    --color-primary: var(--color-brand-blue);
+    --color-accent: var(--color-brand-blue);
+    /* Butter is the accent on dark grounds only (footer outlet names, link
+       hovers); on a light ground it would all but vanish. */
+    --color-brand-butter: var(--color-brand-blue);
+    --color-brand-butter-deep: var(--color-brand-blue-deep);
+    color: var(--color-brand-black);
+}
+.site-footer.cms-tone-dark .footer-bottom { color: #55606E; }
+
+/* The footer mark is knocked out to white for the dark footer. The toggle in
+   the dashboard ("Show the logo in white") drives this class. */
+.footer-logo.footer-logo--original { filter: none; }
+
+/* ------------------------------------------------------------
+   Preview banner - only rendered in Draft Mode.
+   Fixed to the viewport, and a direct child of <body>: `position: fixed`
+   inside <main> is broken by .page-transition's transform.
+   ------------------------------------------------------------ */
+.cms-preview-bar {
+    position: fixed;
+    left: 50%;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px 10px 18px;
+    border-radius: 999px;
+    background: #16233d;
+    color: #ffffff;
+    font: 600 0.8rem/1.2 var(--font-montserrat), system-ui, sans-serif;
+    box-shadow: 0 12px 32px rgba(8, 14, 28, 0.35);
+    max-width: calc(100vw - 32px);
+}
+.cms-preview-bar a,
+.cms-preview-bar button {
+    color: #16233d;
+    background: #f9eb9b;
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.cms-preview-bar__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff964f;
+    flex: none;
+}
+@media (max-width: 520px) {
+    .cms-preview-bar__text { display: none; }
+}

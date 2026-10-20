@@ -1,23 +1,17 @@
+import { DAYS, type CmsHours, type LocationsContent } from '@/lib/cms/docs/locations';
+
 /**
- * The three rooms - one source of truth.
+ * The outlets, as the components consume them.
  *
- * ⚠ This array was duplicated: once in app/page.tsx for the Locations chapter
- * and once (partially, and already drifted - the footer carried a single phone
- * number for all three outlets) in components/Footer.tsx. NAP consistency is
- * the one thing local search will not forgive: the name, address and phone
- * here must match the Google Business Profile and every directory citation
- * character for character, including abbreviations and punctuation. Two copies
- * of that in one codebase is a drift waiting to happen, and the footer copy
- * had already drifted.
- *
- * Edit here and nowhere else. The Locations chapter, the footer, and the
- * Restaurant JSON-LD the footer emits all read this array.
- *
- * `hours` is per-outlet even though all three currently keep the same times -
- * the day a single branch opens late, this file is the only edit.
+ * The data itself now lives in the CMS (Locations & hours in the dashboard;
+ * defaults in lib/cms/docs/locations.ts). This file turns that into the shape
+ * the Locations chapter, the footer and the Restaurant JSON-LD read, and -
+ * the part that matters for NAP consistency - derives the VISIBLE hours from
+ * the same structured hours that go into the JSON-LD. The footer used to hand-
+ * type its hours, so editing them in one place updated Google's data and not
+ * the page.
  */
 export interface Location {
-    /** Branch name, as it appears on the Google Business Profile. */
     name: string;
     address: string;
     /** Digits only, no `+`, for wa.me links. */
@@ -26,63 +20,63 @@ export interface Location {
     tel: string;
     /** Human-readable, for display. */
     phoneDisplay: string;
+    /** "Sat–Thu: 12:00 PM – 11:00 PM" */
     hours: string[];
     /** Machine-readable hours for schema.org openingHoursSpecification. */
-    openingHours: { days: string[]; opens: string; closes: string }[];
+    openingHours: CmsHours[];
     imageSrc: string;
     mapQuery: string;
 }
 
-export const LOCATIONS: Location[] = [
-    {
-        name: 'Gulshan 1',
-        address: 'Level 1, Progress Tower, House 1, Road 23, Gulshan 1, Dhaka 1212',
-        whatsapp: '8801600068193',
-        tel: '+8801600068193',
-        phoneDisplay: '+880 1600-068193',
-        hours: ['Sat–Thu: 12:00 PM – 11:00 PM', 'Friday: 2:00 PM – 11:00 PM'],
-        openingHours: [
-            { days: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '12:00', closes: '23:00' },
-            { days: ['Friday'], opens: '14:00', closes: '23:00' },
-        ],
-        imageSrc: '/assets/Location_Image_1_1/Gulshan_Outlet_2.webp',
-        mapQuery: 'Level 1, Progress Tower, House 1, Road 23, Gulshan 1, Dhaka',
-    },
-    {
-        name: 'Dhanmondi',
-        address: 'Ahmad & Kazi Tower, Level-5, House-35, Road-2, Dhanmondi, Dhaka',
-        whatsapp: '8801603523731',
-        tel: '+8801603523731',
-        phoneDisplay: '+880 1603-523731',
-        hours: ['Sat–Thu: 12:00 PM – 11:00 PM', 'Friday: 2:00 PM – 11:00 PM'],
-        openingHours: [
-            { days: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '12:00', closes: '23:00' },
-            { days: ['Friday'], opens: '14:00', closes: '23:00' },
-        ],
-        imageSrc: '/assets/Location_Image_1_1/Dhanmondi_Outlet_1.webp',
-        mapQuery: 'Ahmad & Kazi Tower, Level-5, House-35, Road-2, Dhanmondi, Dhaka',
-    },
-    {
-        name: 'Uttara',
-        address: 'House 30, Tropical Sormi Center, Sector 13, Garib-E-Newaz Ave, Uttara, Dhaka',
-        whatsapp: '8801627167758',
-        tel: '+8801627167758',
-        phoneDisplay: '+880 1627-167758',
-        hours: ['Sat–Thu: 12:00 PM – 11:00 PM', 'Friday: 2:00 PM – 11:00 PM'],
-        openingHours: [
-            { days: ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'], opens: '12:00', closes: '23:00' },
-            { days: ['Friday'], opens: '14:00', closes: '23:00' },
-        ],
-        imageSrc: '/assets/Location_Image_1_1/Uttara_Outlet_3.webp',
-        mapQuery: 'House 30, Tropical Sormi Center, Sector 13, Garib-E-Newaz Ave, Uttara, Dhaka',
-    },
-];
+const digits = (s: string) => s.replace(/\D/g, '');
 
-/** The number the site's general "contact us" actions reach. */
-export const PRIMARY_WHATSAPP = '8801600068193';
+export function toLocations(content: LocationsContent): Location[] {
+    return content.outlets.items.map(o => ({
+        name: o.name,
+        address: o.address,
+        whatsapp: digits(o.whatsapp) || digits(content.general.primaryWhatsapp),
+        tel: digits(o.phone) ? `+${digits(o.phone)}` : '',
+        phoneDisplay: o.phone,
+        hours: hoursLines(o.hours),
+        openingHours: o.hours.filter(h => h.days.length),
+        imageSrc: o.image,
+        mapQuery: o.mapQuery || o.address,
+    }));
+}
 
-export const waLink = (message: string, number: string = PRIMARY_WHATSAPP) =>
-    `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+/** Week order is the restaurant's own: Saturday first, Friday last. */
+export function dayRanges(days: string[]): string[] {
+    const idx = DAYS.map((d, i) => (days.includes(d) ? i : -1)).filter(i => i >= 0);
+    const runs: [number, number][] = [];
+    for (const i of idx) {
+        const last = runs[runs.length - 1];
+        if (last && last[1] === i - 1) last[1] = i;
+        else runs.push([i, i]);
+    }
+    return runs.map(([a, b]) =>
+        a === b ? DAYS[a] : `${DAYS[a].slice(0, 3)}${b - a === 1 ? ', ' : '–'}${DAYS[b].slice(0, 3)}`,
+    );
+}
+
+export function clock(t: string, compact = false) {
+    const [h, m] = t.split(':').map(Number);
+    const mer = h >= 12 ? 'pm' : 'am';
+    const h12 = h % 12 || 12;
+    if (compact) return { time: m ? `${h12}:${String(m).padStart(2, '0')}` : String(h12), mer };
+    return { time: `${h12}:${String(m).padStart(2, '0')}`, mer: mer.toUpperCase() };
+}
+
+function hoursLines(hours: CmsHours[]): string[] {
+    return hours
+        .filter(h => h.days.length)
+        .map(h => {
+            const o = clock(h.opens), c = clock(h.closes);
+            return `${dayRanges(h.days).join(', ')}: ${o.time} ${o.mer} – ${c.time} ${c.mer}`;
+        });
+}
+
+export const waLink = (message: string, number: string) =>
+    `https://wa.me/${digits(number)}?text=${encodeURIComponent(message)}`;
 
 export const mapLink = (query: string) =>
     `https://maps.google.com/?q=${encodeURIComponent(query)}`;

@@ -20,14 +20,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const navItems = [
         { label: 'Overview', href: '/admin' },
+        { label: 'Website Content', href: '/admin/content' },
         { label: 'Menu Control', href: '/admin/menu' },
+        { label: 'Media Library', href: '/admin/media' },
     ];
+    const isActive = (href: string) => href === '/admin' ? pathname === href : pathname?.startsWith(href);
 
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-surface-base)' }}>
+        <div className="cms-shell" style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-surface-base)' }}>
 
             {/* Sidebar */}
-            <aside style={{ width: '280px', backgroundColor: 'var(--color-surface-base)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
+            <aside className="cms-shell__aside" style={{ width: '280px', backgroundColor: 'var(--color-surface-base)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ padding: '32px 24px', borderBottom: '1px solid var(--color-border)' }}>
                     <span style={{ color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '4px', fontSize: '0.8rem', fontWeight: 600 }}>Admin Portal</span>
                     <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', marginTop: '8px' }}>Khao San</h2>
@@ -42,10 +45,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 padding: '12px 16px',
                                 borderRadius: '8px',
                                 textDecoration: 'none',
-                                color: pathname === item.href ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                backgroundColor: pathname === item.href ? 'rgba(255, 150, 79, 0.12)' : 'transparent',
+                                color: isActive(item.href) ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+                                backgroundColor: isActive(item.href) ? 'rgba(255, 150, 79, 0.12)' : 'transparent',
                                 transition: 'all 0.2s',
-                                fontWeight: pathname === item.href ? 500 : 400
+                                fontWeight: isActive(item.href) ? 500 : 400
                             }}
                         >
                             {item.label}
@@ -66,7 +69,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </aside>
 
             {/* Main Content Area */}
-            <main style={{ flex: 1, overflowY: 'auto', padding: '48px', position: 'relative' }}>
+            <main className="cms-shell__main" style={{ flex: 1, overflowY: 'auto', padding: '48px', position: 'relative' }}>
                 <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
                     {children}
                 </div>

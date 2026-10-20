@@ -3,6 +3,9 @@ import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientWrapper from "@/components/ClientWrapper";
+import PreviewBar from "@/components/cms/preview-bar";
+import { getSiteContent } from "@/lib/cms/content";
+import { toLocations } from "@/lib/locations";
 
 // Playfair Display was removed on 2026-08-09. It was declared with four
 // weights in two styles — eight font files — and nothing on the site set it.
@@ -64,6 +67,11 @@ const goodBrush = localFont({
    No `maximumScale` or `userScalable` here on purpose. Locking zoom is the
    usual companion to this line and it breaks pinch-to-zoom for anyone who
    needs it; the layout is built to survive zooming instead. */
+/* Every page carries CMS content through this layout (header, footer). A
+   publish refreshes the whole site at once; the hour is only the backstop for
+   edits made directly in the Supabase dashboard. */
+export const revalidate = 3600;
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -71,40 +79,45 @@ export const viewport: Viewport = {
   themeColor: '#1e417b',
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://khaosan.com.bd'),
-  title: "Khao San | The Thai Way in Dhaka",
-  description: "Experience the uncompromising standard of authentic Thai Street Food at Khao San Dhaka. A curated dining experience in Gulshan, Dhanmondi, and Uttara.",
-  keywords: ["Thai Food Dhaka", "Khao San", "Best Thai Restaurant", "Fine Dining", "Tom Yum Goong", "Pad Thai", "Gulshan Restaurant"],
-  openGraph: {
-      title: "Khao San | The Thai Way",
-      description: "An evening of unforgettable Thai hospitality. Experience the uncompromising standard of authentic Thai cuisine in Dhaka.",
-      url: "https://khaosan.com.bd",
-      siteName: "Khao San",
-      images: [
-        {
-          url: "/assets/Background-20260709T183540Z-2-001/Background/Elephant%2016%20by%209%20Ratio%20Landscape.webp",
-          width: 1920,
-          height: 1080,
-          alt: "Khao San Restaurant",
-        },
-      ],
-      type: "website",
-      locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Khao San | The Thai Way",
-    description: "Experience the uncompromising standard of authentic Thai cuisine in Dhaka.",
-    images: ["/assets/Background-20260709T183540Z-2-001/Background/Elephant%2016%20by%209%20Ratio%20Landscape.webp"],
-  },
-};
+/* Title, description, share picture and tab icon are CMS content (Google &
+   sharing in the dashboard; defaults in lib/cms/docs/site.ts). */
+export async function generateMetadata(): Promise<Metadata> {
+  const { site } = await getSiteContent();
+  const seo = site.seo;
+  const images = seo.shareImage ? [{ url: encodeURI(seo.shareImage), alt: "Khao San Restaurant" }] : [];
+  return {
+    metadataBase: new URL('https://khaosan.com.bd'),
+    title: seo.title,
+    description: seo.description,
+    keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
+    icons: seo.favicon ? { icon: encodeURI(seo.favicon) } : undefined,
+    openGraph: {
+        title: seo.shareTitle,
+        description: seo.shareDescription,
+        url: "https://khaosan.com.bd",
+        siteName: "Khao San",
+        images,
+        type: "website",
+        locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.shareTitle,
+      description: seo.shareDescription,
+      images: images.map(i => i.url),
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // The header and footer are on every page, so the layout reads their CMS
+  // content (and the outlets the footer lists). getSiteContent is cached per
+  // request, so the page's own read of it costs nothing extra.
+  const site = await getSiteContent();
   return (
     <html
       lang="en"
@@ -116,7 +129,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-          <link rel="icon" type="image/webp" href="/assets/Logos-20260709T183558Z-2-001/Logos/Dark Blue.webp" />
           {/*
             Sets data-ignition before first paint (classic no-FOUC pattern -
             the same technique dark-mode theme scripts use: a plain synchronous
@@ -150,9 +162,15 @@ export default function RootLayout({
         tree are still reported normally, so this does not hide app bugs.
       */}
       <body suppressHydrationWarning>
-        <ClientWrapper>
+        <ClientWrapper
+            header={site.header}
+            footer={site.footer}
+            locations={toLocations(site.locations)}
+            whatsapp={site.locations.general.primaryWhatsapp}
+        >
             {children}
         </ClientWrapper>
+        {site.isPreview && <PreviewBar />}
       </body>
     </html>
   );

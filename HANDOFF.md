@@ -1,5 +1,28 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-20: website CMS added - read CMS.md
+>
+> Every word, photo, video, background, link, outlet, opening hour, show/hide
+> and section order on the site is now edited in the dashboard (/admin →
+> Website Content). The code defaults in `lib/cms/docs/` ARE the current
+> content, so the site renders identically until someone publishes (verified
+> by full-page screenshot diff against the previous commit). Content lives in
+> Supabase Storage and the buckets create themselves - no SQL step.
+>
+> Parts of this file below are now out of date:
+> - §1 (the dial migration) never shipped; Round 10 took a different index
+>   design and the tree is committed. Ignore §1 and the dial rules in §6.
+> - Risk #3 (share image 404) and #5 (footer hours hardcoded) are fixed: the
+>   share image is CMS content with the corrected path, and the footer hours
+>   are generated from the same structured hours as the JSON-LD.
+> - Risk #4 (`dish-images` bucket never provisioned) is fixed: created on
+>   first use.
+> - Risk #8 (forgeable admin cookie) is fixed: signed, expiring session plus
+>   login rate limiting. It still matters before adding customer/order data.
+> - NAP now lives in the CMS (Locations & hours); `lib/locations.ts` only
+>   shapes it. "Edit lib/locations.ts" in older notes means "edit Locations &
+>   hours in the dashboard" (or its defaults in lib/cms/docs/locations.ts).
+
 > ## ⛔ STOP. THE TREE IS MID-MIGRATION AND THE MENU PAGE IS BROKEN RIGHT NOW.
 >
 > The session of **2026-09-04** replaced the desktop category index in

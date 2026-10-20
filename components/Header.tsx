@@ -4,12 +4,27 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { usePathname } from 'next/navigation';
+import type { HeaderContent } from '@/lib/cms/docs/chrome';
+import { CmsButton } from '@/components/cms/cms-ui';
 
-const WHATSAPP_NUMBER = '8801600068193';
-const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-export default function Header() {
+/* Logo, links, button and bar colours come from the CMS (Header in the
+   dashboard; defaults in lib/cms/docs/chrome.ts). */
+export default function Header({ content, whatsapp }: { content: HeaderContent; whatsapp: string }) {
     const pathname = usePathname();
+    /* A link that points at the page you are on becomes the way back home -
+       on /menu, "Menu" reads "Home". Generalised from the old hardcoded
+       Menu/Home swap so it holds for any link the dashboard adds. */
+    const links = content.navigation.links.map(l => {
+        const path = l.href.split('#')[0];
+        return path && path === pathname && !l.href.includes('#')
+            ? { label: content.navigation.homeLabel || 'Home', href: '/' }
+            : l;
+    });
+    const barStyle: React.CSSProperties = {
+        ...(content.style.barColor ? { backgroundColor: content.style.barColor } : {}),
+        ...(content.style.textColor ? { ['--color-text-primary' as string]: content.style.textColor } : {}),
+    };
+    const mobileLinkStyle: React.CSSProperties = {display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600};
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [inHero, setInHero] = useState(true);
@@ -214,11 +229,11 @@ export default function Header() {
             }
         `}} />
 
-        <header className={`header-container ${scrolled ? 'scrolled' : 'top'}${inHero && !menuOpen ? ' in-hero' : ''}`}>
+        <header className={`header-container ${scrolled ? 'scrolled' : 'top'}${inHero && !menuOpen ? ' in-hero' : ''}`} style={barStyle}>
             
             {/* Left Column - the mark */}
             <div className="header-left">
-                <Link href="/" onClick={closeMenu} aria-label="Khao San - home" style={{ display: 'inline-block', position: 'relative', height: scrolled ? '42px' : '50px', width: scrolled ? '42px' : '50px', transition: 'all 0.4s ease' }}>
+                <Link href="/" onClick={closeMenu} aria-label={content.brand.logoAlt || 'Home'} style={{ display: 'inline-block', position: 'relative', height: scrolled ? '42px' : '50px', width: scrolled ? '42px' : '50px', transition: 'all 0.4s ease' }}>
                     {/* unoptimized for the same reason as the hero and footer marks:
                         this logo depends on its alpha channel (it sits on a
                         translucent bar over video). The optimiser flattens that
@@ -226,31 +241,28 @@ export default function Header() {
                         today, but it is the same asset through the same pipeline -
                         pinning it to the original file keeps all three logo
                         placements consistent and immune to that re-encode. */}
-                    <Image
-                        src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
-                        alt="Khao San Logo"
+                    {content.brand.logo && <Image
+                        src={content.brand.logo}
+                        alt=""
                         fill
                         style={{ objectFit: 'contain' }}
                         sizes="100px"
                         priority
                         unoptimized
-                    />
+                    />}
                 </Link>
             </div>
 
             {/* Center Column - section navigation */}
             <nav className="header-center" aria-label="Primary">
-                <Link href={pathname === '/menu' ? "/" : "/menu"} className="nav-link desktop-only">
-                    {pathname === '/menu' ? "Home" : "Menu"}
-                </Link>
-                <Link href="/#locations" className="nav-link desktop-only">Locations</Link>
-                <Link href="/#heritage" className="nav-link desktop-only">Our Story</Link>
-                <Link href="/#gift" className="nav-link desktop-only">Gift Cards</Link>
+                {links.map((l, i) => (
+                    <Link key={`${l.href}-${i}`} href={l.href} className="nav-link desktop-only">{l.label}</Link>
+                ))}
             </nav>
 
             {/* Right Column - CTA & Mobile Hamburger */}
             <div className="header-right">
-                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" className="btn btn-primary desktop-only">Contact Us</a>
+                {content.button.visible && <CmsButton link={content.button.link} whatsapp={whatsapp} className="btn btn-primary desktop-only" />}
                 
                 {/* Mobile Hamburger */}
                 <button 
@@ -326,13 +338,10 @@ export default function Header() {
                     zIndex: 99
                 }}
             >
-                <Link href={pathname === '/menu' ? "/" : "/menu"} style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
-                    {pathname === '/menu' ? "Home" : "Menu"}
-                </Link>
-                <Link href="/#locations" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
-                <Link href="/#heritage" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
-                <Link href="/#gift" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
-                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Contact Us</a>
+                {links.map((l, i) => (
+                    <Link key={`${l.href}-${i}`} href={l.href} style={mobileLinkStyle} onClick={closeMenu}>{l.label}</Link>
+                ))}
+                {content.button.visible && <CmsButton link={content.button.link} whatsapp={whatsapp} onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}} />}
             </nav>
         </header>
         </>

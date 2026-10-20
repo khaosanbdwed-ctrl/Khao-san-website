@@ -43,6 +43,18 @@ export default async function AdminOverview() {
                 ))}
             </div>
 
+            <div style={{ backgroundColor: 'var(--color-surface-base)', padding: '40px', borderRadius: '12px', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '16px' }}>Managing the website</h2>
+                <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '20px' }}>
+                    Every word, photo, video and background on the site - the homepage sections, the menu
+                    page, the header and footer, outlet addresses and opening hours, the legal pages and how
+                    the site looks when shared - is edited in <strong>Website Content</strong>. Changes are
+                    saved as a draft, previewed on the real site, and only go live when you press{' '}
+                    <strong>Publish</strong>. Every published version is kept and can be restored.
+                </p>
+                <Link href="/admin/content" className="btn btn-primary">Open Website Content</Link>
+            </div>
+
             <div style={{ backgroundColor: 'var(--color-surface-base)', padding: '40px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '16px' }}>Managing the menu</h2>
                 <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '20px' }}>

@@ -4,8 +4,18 @@ import { usePathname } from 'next/navigation';
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import IgnitionVeil from "@/components/ui/ignition-veil";
+import type { HeaderContent, FooterContent } from "@/lib/cms/docs/chrome";
+import type { Location } from "@/lib/locations";
 
-export default function ClientWrapper({ children }: { children: React.ReactNode }) {
+type Props = {
+    children: React.ReactNode;
+    header: HeaderContent;
+    footer: FooterContent;
+    locations: Location[];
+    whatsapp: string;
+};
+
+export default function ClientWrapper({ children, header, footer, locations, whatsapp }: Props) {
     const pathname = usePathname();
     const isAdmin = pathname?.startsWith('/admin');
     useEffect(() => {
@@ -68,13 +78,13 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
         <>
             {!isAdmin && <a href="#main-content" className="skip-link">Skip to main content</a>}
             {!isAdmin && <IgnitionVeil />}
-            {!isAdmin && <Header />}
+            {!isAdmin && <Header content={header} whatsapp={whatsapp} />}
             {isAdmin ? (
                 children
             ) : (
                 <main id="main-content" className="page-transition">{children}</main>
             )}
-            {!isAdmin && <Footer />}
+            {!isAdmin && <Footer content={footer} locations={locations} whatsapp={whatsapp} />}
         </>
     );
 }

@@ -1,6 +1,7 @@
 import { createPublicClient } from '@/lib/supabase/public';
 import MenuPageClient from '@/components/menu-page-client';
 import type { MenuCategory } from '@/components/menu-page-client';
+import { getSiteContent } from '@/lib/cms/content';
 
 /**
  * The menu was fully dynamic, so all three queries below ran on every single
@@ -40,10 +41,12 @@ export default async function MenuPage() {
     const supabase = createPublicClient();
 
     const [
+        site,
         { data: categories },
         { data: items },
         { data: addOns },
     ] = await Promise.all([
+        getSiteContent(),
         supabase.from('menu_categories').select('*').order('sort_order'),
         supabase.from('menu_items').select('*').order('sort_order'),
         supabase.from('menu_category_addons').select('*'),
@@ -71,5 +74,5 @@ export default async function MenuPage() {
             })),
     })).filter(cat => cat.items.length > 0 || cat.addOns?.length);
 
-    return <MenuPageClient categories={menuData} />;
+    return <MenuPageClient categories={menuData} page={site.menu} />;
 }

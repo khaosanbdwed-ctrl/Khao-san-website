@@ -2,7 +2,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
+import { clock, dayRanges, mapLink, type Location } from '@/lib/locations';
+import type { FooterContent } from '@/lib/cms/docs/chrome';
+import { BackgroundLayers, CmsButton, sectionBackground } from '@/components/cms/cms-ui';
 
 /**
  * The footer, rebuilt around what a restaurant footer is actually FOR.
@@ -55,20 +57,16 @@ import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
  *
  * Hours live in the brand column, not repeated per outlet: all three branches
  * keep the same times, and printing them three times would be noise in a band
- * whose entire point is that the three ADDRESSES differ. If one outlet ever
- * diverges, move hours into the outlet block - lib/locations.ts already
- * carries them per-location.
+ * whose entire point is that the three ADDRESSES differ. They are generated
+ * from the first outlet's structured hours - the same data the JSON-LD below
+ * emits - so the visible line and Google's copy can no longer drift apart (it
+ * used to be typed into this file by hand). If one outlet ever diverges, move
+ * hours into the outlet block; every outlet carries its own.
  *
- * NAP comes from lib/locations.ts, shared with the Locations chapter on the
- * homepage. Do not inline an address or a phone number here.
+ * Everything here is CMS content: the footer's own text, links, social
+ * accounts and background (Footer in the dashboard), and the outlets
+ * (Locations & hours). Do not inline an address or a phone number here.
  */
-
-const EXPLORE = [
-    { href: '/menu', label: 'Menu' },
-    { href: '/#locations', label: 'Locations' },
-    { href: '/#heritage', label: 'Our Story' },
-    { href: '/#gift', label: 'Gift Cards' },
-];
 
 /* ⚠ THE BRAND MARKS ARE AUTHORED HERE, NOT IMPORTED, AND THAT IS NOT A
    SHORTCUT. lucide-react ships 5,978 icons and none of them are Facebook or
@@ -108,10 +106,52 @@ function FacebookMark() {
     );
 }
 
-const SOCIAL = [
-    { href: 'https://www.instagram.com/khaosandhaka/', label: 'Instagram', Mark: InstagramMark },
-    { href: 'https://www.facebook.com/KhaoSanDhaka', label: 'Facebook', Mark: FacebookMark },
-];
+function TikTokMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+            <path d="M14 3c.4 2.6 2.3 4.6 5 5" />
+        </svg>
+    );
+}
+
+function YouTubeMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <rect x="2" y="5" width="20" height="14" rx="4" />
+            <path d="m10 9 5 3-5 3z" />
+        </svg>
+    );
+}
+
+function WhatsAppMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <path d="M3 21l1.65-3.8A9 9 0 1 1 8.4 20.1z" />
+            <path d="M9 8.5c0 3.6 2.9 6.5 6.5 6.5l1-1.6-2.1-1-1 1a4 4 0 0 1-2.3-2.3l1-1-1-2.1z" />
+        </svg>
+    );
+}
+
+const SOCIAL_MARKS: Record<string, { label: string; Mark: () => React.JSX.Element }> = {
+    instagram: { label: 'Instagram', Mark: InstagramMark },
+    facebook: { label: 'Facebook', Mark: FacebookMark },
+    tiktok: { label: 'TikTok', Mark: TikTokMark },
+    youtube: { label: 'YouTube', Mark: YouTubeMark },
+    whatsapp: { label: 'WhatsApp', Mark: WhatsAppMark },
+};
 
 /**
  * One Restaurant node per outlet, each with a stable `@id` so the three are
@@ -120,17 +160,17 @@ const SOCIAL = [
  * markup and the visible NAP above it are then guaranteed to agree, which is
  * the requirement that actually matters.
  */
-function outletSchema() {
+function outletSchema(locations: Location[]) {
     return {
         '@context': 'https://schema.org',
-        '@graph': LOCATIONS.map((loc) => ({
+        '@graph': locations.map((loc) => ({
             '@type': 'Restaurant',
             '@id': `https://khaosan.com.bd/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
             name: `Khao San ${loc.name}`,
             servesCuisine: 'Thai',
             url: 'https://khaosan.com.bd',
             telephone: loc.tel,
-            image: `https://khaosan.com.bd${loc.imageSrc}`,
+            image: loc.imageSrc.startsWith('/') ? `https://khaosan.com.bd${loc.imageSrc}` : loc.imageSrc,
             address: {
                 '@type': 'PostalAddress',
                 streetAddress: loc.address,
@@ -148,17 +188,38 @@ function outletSchema() {
     };
 }
 
-export default function Footer() {
+/** "Sat–Thu · 12pm–11pm", with the am/pm set small (.footer-hours-mer). */
+function CompactHours({ hours }: { hours: Location['openingHours'] }) {
+    return (
+        <>
+            {hours.map((h, i) => {
+                const o = clock(h.opens, true), c = clock(h.closes, true);
+                return (
+                    <span key={i}>
+                        {dayRanges(h.days).join(', ')} &middot; {o.time}<span className="footer-hours-mer">{o.mer}</span>&ndash;{c.time}<span className="footer-hours-mer">{c.mer}</span>
+                    </span>
+                );
+            })}
+        </>
+    );
+}
+
+type Props = { content: FooterContent; locations: Location[]; whatsapp: string };
+
+export default function Footer({ content, locations, whatsapp }: Props) {
     const [activeLocationIndex, setActiveLocationIndex] = useState<number | null>(null);
-    const activeLocation = activeLocationIndex === null ? null : LOCATIONS[activeLocationIndex];
+    const activeLocation = activeLocationIndex === null ? null : locations[activeLocationIndex];
+    const { brand } = content;
+    const bgProps = sectionBackground(content.style.background, undefined, 'site-footer');
 
     return (
-        <footer className="site-footer">
+        <footer {...bgProps}>
+            <BackgroundLayers bg={content.style.background} />
             <script
                 type="application/ld+json"
-                // The payload is built from a typed local constant, never from
-                // user input, so there is nothing here to escape.
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(outletSchema()) }}
+                // Built from CMS text, so `<` is escaped: an address
+                // containing "</script>" must not be able to close this tag.
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(outletSchema(locations)).replace(/</g, '\\u003c') }}
             />
             <div className="container site-footer__inner">
 
@@ -172,40 +233,38 @@ export default function Footer() {
                             footer. Alpha must survive for the knock-out to work -
                             see .footer-logo in 12-footer.css, which is paired with
                             this surface being dark. */}
-                        <Image
-                            className="footer-logo"
-                            src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
-                            alt="Khao San"
-                            width={200}
-                            height={174}
-                            loading="eager"
-                            unoptimized
-                        />
-                        <p className="footer-tagline">
-                            Reinventing the Thai way.
-                        </p>
-                        <p className="footer-hours">
-                            <span>Sat&ndash;Thu &middot; 12<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
-                            <span>Friday &middot; 2<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
-                        </p>
-                        <a
-                            href={waLink("Hi, I'd like to reserve a table at Khao San.")}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-primary footer-cta"
-                        >Reserve a Table</a>
+                        {brand.logo && (
+                            <Image
+                                className={`footer-logo${brand.logoWhite ? '' : ' footer-logo--original'}`}
+                                src={brand.logo}
+                                alt={brand.logoAlt}
+                                width={200}
+                                height={174}
+                                loading="eager"
+                                unoptimized
+                            />
+                        )}
+                        {brand.tagline && <p className="footer-tagline">{brand.tagline}</p>}
+                        {brand.showHours && locations[0]?.openingHours.length > 0 && (
+                            <p className="footer-hours">
+                                <CompactHours hours={locations[0].openingHours} />
+                            </p>
+                        )}
+                        {brand.showButton && (
+                            <CmsButton link={brand.button} whatsapp={whatsapp} className="btn btn-primary footer-cta" />
+                        )}
                     </div>
 
                     {/* Desktop retains the three complete outlet blocks. The
                         phone selector below is a separate compact treatment,
                         so the desktop NAP layout does not need to compromise. */}
-                    {LOCATIONS.map((loc) => (
-                        <div className="footer-outlet footer-outlet--desktop" key={loc.name}>
+                    {locations.map((loc, i) => (
+                        <div className="footer-outlet footer-outlet--desktop" key={`${loc.name}-${i}`}>
                             <h3 className="footer-outlet-name">{loc.name}</h3>
                             {/* <address> is the correct element and it italicises
                                 by default in every browser - reset in the CSS. */}
                             <address className="footer-outlet-address">{loc.address}</address>
-                            <a className="footer-outlet-tel" href={`tel:${loc.tel}`}>{loc.phoneDisplay}</a>
+                            {loc.tel && <a className="footer-outlet-tel" href={`tel:${loc.tel}`}>{loc.phoneDisplay}</a>}
                             <a
                                 className="footer-outlet-map"
                                 href={mapLink(loc.mapQuery)}
@@ -219,12 +278,12 @@ export default function Footer() {
                         selected branch supplies the useful NAP details. */}
                     <section className="footer-location-picker" aria-label="Khao San locations">
                         <div className="footer-location-tabs">
-                            {LOCATIONS.map((loc, index) => {
+                            {locations.map((loc, index) => {
                                 const isActive = activeLocationIndex === index;
 
                                 return (
                                     <button
-                                        key={loc.name}
+                                        key={`${loc.name}-${index}`}
                                         type="button"
                                         className={`footer-location-tab${isActive ? ' is-active' : ''}`}
                                         aria-expanded={isActive}
@@ -268,17 +327,19 @@ export default function Footer() {
                     links and they were occupying 278px as three vertical lists. */}
                 <nav className="footer-nav" aria-label="Footer">
                     <ul className="footer-nav-list">
-                        {EXPLORE.map((item) => (
-                            <li key={item.href}>
+                        {content.links.items.map((item, i) => (
+                            <li key={`${item.href}-${i}`}>
                                 <Link href={item.href} className="footer-link">{item.label}</Link>
                             </li>
                         ))}
                     </ul>
                     <ul className="footer-nav-list footer-nav-list--social">
-                        {SOCIAL.map(({ href, label, Mark }) => (
-                            <li key={href}>
+                        {content.social.items.filter(s => s.url.startsWith('https://') && SOCIAL_MARKS[s.platform]).map(({ platform, url }) => {
+                            const { label, Mark } = SOCIAL_MARKS[platform];
+                            return (
+                            <li key={url}>
                                 <a
-                                    href={href}
+                                    href={url}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="footer-social"
@@ -287,16 +348,18 @@ export default function Footer() {
                                     <Mark />
                                 </a>
                             </li>
-                        ))}
+                            );
+                        })}
                     </ul>
                 </nav>
 
                 {/* ZONE 3 - one line. */}
                 <div className="footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} Khao San Dhaka. All rights reserved.</p>
+                    <p>{content.bottom.copyright.replaceAll('{year}', String(new Date().getFullYear()))}</p>
                     <div className="footer-legal">
-                        <Link href="/legal/privacy">Privacy Policy</Link>
-                        <Link href="/legal/terms">Terms</Link>
+                        {content.bottom.legal.map((l, i) => (
+                            <Link key={`${l.href}-${i}`} href={l.href}>{l.label}</Link>
+                        ))}
                     </div>
                 </div>
             </div>

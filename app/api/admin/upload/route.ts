@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-
-const BUCKET = 'dish-images';
+import { DISH_BUCKET as BUCKET, ensureBucket } from '@/lib/cms/bucket';
 const MAX_BYTES = 5 * 1024 * 1024;
 
 /** The 8-byte PNG signature (ISO 15948). */
@@ -17,7 +16,8 @@ const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
  *   1. the file picker's `accept` (a hint to the OS dialog, nothing more)
  *   2. the browser-reported MIME type (attacker-controlled)
  *   3. the actual leading bytes of the file  <- the only real check
- * Supabase's own `allowedMimeTypes` on the bucket is a fourth backstop.
+ * Supabase's own `allowedMimeTypes` on the bucket (lib/cms/bucket.ts) is a
+ * fourth backstop.
  */
 function isRealPng(bytes: Uint8Array): boolean {
     if (bytes.length < PNG_MAGIC.length) return false;
@@ -60,6 +60,10 @@ export async function POST(request: Request) {
             );
         }
 
+        // The bucket used to be a manual setup step nobody wrote down - a
+        // fresh Supabase project failed every dish upload. It is created on
+        // first use now.
+        await ensureBucket(BUCKET);
         const supabase = createAdminClient();
         const path = safeName(file.name || 'dish');
 
