@@ -1,36 +1,30 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
 
 /**
- * Renamed from `middleware.ts` — Next.js 16 deprecated the `middleware` file
- * convention in favour of `proxy`. Same behaviour, same matcher.
+ * Gate for /admin pages and /api/admin endpoints.
+ *
+ * ⚠ This used to accept any request whose session cookie held the literal
+ * text "authenticated" - a value anyone could set in their own browser. The
+ * cookie is now a signed, expiring token (lib/auth/session.ts). Every admin
+ * route handler re-checks it as well (lib/auth/guard.ts), so this is not the
+ * only line of defence.
+ *
+ * (Next.js 16 renamed `middleware.ts` to `proxy.ts`; it runs on Node.js.)
  */
 export function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    if (pathname === '/admin/login') return NextResponse.next();
 
-    // Protect /admin pages and /api/admin endpoints
-    const isAdminPage = pathname.startsWith('/admin');
-    const isAdminApi = pathname.startsWith('/api/admin');
-
-    if (isAdminPage || isAdminApi) {
-        // Allow access to login page
-        if (pathname === '/admin/login') {
-            return NextResponse.next();
+    if (!verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+        if (pathname.startsWith('/api/admin')) {
+            return NextResponse.json({ error: 'Your session has expired. Please sign in again.' }, { status: 401 });
         }
-
-        // Check for session cookie
-        const session = request.cookies.get('khao_san_admin_session');
-
-        if (!session || session.value !== 'authenticated') {
-            if (isAdminApi) {
-                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-            }
-            // Redirect to login if not authenticated
-            const loginUrl = new URL('/admin/login', request.url);
-            return NextResponse.redirect(loginUrl);
-        }
+        const loginUrl = new URL('/admin/login', request.url);
+        if (pathname !== '/admin') loginUrl.searchParams.set('next', pathname);
+        return NextResponse.redirect(loginUrl);
     }
-
     return NextResponse.next();
 }
 

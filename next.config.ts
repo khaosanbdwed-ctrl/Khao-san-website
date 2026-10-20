@@ -1,17 +1,37 @@
 import type { NextConfig } from "next";
 
+/* Photos uploaded through the admin panel are served from Supabase Storage,
+   so next/image needs that host allowlisted or every upload renders broken.
+
+   ⚠ This used to name one project's host literally. Moving to a different
+   Supabase project (a new NEXT_PUBLIC_SUPABASE_URL) would then have broken
+   every uploaded image on the site with no code change to point at. The host
+   is now read from the same environment variable the app connects with, plus
+   a wildcard for any *.supabase.co project. */
+const supabaseUrl = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SUPABASE_URL ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL) : null;
+  } catch {
+    return null;
+  }
+})();
+const isLocalSupabase = !!supabaseUrl && ["localhost", "127.0.0.1"].includes(supabaseUrl.hostname);
+
 const nextConfig: NextConfig = {
   images: {
-    // Dish photos uploaded through the admin panel are served from Supabase
-    // Storage, so next/image needs the bucket host allowlisted or every
-    // uploaded dish renders as a broken image on the public menu.
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "breqqsquwkxgjzrxbxso.supabase.co",
-        pathname: "/storage/v1/object/public/**",
-      },
+      { protocol: "https", hostname: "**.supabase.co", pathname: "/storage/v1/object/public/**" },
+      ...(supabaseUrl
+        ? [{
+            protocol: supabaseUrl.protocol.replace(":", "") as "http" | "https",
+            hostname: supabaseUrl.hostname,
+            port: supabaseUrl.port,
+            pathname: "/storage/v1/object/public/**",
+          }]
+        : []),
     ],
+    // Only for a Supabase running on this machine (local development).
+    dangerouslyAllowLocalIP: isLocalSupabase,
   },
 
   async headers() {

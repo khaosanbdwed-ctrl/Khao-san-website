@@ -1,8 +1,10 @@
 "use client";
-import Link from 'next/link';
 import Image from 'next/image';
 import React, { useState } from 'react';
-import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
+import { Globe } from 'lucide-react';
+import { useContent } from '@/components/cms/content-context';
+import { CmsButton, CmsLink, mapLink } from '@/components/cms/cms-ui';
+import type { SiteContent } from '@/lib/cms/schema';
 
 /**
  * The footer, rebuilt around what a restaurant footer is actually FOR.
@@ -59,16 +61,9 @@ import { LOCATIONS, waLink, mapLink } from '@/lib/locations';
  * diverges, move hours into the outlet block - lib/locations.ts already
  * carries them per-location.
  *
- * NAP comes from lib/locations.ts, shared with the Locations chapter on the
- * homepage. Do not inline an address or a phone number here.
+ * NAP comes from the CMS Locations document, shared with the Locations
+ * chapter on the homepage. Do not inline an address or a phone number here.
  */
-
-const EXPLORE = [
-    { href: '/menu', label: 'Menu' },
-    { href: '/#locations', label: 'Locations' },
-    { href: '/#heritage', label: 'Our Story' },
-    { href: '/#gift', label: 'Gift Cards' },
-];
 
 /* ⚠ THE BRAND MARKS ARE AUTHORED HERE, NOT IMPORTED, AND THAT IS NOT A
    SHORTCUT. lucide-react ships 5,978 icons and none of them are Facebook or
@@ -108,10 +103,50 @@ function FacebookMark() {
     );
 }
 
-const SOCIAL = [
-    { href: 'https://www.instagram.com/khaosandhaka/', label: 'Instagram', Mark: InstagramMark },
-    { href: 'https://www.facebook.com/KhaoSanDhaka', label: 'Facebook', Mark: FacebookMark },
-];
+function TikTokMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5" />
+            <path d="M14 3c.5 3 2.5 5 5.5 5" />
+        </svg>
+    );
+}
+
+function YouTubeMark() {
+    return (
+        <svg
+            viewBox="0 0 24 24" width="20" height="20" fill="none"
+            stroke="currentColor" strokeWidth="1.75"
+            strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"
+        >
+            <rect x="2" y="5" width="20" height="14" rx="4" />
+            <path d="m10 9 5 3-5 3z" />
+        </svg>
+    );
+}
+
+function OtherMark() {
+    return <Globe size={20} strokeWidth={1.75} aria-hidden="true" />;
+}
+
+const SOCIAL_MARKS: Record<string, () => React.ReactElement> = {
+    instagram: InstagramMark,
+    facebook: FacebookMark,
+    tiktok: TikTokMark,
+    youtube: YouTubeMark,
+    other: OtherMark,
+};
+
+/** "12pm" -> 12<span>pm</span>, so the meridiem can be set small. */
+function renderHours(line: string) {
+    return line.split(/(?<=\d)(am|pm)/i).map((part, i) =>
+        i % 2 === 1 ? <span className="footer-hours-mer" key={i}>{part}</span> : part
+    );
+}
 
 /**
  * One Restaurant node per outlet, each with a stable `@id` so the three are
@@ -120,17 +155,18 @@ const SOCIAL = [
  * markup and the visible NAP above it are then guaranteed to agree, which is
  * the requirement that actually matters.
  */
-function outletSchema() {
+function outletSchema(content: SiteContent) {
+    const siteUrl = content.site.siteUrl.replace(/\/$/, '');
     return {
         '@context': 'https://schema.org',
-        '@graph': LOCATIONS.map((loc) => ({
+        '@graph': content.locations.outlets.map((loc) => ({
             '@type': 'Restaurant',
-            '@id': `https://khaosan.com.bd/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
-            name: `Khao San ${loc.name}`,
+            '@id': `${siteUrl}/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
+            name: `${content.site.siteName} ${loc.name}`,
             servesCuisine: 'Thai',
-            url: 'https://khaosan.com.bd',
+            url: siteUrl,
             telephone: loc.tel,
-            image: `https://khaosan.com.bd${loc.imageSrc}`,
+            image: loc.image.src.startsWith('/') ? `${siteUrl}${loc.image.src}` : loc.image.src,
             address: {
                 '@type': 'PostalAddress',
                 streetAddress: loc.address,
@@ -143,22 +179,26 @@ function outletSchema() {
                 opens: h.opens,
                 closes: h.closes,
             })),
-            hasMenu: 'https://khaosan.com.bd/menu',
+            hasMenu: `${siteUrl}/menu`,
         })),
     };
 }
 
 export default function Footer() {
+    const content = useContent();
+    const { site, navigation } = content;
+    const footer = navigation.footer;
+    const LOCATIONS = content.locations.outlets;
     const [activeLocationIndex, setActiveLocationIndex] = useState<number | null>(null);
-    const activeLocation = activeLocationIndex === null ? null : LOCATIONS[activeLocationIndex];
+    const activeLocation = activeLocationIndex === null ? null : LOCATIONS[activeLocationIndex] ?? null;
 
     return (
         <footer className="site-footer">
             <script
                 type="application/ld+json"
-                // The payload is built from a typed local constant, never from
-                // user input, so there is nothing here to escape.
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(outletSchema()) }}
+                // Built from CMS content, so `<` is escaped: a "</script>"
+                // typed into an address must not be able to end this element.
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(outletSchema(content)).replace(/</g, '\\u003c') }}
             />
             <div className="container site-footer__inner">
 
@@ -172,35 +212,35 @@ export default function Footer() {
                             footer. Alpha must survive for the knock-out to work -
                             see .footer-logo in 12-footer.css, which is paired with
                             this surface being dark. */}
-                        <Image
-                            className="footer-logo"
-                            src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
-                            alt="Khao San"
-                            width={200}
-                            height={174}
-                            loading="eager"
-                            unoptimized
-                        />
-                        <p className="footer-tagline">
-                            Reinventing the Thai way.
-                        </p>
-                        <p className="footer-hours">
-                            <span>Sat&ndash;Thu &middot; 12<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
-                            <span>Friday &middot; 2<span className="footer-hours-mer">pm</span>&ndash;11<span className="footer-hours-mer">pm</span></span>
-                        </p>
-                        <a
-                            href={waLink("Hi, I'd like to reserve a table at Khao San.")}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-primary footer-cta"
-                        >Reserve a Table</a>
+                        {site.logo.src && (
+                            <Image
+                                className="footer-logo"
+                                src={site.logo.src}
+                                alt={site.logo.alt || site.siteName}
+                                width={200}
+                                height={174}
+                                loading="eager"
+                                unoptimized
+                            />
+                        )}
+                        {footer.tagline && (
+                            <p className="footer-tagline">
+                                {footer.tagline}
+                            </p>
+                        )}
+                        {footer.hours.length > 0 && (
+                            <p className="footer-hours">
+                                {footer.hours.map((line, i) => <span key={i}>{renderHours(line)}</span>)}
+                            </p>
+                        )}
+                        <CmsButton cta={footer.button} className="footer-cta" />
                     </div>
 
                     {/* Desktop retains the three complete outlet blocks. The
                         phone selector below is a separate compact treatment,
                         so the desktop NAP layout does not need to compromise. */}
-                    {LOCATIONS.map((loc) => (
-                        <div className="footer-outlet footer-outlet--desktop" key={loc.name}>
+                    {LOCATIONS.map((loc, i) => (
+                        <div className="footer-outlet footer-outlet--desktop" key={`${loc.name}-${i}`}>
                             <h3 className="footer-outlet-name">{loc.name}</h3>
                             {/* <address> is the correct element and it italicises
                                 by default in every browser - reset in the CSS. */}
@@ -211,7 +251,7 @@ export default function Footer() {
                                 href={mapLink(loc.mapQuery)}
                                 target="_blank"
                                 rel="noreferrer"
-                            >Directions</a>
+                            >{footer.directionsLabel}</a>
                         </div>
                     ))}
 
@@ -224,7 +264,7 @@ export default function Footer() {
 
                                 return (
                                     <button
-                                        key={loc.name}
+                                        key={`${loc.name}-${index}`}
                                         type="button"
                                         className={`footer-location-tab${isActive ? ' is-active' : ''}`}
                                         aria-expanded={isActive}
@@ -252,7 +292,7 @@ export default function Footer() {
                                     target="_blank"
                                     rel="noreferrer"
                                 >
-                                    Directions
+                                    {footer.directionsLabel}
                                 </a>
                                 <p className="footer-location-panel-hours">
                                     {activeLocation.hours.map((hours) => (
@@ -268,35 +308,39 @@ export default function Footer() {
                     links and they were occupying 278px as three vertical lists. */}
                 <nav className="footer-nav" aria-label="Footer">
                     <ul className="footer-nav-list">
-                        {EXPLORE.map((item) => (
-                            <li key={item.href}>
-                                <Link href={item.href} className="footer-link">{item.label}</Link>
+                        {footer.links.map((item, i) => (
+                            <li key={`${item.href}-${i}`}>
+                                <CmsLink href={item.href} className="footer-link">{item.label}</CmsLink>
                             </li>
                         ))}
                     </ul>
                     <ul className="footer-nav-list footer-nav-list--social">
-                        {SOCIAL.map(({ href, label, Mark }) => (
-                            <li key={href}>
-                                <a
-                                    href={href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="footer-social"
-                                    aria-label={label}
-                                >
-                                    <Mark />
-                                </a>
-                            </li>
-                        ))}
+                        {footer.social.filter(item => item.href).map(({ href, label, platform }, i) => {
+                            const Mark = SOCIAL_MARKS[platform] ?? OtherMark;
+                            return (
+                                <li key={`${href}-${i}`}>
+                                    <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="footer-social"
+                                        aria-label={label || platform}
+                                    >
+                                        <Mark />
+                                    </a>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </nav>
 
                 {/* ZONE 3 - one line. */}
                 <div className="footer-bottom">
-                    <p>&copy; {new Date().getFullYear()} Khao San Dhaka. All rights reserved.</p>
+                    <p>{footer.copyright.replace(/\{year\}/g, String(new Date().getFullYear()))}</p>
                     <div className="footer-legal">
-                        <Link href="/legal/privacy">Privacy Policy</Link>
-                        <Link href="/legal/terms">Terms</Link>
+                        {footer.legal.map((item, i) => (
+                            <CmsLink key={`${item.href}-${i}`} href={item.href}>{item.label}</CmsLink>
+                        ))}
                     </div>
                 </div>
             </div>

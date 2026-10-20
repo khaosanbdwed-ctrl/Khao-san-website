@@ -1,0 +1,786 @@
+[
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/010.jpg",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Footer/Footer.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/images (1).jpg",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/images.jpg",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Elephant 16 by 9 Ratio Landscape.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus BG.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus Crop Transparent.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus Crop.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus Single White.svg",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus Single.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus BG.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single White.svg",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Single.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/bg-web/elephant-landscape.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/bg-web/lotus-background.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/bg-web/lotus-bg.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/brush-strokes/saffron.png",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/brush-strokes/terracotta.png",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Colors-20260709T183545Z-2-001/Colors/Brand Colors_1.png",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Colors-20260709T183545Z-2-001/Colors/Brand Colors.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Giftcards-20260709T183548Z-2-001/Giftcards/1500Tk Back.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Giftcards-20260709T183548Z-2-001/Giftcards/1500Tk Front.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Giftcards-20260709T183548Z-2-001/Giftcards/3000Tk Back.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Giftcards-20260709T183548Z-2-001/Giftcards/3000Tk Front.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Heritage/elephant-mark.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Heritage/neon-market.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Heritage/rocco-street.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/dhanmondi/mural-glass.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/dhanmondi/tables-palm.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/gulshan/banquette.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/gulshan/tuktuk-booth.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/uttara/dining-floor.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/interiors/uttara/pendants.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Location_Image_1_1/Dhanmondi_Outlet_1.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Location_Image_1_1/Gulshan_Outlet_2.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Location_Image_1_1/Uttara_Outlet_3.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Logos-20260709T183558Z-2-001/Logos/Dark Blue.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Bangkok Fried Chicken with House Special Dip.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Crispy Chicken Cabbage Roll with Sweet Chili Sauce (4pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Fried Garlic Calamari.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Grilled Chicken Satay with Peanut Sauce (6pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Morning Glory with Larb Gai Dip.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Thai Fish Cake with Vinaigrette Dip (6pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/A. Appetizers/Thai Prawn Tempura With Sweet Chili Sauce (5pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/B. Soups/Seafood Clear Soup.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/B. Soups/Tom Kha Chicken _ Seafood.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/B. Soups/Tom Yum Goong.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Beef and Basil Potsticker.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Chicken and Basil Potsticker.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Chicken and Prawn Siu Mai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Chicken Lemon Grass Siu Mai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Chicken Wonton Soup (4 pcs wontons).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/C. Dumplings/Prawn and Cream Cheese Rangoon.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/D. Salads/Chicken Cashew Nut Salad.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/D. Salads/Grilled Beef Salad in Nam Tok Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/D. Salads/Som Tam (Thai Papaya Salad).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/D. Salads/Thai Seafood Salad.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/E. Noodles/Khao Soi Gai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/E. Noodles/Khao Soi Neua.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/E. Noodles/KS Special Mixed Noodles.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/E. Noodles/Pad Thai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/E. Noodles/Thai Chilli Garlic Noodles.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/F. Rice/Khao San Seafood Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/F. Rice/Pineapple Fried Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/F. Rice/Steamed Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/F. Rice/Thai Fried Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/F. Rice/Tom Yum Rice with Prawn.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Chicken Green Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Chicken in Black Pepper.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Chicken in Holy Basil.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Chicken Penang Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Chicken Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Ginger Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Grilled Pineapple Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/G. Chicken/Soy Glazed Honey Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/H. Beef/Beef Basil.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/H. Beef/Beef in Black Pepper.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/H. Beef/Beef in Chilli Paste.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/H. Beef/Beef Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/H. Beef/Wok Charred Beef.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Calamari Stir Fry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Fried Whole Fish in Spicy Hot Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Oriental Fish in Hot Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Seafood Garlic Stir Fry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Seafood in Tom Yum Paste.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Seafood Yellow Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/I. Seafood/Steamed Whole Fish Infused with Garlic Lime Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/J. Vegetarian/Mushroom in Oyster Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/J. Vegetarian/Thai Green Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/J. Vegetarian/Thai Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/K. Rice Bowls/Pad Kra Pao Gai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/K. Rice Bowls/Thai Chicken Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/K. Rice Bowls/Thai Seafood Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/K. Rice Bowls/Tom Yum Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/Kids Menu/Chicken Fried Rice with Soy Glazed Honey Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Coconut Ice Cream Over Sticky Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Mango Sticky Rice with Coconut Ice Cream.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Mango Sticky Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Pina Colada Sorbet.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Tapioca Mango Pudding.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/L. Desserts/Thai Milk Tea Ice Cream.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Chilled Lemon Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Coconut Shake.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Cold Brewed Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Iced Milo.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Lemon Tea (Hot).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Lemongrass Ginger Tea (Hot).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Mixed Berry Mojito.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Thai Iced Milk Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/menu-plated/M. Drinks/Tropical Cream Limeade.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Bangkok Fried Chicken with House Special Dip.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Crispy Chicken Cabbage Roll with Sweet Chili Sauce (4pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Fried Garlic Calamari.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Grilled Chicken Satay with Peanut Sauce (6pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Morning Glory with Larb Gai Dip.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Thai Fish Cake with Vinaigrette Dip (6pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/A. Appetizers/Thai Prawn Tempura With Sweet Chili Sauce (5pcs).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/B. Soups/Seafood Clear Soup.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/B. Soups/Tom Kha Chicken _ Seafood.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/B. Soups/Tom Yum Goong.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Beef and Basil Potsticker.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Chicken and Basil Potsticker.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Chicken and Prawn Siu Mai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Chicken Lemon Grass Siu Mai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Chicken Wonton Soup (4 pcs wontons).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/C. Dumplings/Prawn and Cream Cheese Rangoon.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/D. Salads/Chicken Cashew Nut Salad.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/D. Salads/Grilled Beef Salad in Nam Tok Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/D. Salads/Som Tam (Thai Papaya Salad).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/D. Salads/Thai Seafood Salad.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/E. Noodles/Khao Soi Gai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/E. Noodles/Khao Soi Neua.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/E. Noodles/KS Special Mixed Noodles.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/E. Noodles/Pad Thai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/E. Noodles/Thai Chilli Garlic Noodles.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/F. Rice/Khao San Seafood Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/F. Rice/Pineapple Fried Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/F. Rice/Steamed Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/F. Rice/Thai Fried Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/F. Rice/Tom Yum Rice with Prawn.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Chicken Green Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Chicken in Black Pepper.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Chicken in Holy Basil.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Chicken Penang Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Chicken Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Ginger Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Grilled Pineapple Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/G. Chicken/Soy Glazed Honey Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/H. Beef/Beef Basil.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/H. Beef/Beef in Black Pepper.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/H. Beef/Beef in Chilli Paste.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/H. Beef/Beef Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/H. Beef/Wok Charred Beef.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Calamari Stir Fry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Fried Whole Fish in Spicy Hot Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Oriental Fish in Hot Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Seafood Garlic Stir Fry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Seafood in Tom Yum Paste.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Seafood Yellow Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/I. Seafood/Steamed Whole Fish Infused with Garlic Lime Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/J. Vegetarian/Mushroom in Oyster Sauce.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/J. Vegetarian/Thai Green Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/J. Vegetarian/Thai Red Curry.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/K. Rice Bowls/Pad Kra Pao Gai.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/K. Rice Bowls/Thai Chicken Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/K. Rice Bowls/Thai Seafood Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/K. Rice Bowls/Tom Yum Bowl.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/Kids Menu/Chicken Fried Rice with Soy Glazed Honey Chicken.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Coconut Ice Cream Over Sticky Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Mango Sticky Rice with Coconut Ice Cream.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Mango Sticky Rice.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Pina Colada Sorbet.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Tapioca Mango Pudding.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/L. Desserts/Thai Milk Tea Ice Cream.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Chilled Lemon Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Coconut Shake.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Cold Brewed Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Iced Milo.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Lemon Tea (Hot).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Lemongrass Ginger Tea (Hot).webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Mixed Berry Mojito.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Thai Iced Milk Tea.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/Menu/KS Menu Webp/M. Drinks/Tropical Cream Limeade.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/patterns/thai-lotus-lattice.png",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/posters/closing-table.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/posters/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/posters/theatre-craft.webp",
+  "kind": "image"
+ },
+ {
+  "src": "/assets/video-web/closing-table.mp4",
+  "kind": "video"
+ },
+ {
+  "src": "/assets/video-web/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.mp4",
+  "kind": "video"
+ },
+ {
+  "src": "/assets/video-web/theatre-craft.mp4",
+  "kind": "video"
+ }
+]

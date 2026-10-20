@@ -1,20 +1,14 @@
 /**
- * The three rooms - one source of truth.
+ * The three rooms - the DEFAULT outlet data.
  *
- * ⚠ This array was duplicated: once in app/page.tsx for the Locations chapter
- * and once (partially, and already drifted - the footer carried a single phone
- * number for all three outlets) in components/Footer.tsx. NAP consistency is
- * the one thing local search will not forgive: the name, address and phone
- * here must match the Google Business Profile and every directory citation
- * character for character, including abbreviations and punctuation. Two copies
- * of that in one codebase is a drift waiting to happen, and the footer copy
- * had already drifted.
+ * ⚠ The live list is edited in Admin -> Locations and stored in the CMS. This
+ * array only seeds it (lib/cms/schema.ts) and is what renders until the
+ * client publishes their own. The Locations chapter, the footer and the
+ * Restaurant JSON-LD all read the CMS copy.
  *
- * Edit here and nowhere else. The Locations chapter, the footer, and the
- * Restaurant JSON-LD the footer emits all read this array.
- *
- * `hours` is per-outlet even though all three currently keep the same times -
- * the day a single branch opens late, this file is the only edit.
+ * NAP consistency still matters as much as ever: name, address and phone must
+ * match the Google Business Profile character for character - now in the
+ * admin form rather than here.
  */
 export interface Location {
     /** Branch name, as it appears on the Google Business Profile. */

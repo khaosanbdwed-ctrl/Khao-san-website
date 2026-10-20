@@ -3,6 +3,14 @@ import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientWrapper from "@/components/ClientWrapper";
+import { ContentProvider } from "@/components/cms/content-context";
+import { getSiteContent } from "@/lib/cms/store";
+import { themeToCss } from "@/lib/cms/theme";
+
+/* Every page reads its words, images and theme from the CMS (lib/cms). Pages
+   are static and cached; publishing in /admin revalidates them on demand.
+   The hour is only a backstop for edits made directly in Supabase. */
+export const revalidate = 3600;
 
 // Playfair Display was removed on 2026-08-09. It was declared with four
 // weights in two styles — eight font files — and nothing on the site set it.
@@ -64,47 +72,62 @@ const goodBrush = localFont({
    No `maximumScale` or `userScalable` here on purpose. Locking zoom is the
    usual companion to this line and it breaks pinch-to-zoom for anyone who
    needs it; the layout is built to survive zooming instead. */
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  viewportFit: 'cover',
-  themeColor: '#1e417b',
-};
+export async function generateViewport(): Promise<Viewport> {
+  const { content } = await getSiteContent();
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+    themeColor: content.theme.colors.blue,
+  };
+}
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://khaosan.com.bd'),
-  title: "Khao San | The Thai Way in Dhaka",
-  description: "Experience the uncompromising standard of authentic Thai Street Food at Khao San Dhaka. A curated dining experience in Gulshan, Dhanmondi, and Uttara.",
-  keywords: ["Thai Food Dhaka", "Khao San", "Best Thai Restaurant", "Fine Dining", "Tom Yum Goong", "Pad Thai", "Gulshan Restaurant"],
-  openGraph: {
-      title: "Khao San | The Thai Way",
-      description: "An evening of unforgettable Thai hospitality. Experience the uncompromising standard of authentic Thai cuisine in Dhaka.",
-      url: "https://khaosan.com.bd",
-      siteName: "Khao San",
-      images: [
-        {
-          url: "/assets/Background-20260709T183540Z-2-001/Background/Elephant%2016%20by%209%20Ratio%20Landscape.webp",
-          width: 1920,
-          height: 1080,
-          alt: "Khao San Restaurant",
-        },
-      ],
-      type: "website",
-      locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Khao San | The Thai Way",
-    description: "Experience the uncompromising standard of authentic Thai cuisine in Dhaka.",
-    images: ["/assets/Background-20260709T183540Z-2-001/Background/Elephant%2016%20by%209%20Ratio%20Landscape.webp"],
-  },
-};
+/** Local paths can contain spaces; metadata URLs must not. */
+const metaUrl = (src: string) => (src.startsWith('/') ? encodeURI(src) : src);
 
-export default function RootLayout({
+export async function generateMetadata(): Promise<Metadata> {
+  const { content } = await getSiteContent();
+  const { site } = content;
+  let base: URL;
+  try { base = new URL(site.siteUrl); } catch { base = new URL('https://khaosan.com.bd'); }
+  const shareImage = site.seo.shareImage.src;
+  return {
+    metadataBase: base,
+    title: site.seo.title,
+    description: site.seo.description,
+    keywords: site.seo.keywords,
+    openGraph: {
+        title: site.seo.shareTitle,
+        description: site.seo.shareDescription,
+        url: base.toString().replace(/\/$/, ''),
+        siteName: site.siteName,
+        images: shareImage ? [
+          {
+            url: metaUrl(shareImage),
+            width: 1920,
+            height: 1080,
+            alt: site.seo.shareImage.alt,
+          },
+        ] : [],
+        type: "website",
+        locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: site.seo.shareTitle,
+      description: site.seo.shareDescriptionShort,
+      images: shareImage ? [metaUrl(shareImage)] : [],
+    },
+  };
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { content, preview } = await getSiteContent();
+  const favicon = content.site.favicon.src;
   return (
     <html
       lang="en"
@@ -116,7 +139,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-          <link rel="icon" type="image/webp" href="/assets/Logos-20260709T183558Z-2-001/Logos/Dark Blue.webp" />
+          {favicon && <link rel="icon" href={favicon} />}
           {/*
             Sets data-ignition before first paint (classic no-FOUC pattern -
             the same technique dark-mode theme scripts use: a plain synchronous
@@ -129,7 +152,7 @@ export default function RootLayout({
           */}
           <script
             dangerouslySetInnerHTML={{
-              __html: `(function(){try{var isHome=location.pathname==='/';var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;var seen=sessionStorage.getItem('khaosan-ignited')==='1';document.documentElement.setAttribute('data-ignition',(isHome&&!reduced&&!seen)?'igniting':'lit');}catch(e){document.documentElement.setAttribute('data-ignition','lit');}})();`,
+              __html: `(function(){try{var isHome=${content.site.intro ? "location.pathname==='/'" : 'false'};var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;var seen=sessionStorage.getItem('khaosan-ignited')==='1';document.documentElement.setAttribute('data-ignition',(isHome&&!reduced&&!seen)?'igniting':'lit');}catch(e){document.documentElement.setAttribute('data-ignition','lit');}})();`,
             }}
           />
       </head>
@@ -150,9 +173,11 @@ export default function RootLayout({
         tree are still reported normally, so this does not hide app bugs.
       */}
       <body suppressHydrationWarning>
-        <ClientWrapper>
-            {children}
-        </ClientWrapper>
+        <ContentProvider initial={content} themeCss={themeToCss(content.theme)} preview={preview}>
+          <ClientWrapper>
+              {children}
+          </ClientWrapper>
+        </ContentProvider>
       </body>
     </html>
   );

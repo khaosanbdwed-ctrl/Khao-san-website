@@ -1,8 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { getPublishedContent } from '@/lib/cms/store';
 
-const SITE = 'https://khaosan.com.bd';
+export const revalidate = 3600;
 
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+    // The domain is set in Admin -> Site settings & SEO.
+    const SITE = (await getPublishedContent()).site.siteUrl.replace(/\/$/, '');
     return {
         rules: {
             userAgent: '*',

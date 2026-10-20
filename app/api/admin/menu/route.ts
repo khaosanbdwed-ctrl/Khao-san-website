@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { guardAdmin } from '@/lib/auth/guard';
+import { isSafeSrc } from '@/lib/cms/safe';
 
 /**
  * Columns a client is allowed to write. `PUT` previously spread the whole
@@ -32,7 +34,7 @@ function pickWritable(body: Record<string, unknown>): Partial<Record<Writable, u
 
 /** Returns an error string, or null when the payload is usable. */
 function validate(fields: Partial<Record<Writable, unknown>>, { partial }: { partial: boolean }) {
-    const required: Writable[] = ['category_id', 'title', 'price'];
+    const required: Writable[] = ['category_id', 'title'];
     if (!partial) {
         for (const key of required) {
             if (typeof fields[key] !== 'string' || !(fields[key] as string).trim()) {
@@ -54,10 +56,18 @@ function validate(fields: Partial<Record<Writable, unknown>>, { partial }: { par
     if (typeof fields.title === 'string' && fields.title.length > 200) {
         return '`title` is too long (max 200 characters).';
     }
+    if (typeof fields.image_src === 'string' && !isSafeSrc(fields.image_src)) {
+        return 'That image address is not valid.';
+    }
+    if (Array.isArray(fields.badges) && !fields.badges.every(b => ['spicy', 'special', 'featured', 'new'].includes(b as string))) {
+        return 'Unknown dish mark.';
+    }
     return null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    const denied = guardAdmin(request);
+    if (denied) return denied;
     const supabase = createAdminClient();
 
     // The admin UI needs the category list to build its picker. Hardcoding it
@@ -65,21 +75,24 @@ export async function GET() {
     // "Curries") while `menu_items.category_id` is a foreign key onto
     // `menu_categories.id`, whose values are slugs ("a-appetizers"). Every
     // insert failed on a constraint violation. Serve the real rows instead.
-    const [{ data: items, error: itemsError }, { data: categories, error: catError }] =
+    const [{ data: items, error: itemsError }, { data: categories, error: catError }, { data: addOns, error: addOnError }] =
         await Promise.all([
             supabase.from('menu_items').select('*').order('sort_order'),
-            supabase.from('menu_categories').select('id, name').order('sort_order'),
+            supabase.from('menu_categories').select('id, name, sort_order').order('sort_order'),
+            supabase.from('menu_category_addons').select('*'),
         ]);
 
-    const error = itemsError || catError;
+    const error = itemsError || catError || addOnError;
     if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: items, categories });
+    return NextResponse.json({ data: items, categories, addOns });
 }
 
 export async function POST(request: Request) {
+    const denied = guardAdmin(request);
+    if (denied) return denied;
     try {
         const body = await request.json();
         const fields = pickWritable(body);
@@ -101,6 +114,8 @@ export async function POST(request: Request) {
             .from('menu_items')
             .insert([{
                 ...fields,
+                // Prices are not shown on the site, but the column is NOT NULL.
+                price: fields.price ?? '',
                 badges: fields.badges ?? [],
                 angled: fields.angled ?? false,
                 item_number: (lastNumber?.item_number ?? 0) + 1,
@@ -126,6 +141,8 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const denied = guardAdmin(request);
+    if (denied) return denied;
     try {
         const body = await request.json();
         const { id } = body;
@@ -165,6 +182,8 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const denied = guardAdmin(request);
+    if (denied) return denied;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');

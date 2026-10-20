@@ -4,12 +4,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { usePathname } from 'next/navigation';
+import { useContent } from '@/components/cms/content-context';
+import { CmsButton, CmsLink } from '@/components/cms/cms-ui';
 
-const WHATSAPP_NUMBER = '8801600068193';
-const waLink = (message: string) => `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+const MOBILE_LINK_STYLE: React.CSSProperties = {display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600};
 
 export default function Header() {
     const pathname = usePathname();
+    const { site, navigation } = useContent();
+    const header = navigation.header;
+    /* A link to the page you are already on becomes the way back home - on
+       /menu, "Menu" turns into "Home". Configured in Header & footer. */
+    const links = header.links.map(l =>
+        l.href === pathname ? { label: header.homeLabel, href: '/' } : l
+    );
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
     const [inHero, setInHero] = useState(true);
@@ -226,31 +234,30 @@ export default function Header() {
                         today, but it is the same asset through the same pipeline -
                         pinning it to the original file keeps all three logo
                         placements consistent and immune to that re-encode. */}
-                    <Image
-                        src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp"
-                        alt="Khao San Logo"
-                        fill
-                        style={{ objectFit: 'contain' }}
-                        sizes="100px"
-                        priority
-                        unoptimized
-                    />
+                    {site.logo.src && (
+                        <Image
+                            src={site.logo.src}
+                            alt={site.logo.alt || site.siteName}
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            sizes="100px"
+                            priority
+                            unoptimized
+                        />
+                    )}
                 </Link>
             </div>
 
             {/* Center Column - section navigation */}
             <nav className="header-center" aria-label="Primary">
-                <Link href={pathname === '/menu' ? "/" : "/menu"} className="nav-link desktop-only">
-                    {pathname === '/menu' ? "Home" : "Menu"}
-                </Link>
-                <Link href="/#locations" className="nav-link desktop-only">Locations</Link>
-                <Link href="/#heritage" className="nav-link desktop-only">Our Story</Link>
-                <Link href="/#gift" className="nav-link desktop-only">Gift Cards</Link>
+                {links.map((l, i) => (
+                    <CmsLink key={`${l.href}-${i}`} href={l.href} className="nav-link desktop-only">{l.label}</CmsLink>
+                ))}
             </nav>
 
             {/* Right Column - CTA & Mobile Hamburger */}
             <div className="header-right">
-                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" className="btn btn-primary desktop-only">Contact Us</a>
+                <CmsButton cta={header.button} className="desktop-only" />
                 
                 {/* Mobile Hamburger */}
                 <button 
@@ -326,13 +333,10 @@ export default function Header() {
                     zIndex: 99
                 }}
             >
-                <Link href={pathname === '/menu' ? "/" : "/menu"} style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>
-                    {pathname === '/menu' ? "Home" : "Menu"}
-                </Link>
-                <Link href="/#locations" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Locations</Link>
-                <Link href="/#heritage" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Our Story</Link>
-                <Link href="/#gift" style={{display: 'flex', alignItems: 'center', minHeight: '48px', padding: '4px 12px', fontSize: '1.5rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--color-text-primary)', textDecoration: 'none', fontWeight: 600}} onClick={closeMenu}>Gift Cards</Link>
-                <a href={waLink("Hi, I'd like to get in touch with Khao San.")} target="_blank" rel="noopener noreferrer" onClick={closeMenu} className="btn btn-primary" style={{marginTop: '24px'}}>Contact Us</a>
+                {links.map((l, i) => (
+                    <CmsLink key={`${l.href}-${i}`} href={l.href} style={MOBILE_LINK_STYLE} onClick={closeMenu}>{l.label}</CmsLink>
+                ))}
+                <CmsButton cta={header.button} onClick={closeMenu} style={{marginTop: '24px'}} />
             </nav>
         </header>
         </>

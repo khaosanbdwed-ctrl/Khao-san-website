@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export interface BrushTransitionProps {
     color?: 'saffron' | 'terracotta';
+    /** Extra attributes for the root (CMS anchor / preview id). */
+    attrs?: Record<string, string>;
 }
 
 /**
@@ -16,7 +18,7 @@ export interface BrushTransitionProps {
  * Fires once per page view. Skipped entirely under reduced motion (this is
  * pure ornament; hiding it loses no information).
  */
-export default function BrushTransition({ color = 'saffron' }: BrushTransitionProps) {
+export default function BrushTransition({ color = 'saffron', attrs }: BrushTransitionProps) {
     const sentinelRef = useRef<HTMLDivElement>(null);
     const [sweep, setSweep] = useState<{ top: number } | null>(null);
 
@@ -39,7 +41,7 @@ export default function BrushTransition({ color = 'saffron' }: BrushTransitionPr
     }, []);
 
     return (
-        <div ref={sentinelRef} aria-hidden="true" style={{ position: 'relative', height: 0 }}>
+        <div ref={sentinelRef} aria-hidden="true" style={{ position: 'relative', height: 0 }} {...attrs}>
             {sweep && (
                 <div
                     className="brush-sweep"

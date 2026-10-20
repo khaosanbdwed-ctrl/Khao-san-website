@@ -134,7 +134,7 @@ export default function BackgroundVideo({
             className={className}
             style={style}
         >
-            {shouldLoad && !reducedMotion && <source src={src} type="video/mp4" />}
+            {shouldLoad && !reducedMotion && src && <source src={src} type={/\.webm($|\?)/i.test(src) ? 'video/webm' : 'video/mp4'} />}
         </video>
     );
 }

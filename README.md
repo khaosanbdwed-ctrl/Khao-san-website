@@ -1,8 +1,11 @@
 # Khao San — Dhaka
 
 Marketing site for Khao San, a Thai restaurant brand with three outlets in
-Dhaka (Gulshan 1, Dhanmondi, Uttara), plus a small internal panel for managing
-the menu.
+Dhaka (Gulshan 1, Dhanmondi, Uttara), with a built-in CMS at `/admin` that
+edits every word, image, video, colour, font and section on the site.
+
+**Start with [CMS.md](CMS.md)**: one-time Supabase setup, how the editor
+works, and how to add editable fields.
 
 **This is the client working copy.** The sibling `khao-san-app` folder is a
 separate portfolio build — do not port changes into it.
@@ -37,14 +40,17 @@ IntersectionObserver in `components/ClientWrapper.tsx`.
 
 ```
 app/
-  page.tsx              homepage — seven chapters, anchor-linked
+  page.tsx              homepage — rendered from the CMS section list
   menu/                 menu, served from Supabase, ISR (1h + on-demand)
-  legal/                privacy, terms
-  admin/                login → overview → menu control
-  api/admin/menu        menu CRUD (service role)
-  api/admin/upload      dish photo upload — PNG only
+  legal/                privacy, terms (CMS documents)
+  admin/                dashboard, content editor, menu manager, media library
+  api/admin/            content / media / menu APIs (signed session required)
+components/cms/         content provider, homepage section renderers
+components/admin/       the editor UI
 components/ui/          presentational pieces
+lib/cms/                schema (every editable field + default), validation
 lib/supabase/           server + service-role clients
+supabase/migrations/    CMS tables, functions, storage bucket
 scripts/setup-db.mjs    schema + seed for the menu tables
 ```
 
@@ -63,17 +69,17 @@ image optimiser strips its alpha channel, which silently defeats the filter and
 renders the mark invisible. Every placement passes `unoptimized`. If a footer
 or hero logo ever "goes missing", check this first.
 
-## Menu content
+## Content
 
-Dishes live in Supabase, not in the code. The admin panel writes to
-`menu_items` and revalidates `/menu`, so edits appear on the live site
-immediately.
+Site content (text, images, videos, theme, sections) lives in Supabase as
+CMS documents. The defaults in `lib/cms/schema.ts` are the original site, so
+with an empty database the site renders exactly as built. See CMS.md.
 
-**Dish photos must be PNGs with the background removed.** The menu presents
-each dish floating on the page with no card behind it, so the image needs a
-real alpha channel — a JPEG renders as an opaque box. This is enforced at the
-file picker, at the API (by checking the actual PNG signature bytes, not the
-declared MIME type), and on the storage bucket itself.
+Dishes live in the Supabase menu tables. The admin's Menu dishes page writes
+to `menu_items` and revalidates `/menu`, so edits appear on the live site
+immediately. Dish photos are now ordinary photos (JPG/PNG/WebP), uploaded
+through the media library. The original cut-outs keep being shown plated via
+`platedSrc()` in `app/menu/page.tsx`.
 
 To reset the schema and reseed from the printed menu:
 
@@ -87,8 +93,9 @@ node scripts/setup-db.mjs
   is the primary display face on every page. Replace it with the licensed file
   (same filename), then drop the digit-excluding `unicode-range` in
   `app/layout.tsx` — it only exists because the demo build ships broken numerals.
-- Point `SITE` in `app/robots.ts` and `app/sitemap.ts` at the real domain if it
-  is not `khaosan.com.bd`.
+- Set the real domain in Admin → Site settings & SEO if it is not
+  `khaosan.com.bd` (robots.txt, the sitemap and social tags follow it).
+- Run the CMS migration in Supabase (CMS.md §1).
 
 See `PRODUCTION_AUDIT.md` for the current launch-readiness assessment and
 `PRD.md` for the decision log.

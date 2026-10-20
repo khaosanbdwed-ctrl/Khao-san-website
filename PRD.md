@@ -1604,3 +1604,41 @@ uniform now, so `object-fit: cover` handles any source aspect.
 - **Section-heading hierarchy.** "Signature Spreads" and the dish names beneath
   it are both heavy blue display type, so the section title and its items carry
   the same weight.
+
+## 18. Round 10 — 2026-10-20: the CMS
+
+Request: a CMS so the client can change any content on the site (text,
+captions, backgrounds, everything), hosted on Supabase, easy to manage, with
+drag and drop, and built to last.
+
+Decisions taken with the client: Vercel hosting; a dashboard with a live
+preview (not click-on-page editing); scope covering all text/media/links,
+reordering/hiding/adding sections, and brand colours and fonts; one shared
+login; draft → publish with history; normal dish photos instead of PNG
+cut-outs; a custom CMS on Supabase rather than a third-party CMS.
+
+What was built, in short (full detail in CMS.md):
+
+- Every hardcoded string, image, video and link on the public site moved into
+  a schema (`lib/cms/schema.ts`) whose defaults are the site as signed off.
+  **Verified by pixel comparison**: with an empty database, every public page
+  at 1440 and 390 renders identically to before (sub-pixel text antialiasing
+  aside).
+- Two deliberate output changes: the share image path pointed at a file that
+  does not exist (`Background/Elephant...` → `Background/Landing Page
+  Section/Elephant...`), and the favicon `<link>` lost its `type` attribute.
+- Admin rebuilt: dashboard, a form-plus-live-preview editor for 8 content
+  areas, a drag-and-drop menu manager (categories, add-ons, dish order),
+  and a media library with direct-to-Storage uploads.
+- **Security fix**: the admin session cookie was the literal string
+  "authenticated" and could be forged by anyone. It is now HMAC-signed and
+  expiring, checked in `proxy.ts` and again in every admin route, with
+  cross-site write blocking.
+- `next.config.ts` image hosts now follow `NEXT_PUBLIC_SUPABASE_URL` instead
+  of one hardcoded project host (moving projects would have broken every
+  uploaded image).
+- The PNG-only dish upload route is gone; dish photos go through the media
+  library and may be JPG/PNG/WebP.
+
+Unlike earlier rounds, this round IS committed - on the `cms-dashboard`
+branch, at the client's request.
