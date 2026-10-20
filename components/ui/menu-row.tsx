@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import DishTags, { type MenuBadge } from '@/components/ui/dish-tags';
+import { isOptimizable } from '@/components/cms/cms-ui';
 
 export type { MenuBadge };
 
@@ -67,14 +68,17 @@ export default function MenuRow({
     return (
         <li className="menu-row reveal-hidden">
             <div className="menu-row-photo">
-                <Image
-                    src={imageSrc}
-                    alt={title}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 900px) 92vw, 31vw"
-                    loading="lazy"
-                />
+                {imageSrc && (
+                    <Image
+                        src={imageSrc}
+                        alt={title}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 900px) 92vw, 31vw"
+                        loading="lazy"
+                        unoptimized={!isOptimizable(imageSrc)}
+                    />
+                )}
             </div>
 
             {/* reserveSpace: the marks sit above the name, and roughly a third

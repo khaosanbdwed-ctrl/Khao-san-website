@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { getPublishedContent } from '@/lib/cms/store';
 
-const SITE = 'https://khaosan.com.bd';
+export const revalidate = 3600;
 
 /**
  * The public surface is small and stable: a homepage whose chapters are
@@ -8,7 +9,9 @@ const SITE = 'https://khaosan.com.bd';
  * deliberately not listed — they are not separate documents and listing them
  * would just dilute the homepage.
  */
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    // The domain is set in Admin -> Site settings & SEO.
+    const SITE = (await getPublishedContent()).site.siteUrl.replace(/\/$/, '');
     const now = new Date();
     return [
         { url: `${SITE}/`, lastModified: now, changeFrequency: 'monthly', priority: 1 },

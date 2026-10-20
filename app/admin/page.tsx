@@ -1,62 +1,86 @@
 import Link from 'next/link';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { DOC_META, type DocKey } from '@/lib/cms/schema';
+import { listDocStatus, CmsError } from '@/lib/cms/admin-store';
 
-/** These are live counts, so the page must not be prerendered at build time —
- *  otherwise it reports whatever the totals were when the site was deployed. */
+/** Live counts and statuses - never prerendered. */
 export const dynamic = 'force-dynamic';
 
-/**
- * This page previously rendered three hardcoded numbers — "42 active menu
- * items", "1,248 visitors", "386 menu clicks" — styled exactly like live
- * metrics, with nothing marking them as placeholder. The real dish count was
- * 75. Invented figures in a client-facing dashboard are read as the business's
- * actual numbers, so the fabricated tiles are gone: what can be counted is
- * counted for real, and what needs an analytics provider says so plainly
- * instead of guessing.
- */
-export default async function AdminOverview() {
-    const supabase = createAdminClient();
+const ORDER: DocKey[] = ['home', 'menu', 'navigation', 'locations', 'theme', 'site', 'privacy', 'terms'];
 
+export default async function AdminDashboard() {
+    const supabase = createAdminClient();
     const [{ count: dishCount }, { count: categoryCount }] = await Promise.all([
         supabase.from('menu_items').select('*', { count: 'exact', head: true }),
         supabase.from('menu_categories').select('*', { count: 'exact', head: true }),
     ]);
 
-    const stats = [
-        { label: 'Dishes on the menu', value: dishCount ?? '—' },
-        { label: 'Menu categories', value: categoryCount ?? '—' },
-    ];
+    let statuses: Awaited<ReturnType<typeof listDocStatus>> | null = null;
+    let setupError: string | null = null;
+    try {
+        statuses = await listDocStatus();
+    } catch (e) {
+        setupError = e instanceof CmsError ? e.message : 'Could not reach the database.';
+    }
+    const status = (key: DocKey) => statuses?.find(s => s.key === key);
+    const draftCount = statuses?.filter(s => s.hasDraft).length ?? 0;
 
     return (
-        <div>
-            <div style={{ marginBottom: '40px' }}>
-                <h1 className="display-2" style={{ fontSize: '3rem', marginBottom: '8px' }}>Dashboard Overview</h1>
-                <p style={{ color: 'var(--color-text-secondary)' }}>Welcome back to the Khao San command center.</p>
+        <div className="cms-page">
+            <div className="cms-page-head">
+                <div>
+                    <h1>Website editor</h1>
+                    <p>Change any words, photos, videos, buttons, colours or fonts on the site. Edits are saved as drafts automatically and go live when you press <strong>Publish</strong>.</p>
+                </div>
+                <a className="cms-btn" href="/" target="_blank" rel="noopener">View the website</a>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '48px' }}>
-                {stats.map((stat) => (
-                    <div key={stat.label} style={{ backgroundColor: 'var(--color-surface-base)', padding: '32px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>{stat.label}</div>
-                        <div style={{ fontSize: '2.5rem', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{stat.value}</div>
-                    </div>
-                ))}
+            {setupError && (
+                <div className="cms-alert cms-alert--warn">
+                    <h3>One-time setup needed</h3>
+                    <p>{setupError}</p>
+                    <p>Until then the website keeps showing its original content, and the menu manager works as before.</p>
+                </div>
+            )}
+
+            {draftCount > 0 && (
+                <div className="cms-alert cms-alert--info">
+                    {draftCount === 1 ? 'One area has' : `${draftCount} areas have`} unpublished changes - marked below. Open {draftCount === 1 ? 'it' : 'each'} and press Publish when you are ready.
+                </div>
+            )}
+
+            <div className="cms-grid" style={{ marginBottom: 28 }}>
+                <Link href="/admin/menu" className="cms-card cms-tile">
+                    <h3>Menu dishes</h3>
+                    <p>Add, edit, reorder and photograph dishes and categories. Changes go live immediately.</p>
+                    <span className="cms-pill cms-pill--ok">{dishCount ?? '—'} dishes · {categoryCount ?? '—'} categories</span>
+                </Link>
+                {ORDER.map(key => {
+                    const s = status(key);
+                    return (
+                        <Link key={key} href={`/admin/content/${key}`} className="cms-card cms-tile">
+                            <h3>{DOC_META[key].title}</h3>
+                            <p>{DOC_META[key].description}</p>
+                            {s?.hasDraft ? <span className="cms-pill cms-pill--draft">Unpublished changes</span>
+                                : s?.publishedAt ? <span className="cms-pill cms-pill--ok">Published {new Date(s.publishedAt).toLocaleDateString()}</span>
+                                : <span className="cms-pill">Original content</span>}
+                        </Link>
+                    );
+                })}
+                <Link href="/admin/media" className="cms-card cms-tile">
+                    <h3>Media library</h3>
+                    <p>Every photo, video and font you have uploaded. Upload here, or straight from any image field.</p>
+                </Link>
             </div>
 
-            <div style={{ backgroundColor: 'var(--color-surface-base)', padding: '40px', borderRadius: '12px', border: '1px solid var(--color-border)' }}>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '16px' }}>Managing the menu</h2>
-                <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '20px' }}>
-                    Everything on the public menu page is served from this database, so any dish you add,
-                    edit or delete in <strong>Menu Control</strong> appears on the live site straight away.
-                    Dish photos must be <strong>PNG files with the background removed</strong> — the menu
-                    presents each dish floating on the page, and only a transparent PNG can do that.
-                </p>
-                <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '24px' }}>
-                    Visitor and click figures are not shown here because no analytics provider is connected
-                    yet. Once one is, they can be added to this page — until then this dashboard reports only
-                    numbers it can actually verify.
-                </p>
-                <Link href="/admin/menu" className="btn btn-primary">Open Menu Control</Link>
+            <div className="cms-card cms-card-pad">
+                <h2 style={{ fontSize: 17, margin: '0 0 10px' }}>How it works</h2>
+                <ol className="cms-steps">
+                    <li>Open an area above. The form is on the left and the real website is on the right.</li>
+                    <li>Type, choose photos, drag sections and items into a new order. The preview updates as you go.</li>
+                    <li>Your work saves itself as a draft. Visitors do not see it yet.</li>
+                    <li>Press <strong>Publish</strong> to put it live. Every published version is kept under <strong>History</strong>, so anything can be undone.</li>
+                </ol>
             </div>
         </div>
     );

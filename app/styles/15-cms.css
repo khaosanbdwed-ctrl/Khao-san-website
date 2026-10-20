@@ -1,0 +1,65 @@
+/* ============================================================
+   CMS additions - only NEW classes, nothing here restyles an existing
+   element. Loaded last so it can never be overridden by accident, and
+   nothing earlier depends on it.
+   ============================================================ */
+
+/* The soft blue-white alternate surface, as a section background. */
+.cms-bg-tint {
+    background-color: var(--color-surface-tint);
+}
+
+/* Sections the client adds from the section library. */
+.cms-section {
+    padding: var(--space-macro) 0;
+}
+.cms-text {
+    max-width: 860px;
+}
+.cms-text--center {
+    text-align: center;
+    margin-inline: auto;
+}
+.cms-text .display-2 {
+    margin-bottom: 24px;
+}
+.cms-text-body {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+.cms-text-actions {
+    margin-top: 36px;
+}
+
+/* Shown when an editor browses the real site with drafts on. */
+.cms-preview-banner {
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: calc(100vw - 32px);
+    padding: 10px 16px;
+    border-radius: 12px;
+    background: #16233d;
+    color: #ffffff;
+    font: 500 0.85rem/1.4 var(--font-sans);
+    box-shadow: 0 12px 32px rgba(12, 20, 36, 0.35);
+}
+.cms-preview-banner a,
+.cms-preview-banner button {
+    color: var(--color-brand-butter);
+    background: none;
+    border: 0;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.cms-preview-banner form { display: inline; }

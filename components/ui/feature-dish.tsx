@@ -1,8 +1,8 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import DishTags, { type MenuBadge } from '@/components/ui/dish-tags';
+import { CmsLink, isOptimizable } from '@/components/cms/cms-ui';
 
 export interface FeatureDishItem {
     src: string;
@@ -15,6 +15,8 @@ export interface FeatureDishItem {
 
 export interface FeatureDishProps {
     dishes: FeatureDishItem[];
+    /** Text of the link under each dish. */
+    linkLabel?: string;
 }
 
 /**
@@ -49,12 +51,12 @@ export interface FeatureDishProps {
  * Replaced the signature carousel, which moved to the menu page's hero where a
  * kinetic row belongs. The homepage wanted the quiet version.
  */
-export default function FeatureDish({ dishes }: FeatureDishProps) {
+export default function FeatureDish({ dishes, linkLabel = 'View Menu' }: FeatureDishProps) {
     return (
         <div className="feature-grid">
             {dishes.map((dish, i) => (
                 <div
-                    key={dish.src}
+                    key={i}
                     /* Odd rows put the photograph on the right. `is-inverse`
                        reverses the flex direction rather than reordering the
                        DOM, so the reading order stays photo-then-copy for
@@ -63,14 +65,17 @@ export default function FeatureDish({ dishes }: FeatureDishProps) {
                 >
                     <div className="feature-box">
                         <div className="feature-photo">
-                            <Image
-                                src={dish.src}
-                                alt={dish.name}
-                                fill
-                                style={{ objectFit: 'cover' }}
-                                sizes="(max-width: 900px) 92vw, 42vw"
-                                loading="lazy"
-                            />
+                            {dish.src && (
+                                <Image
+                                    src={dish.src}
+                                    alt={dish.name}
+                                    fill
+                                    style={{ objectFit: 'cover' }}
+                                    sizes="(max-width: 900px) 92vw, 42vw"
+                                    loading="lazy"
+                                    unoptimized={!isOptimizable(dish.src)}
+                                />
+                            )}
                         </div>
                     </div>
 
@@ -90,10 +95,12 @@ export default function FeatureDish({ dishes }: FeatureDishProps) {
                             <DishTags badges={dish.badges} className="feature-tags" />
                             <h3 className="feature-name">{dish.name}</h3>
                             <p className="feature-blurb">{dish.blurb}</p>
-                            <Link href={dish.href} className="feature-link">
-                                View Menu
-                                <ArrowRight size={17} strokeWidth={1.75} aria-hidden="true" />
-                            </Link>
+                            {linkLabel && (
+                                <CmsLink href={dish.href} className="feature-link">
+                                    {linkLabel}
+                                    <ArrowRight size={17} strokeWidth={1.75} aria-hidden="true" />
+                                </CmsLink>
+                            )}
                         </div>
                     </div>
                 </div>

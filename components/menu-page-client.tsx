@@ -3,29 +3,17 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import BackgroundVideo from '@/components/ui/background-video';
 import MenuRow, { MenuBadge } from '@/components/ui/menu-row';
 import MenuShowcase, { type ShowcaseStep } from '@/components/ui/menu-showcase';
+import { useContent } from '@/components/cms/content-context';
 
-/* The five categories the pinned showcase steps through, in order, each with
- * the one plate that represents it.
+/* The plates the showcase steps through are chosen in the CMS (Menu page ->
+ * Dish carousel). The defaults are the client's own picks: soup, wok, bowl,
+ * showpiece, dessert - a meal in five beats.
  *
- * Chosen by the client: soup, wok, bowl, showpiece, dessert - a meal in five
- * beats rather than the first five categories in sort order (which would be
- * Appetizers, Soups, Dumplings, Salads, Kids Menu).
- *
- * ⚠ Referenced BY ID, never by array position, and the dish is looked up by
- * title inside its category with a fallback. The menu is Supabase-backed and
- * editable in admin: a renamed dish, a reordered category or a deleted row
- * must degrade to a different plate, never to a crash or an empty stage. See
- * buildShowcase below.
- *
- * The showcase is a way IN to the menu, not a replacement for it - all
- * fourteen categories and every dish are on the page directly beneath it. */
-const SHOWCASE_PICKS: { categoryId: string; dishTitle: string }[] = [
-    { categoryId: 'b-soups', dishTitle: 'Tom Yum Goong' },
-    { categoryId: 'e-noodles', dishTitle: 'Pad Thai' },
-    { categoryId: 'k-rice-bowls', dishTitle: 'Thai Seafood Bowl' },
-    { categoryId: 'i-seafood', dishTitle: 'Fried Whole Fish in Spicy Hot Sauce' },
-    { categoryId: 'l-desserts', dishTitle: 'Mango Sticky Rice' },
-];
+ * ⚠ Referenced BY category ID and dish TITLE, never by array position, with a
+ * fallback. The menu is editable in admin: a renamed dish, a reordered
+ * category or a deleted row must degrade to a different plate, never to a
+ * crash or an empty stage. See buildShowcase below. */
+type ShowcasePick = { categoryId: string; dishTitle: string };
 
 export interface RawMenuItem {
     number: number;
@@ -65,10 +53,10 @@ const prefersReducedMotion = () =>
  * `app/menu/page.tsx` already filters those out, but this must not depend on
  * that staying true.
  */
-function buildShowcase(categories: MenuCategory[]): ShowcaseStep[] {
+function buildShowcase(categories: MenuCategory[], picks: ShowcasePick[]): ShowcaseStep[] {
     const byId = new Map(categories.map((c) => [c.id, c]));
 
-    return SHOWCASE_PICKS.flatMap(({ categoryId, dishTitle }) => {
+    return picks.flatMap(({ categoryId, dishTitle }) => {
         const category = byId.get(categoryId);
         if (!category || category.items.length === 0) return [];
 
@@ -90,12 +78,13 @@ function buildShowcase(categories: MenuCategory[]): ShowcaseStep[] {
 }
 
 export default function MenuPageClient({ categories }: { categories: MenuCategory[] }) {
+    const { menu: page } = useContent();
     const [activeIndex, setActiveIndex] = useState(0);
     const [indexOpen, setIndexOpen] = useState(false);
     const [railVisible, setRailVisible] = useState(false);
     const [categoryCueVisible, setCategoryCueVisible] = useState(false);
 
-    const showcase = useMemo(() => buildShowcase(categories), [categories]);
+    const showcase = useMemo(() => buildShowcase(categories, page.showcase.picks), [categories, page.showcase.picks]);
     const dishCount = useMemo(
         () => categories.reduce((sum, c) => sum + c.items.length, 0),
         [categories],
@@ -307,13 +296,15 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
             rather than about a room, which is what a menu page's hero should
             open on. */}
         <section className="menu-hero">
-            <BackgroundVideo
-                src="/assets/video-web/theatre-craft.mp4"
-                poster="/assets/posters/theatre-craft.webp"
-                priority
-                className="menu-hero-media"
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-            />
+            {(page.hero.video.src || page.hero.video.poster) && (
+                <BackgroundVideo
+                    src={page.hero.video.src}
+                    poster={page.hero.video.poster}
+                    priority
+                    className="menu-hero-media"
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+                />
+            )}
             {/* A pool of shade behind the copy rather than a blanket wash over
                 the frame - the same principle as the homepage hero's lighting,
                 composed separately so the two are not identical. The footage
@@ -322,21 +313,30 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
             <div className="menu-hero-light" aria-hidden="true"></div>
 
             <div className="menu-hero-copy">
-                <h1 className="menu-hero-title">A journey through fire.</h1>
-                <p className="menu-hero-lede">
-                    From fiery street-stall classics to whole-fish showpieces &mdash; every plate carries the char, spice and balance of Bangkok.
-                </p>
+                {page.hero.title && <h1 className="menu-hero-title">{page.hero.title}</h1>}
+                {page.hero.lede && (
+                    <p className="menu-hero-lede">
+                        {page.hero.lede}
+                    </p>
+                )}
                 {/* "across 14 chapters" removed at the client's request. The
                     dish count is the part that sells; the category count read
                     as an index rather than an invitation. */}
-                <p className="menu-hero-count">{dishCount} dishes</p>
+                {page.hero.showCount && <p className="menu-hero-count">{dishCount} {page.hero.countSuffix}</p>}
             </div>
         </section>
 
         {/* The pinned showcase - five categories, one signature plate each.
             See components/ui/menu-showcase.tsx for how the pin works and, more
             importantly, why it is sticky rather than a wheel handler. */}
-        {showcase.length > 0 && <MenuShowcase steps={showcase} />}
+        {page.showcase.show && showcase.length > 0 && (
+            <MenuShowcase
+                steps={showcase}
+                title={page.showcase.title}
+                exploreLabel={page.showcase.exploreLabel}
+                hint={page.showcase.hint}
+            />
+        )}
 
         {/* The full menu. The dishes get the whole measure - the category
             index rides the right edge over it rather than taking a column
@@ -449,9 +449,9 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
                     <h2 className="menu-category-title">{category.name}</h2>
 
                     <ul className="menu-list">
-                        {category.items.map((item) => (
+                        {category.items.map((item, i) => (
                             <MenuRow
-                                key={item.number}
+                                key={`${item.number}-${i}`}
                                 title={item.title}
                                 imageSrc={item.imageSrc}
                                 description={item.description}
@@ -464,10 +464,10 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
 
                     {category.addOns && category.addOns.length > 0 && (
                         <p className="menu-addons">
-                            <span className="menu-addons-label">Add ons</span>
+                            <span className="menu-addons-label">{page.addOnsLabel}</span>
                             {/* Add-on prices dropped with the rest of the pricing. */}
-                            {category.addOns.map((addOn) => (
-                                <span className="menu-addons-item" key={addOn.title}>{addOn.title}</span>
+                            {category.addOns.map((addOn, i) => (
+                                <span className="menu-addons-item" key={i}>{addOn.title}</span>
                             ))}
                         </p>
                     )}
@@ -482,10 +482,7 @@ export default function MenuPageClient({ categories }: { categories: MenuCategor
                     explain something that is on the page, and as of this round
                     the marks are on the page again. */}
                 <ul className="menu-legal-terms">
-                    <li>5% VAT and applicable SD are included.</li>
-                    <li>A 5% service charge is applied on the final bill.</li>
-                    <li>All meat served is 100% halal.</li>
-                    <li>Please alert your server if you&rsquo;re allergic to any ingredients.</li>
+                    {page.notes.map((note, i) => <li key={i}>{note}</li>)}
                 </ul>
             </div>
         </section>

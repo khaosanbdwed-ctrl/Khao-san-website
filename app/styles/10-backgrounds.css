@@ -168,8 +168,10 @@
 .bg-blue-field {
     background-color: var(--color-brand-blue);
     background-image:
-        linear-gradient(rgba(30, 65, 123, 0.86), rgba(30, 65, 123, 0.92)),
-        url('/assets/bg-web/lotus-background.webp');
+        /* --cms-* are set only when the client changes them in the CMS
+           (Colours, fonts & backgrounds). The fallbacks are the originals. */
+        linear-gradient(var(--cms-blue-wash-a, rgba(30, 65, 123, 0.86)), var(--cms-blue-wash-b, rgba(30, 65, 123, 0.92))),
+        var(--cms-bg-blue-field, url('/assets/bg-web/lotus-background.webp'));
     background-size: cover, cover;
     background-position: center, center;
     background-repeat: no-repeat, no-repeat;
@@ -206,7 +208,7 @@
     background-color: var(--color-surface-base);
     background-image:
         linear-gradient(rgba(255, 255, 255, 0.955), rgba(255, 255, 255, 0.955)),
-        url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp');
+        var(--cms-bg-gift-field, url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus.webp'));
     background-size: auto, clamp(340px, 32vw, 520px);
     background-position: 0 0, -9% 104%;
     background-repeat: no-repeat, no-repeat;

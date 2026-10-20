@@ -1,77 +1,101 @@
 "use client";
 
+import './admin.css';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import {
+    LayoutDashboard, Home, UtensilsCrossed, BookOpen, PanelsTopLeft, MapPin, Palette,
+    Settings, Shield, FileText, Images, ExternalLink, LogOut, Menu as MenuIcon,
+} from 'lucide-react';
+import type { DocKey } from '@/lib/cms/schema';
+
+const NAV: { group: string; items: { href: string; label: string; icon: React.ComponentType<{ size?: number }>; doc?: DocKey }[] }[] = [
+    { group: '', items: [{ href: '/admin', label: 'Dashboard', icon: LayoutDashboard }] },
+    {
+        group: 'Pages',
+        items: [
+            { href: '/admin/content/home', label: 'Homepage', icon: Home, doc: 'home' },
+            { href: '/admin/menu', label: 'Menu dishes', icon: UtensilsCrossed },
+            { href: '/admin/content/menu', label: 'Menu page', icon: BookOpen, doc: 'menu' },
+            { href: '/admin/content/privacy', label: 'Privacy policy', icon: Shield, doc: 'privacy' },
+            { href: '/admin/content/terms', label: 'Terms of service', icon: FileText, doc: 'terms' },
+        ],
+    },
+    {
+        group: 'Across the site',
+        items: [
+            { href: '/admin/content/navigation', label: 'Header & footer', icon: PanelsTopLeft, doc: 'navigation' },
+            { href: '/admin/content/locations', label: 'Locations', icon: MapPin, doc: 'locations' },
+            { href: '/admin/content/theme', label: 'Colours, fonts & backgrounds', icon: Palette, doc: 'theme' },
+            { href: '/admin/content/site', label: 'Site settings & SEO', icon: Settings, doc: 'site' },
+        ],
+    },
+    { group: 'Library', items: [{ href: '/admin/media', label: 'Media library', icon: Images }] },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
+    const [open, setOpen] = useState(false);
+    const [drafts, setDrafts] = useState<Set<string>>(new Set());
 
-    // Do not show sidebar on the login page
-    if (pathname === '/admin/login') {
-        return <>{children}</>;
-    }
+    const isLogin = pathname === '/admin/login';
 
-    const handleLogout = async () => {
+    // Orange dots on areas with unpublished changes.
+    useEffect(() => {
+        if (isLogin) return;
+        let cancelled = false;
+        fetch('/api/admin/content', { cache: 'no-store' })
+            .then(r => (r.ok ? r.json() : null))
+            .then(r => { if (!cancelled && r?.docs) setDrafts(new Set(r.docs.filter((d: { hasDraft: boolean }) => d.hasDraft).map((d: { key: string }) => d.key))); })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [pathname, isLogin]);
+
+    if (isLogin) return <div className="cms-admin">{children}</div>;
+
+    const logout = async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
         router.push('/admin/login');
         router.refresh();
     };
 
-    const navItems = [
-        { label: 'Overview', href: '/admin' },
-        { label: 'Menu Control', href: '/admin/menu' },
-    ];
-
     return (
-        <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-surface-base)' }}>
-
-            {/* Sidebar */}
-            <aside style={{ width: '280px', backgroundColor: 'var(--color-surface-base)', borderRight: '1px solid var(--color-border)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ padding: '32px 24px', borderBottom: '1px solid var(--color-border)' }}>
-                    <span style={{ color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '4px', fontSize: '0.8rem', fontWeight: 600 }}>Admin Portal</span>
-                    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', marginTop: '8px' }}>Khao San</h2>
-                </div>
-
-                <nav style={{ padding: '24px 16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {navItems.map((item) => (
-                        <Link 
-                            key={item.href} 
-                            href={item.href}
-                            style={{
-                                padding: '12px 16px',
-                                borderRadius: '8px',
-                                textDecoration: 'none',
-                                color: pathname === item.href ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                                backgroundColor: pathname === item.href ? 'rgba(255, 150, 79, 0.12)' : 'transparent',
-                                transition: 'all 0.2s',
-                                fontWeight: pathname === item.href ? 500 : 400
-                            }}
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div style={{ padding: '24px', borderTop: '1px solid var(--color-border)' }}>
-                    <button
-                        onClick={handleLogout}
-                        style={{ width: '100%', padding: '12px', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' }}
-                        onMouseOver={(e) => { e.currentTarget.style.borderColor = 'var(--color-primary)'; e.currentTarget.style.color = 'var(--color-primary)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
-                    >
-                        Sign Out
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <main style={{ flex: 1, overflowY: 'auto', padding: '48px', position: 'relative' }}>
-                <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-                    {children}
-                </div>
-            </main>
-
+        <div className="cms-admin">
+            <div className="cms-topbar-mobile">
+                <button type="button" className="cms-icon-btn" aria-label="Open menu" onClick={() => setOpen(true)}><MenuIcon size={20} /></button>
+                Khao San admin
+            </div>
+            <div className="cms-shell">
+                {open && <div className="cms-scrim" onClick={() => setOpen(false)} />}
+                <aside className={`cms-sidebar${open ? ' is-open' : ''}`}>
+                    <Link href="/admin" className="cms-brand" onClick={() => setOpen(false)}>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- tiny static mark */}
+                        <img src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp" alt="" />
+                        <div><strong>Khao San</strong><span>Website editor</span></div>
+                    </Link>
+                    <nav className="cms-nav" aria-label="Admin">
+                        {NAV.map(group => (
+                            <div className="cms-nav-group" key={group.group || 'top'}>
+                                {group.group && <p>{group.group}</p>}
+                                {group.items.map(({ href, label, icon: Icon, doc }) => (
+                                    <Link key={href} href={href} aria-current={pathname === href ? 'page' : undefined} onClick={() => setOpen(false)}>
+                                        <Icon size={17} />
+                                        {label}
+                                        {doc && drafts.has(doc) && <span className="cms-nav-dot" title="Unpublished changes" aria-label="Unpublished changes" />}
+                                    </Link>
+                                ))}
+                            </div>
+                        ))}
+                    </nav>
+                    <div className="cms-sidebar-foot">
+                        <a className="cms-btn" href="/" target="_blank" rel="noopener"><ExternalLink size={14} /> View the website</a>
+                        <button type="button" className="cms-btn cms-btn--ghost" onClick={logout}><LogOut size={14} /> Sign out</button>
+                    </div>
+                </aside>
+                <main className="cms-main">{children}</main>
+            </div>
         </div>
     );
 }

@@ -24,10 +24,13 @@ export default function AdminLogin() {
             });
 
             if (res.ok) {
-                router.push('/admin');
+                // Back to the page that asked for a sign-in, if it was in the admin.
+                const next = new URLSearchParams(window.location.search).get('next');
+                router.push(next && next.startsWith('/admin') && !next.startsWith('//') ? next : '/admin');
                 router.refresh();
             } else {
-                setError('Invalid credentials');
+                const body = await res.json().catch(() => null);
+                setError(res.status === 401 ? 'Invalid credentials' : body?.error ?? 'Sign-in failed.');
             }
         } catch {
             setError('An error occurred. Please try again.');
@@ -55,7 +58,7 @@ export default function AdminLogin() {
 
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {error && (
-                        <div style={{ padding: '12px', backgroundColor: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.2)', color: '#f87171', borderRadius: '6px', fontSize: '0.9rem', textAlign: 'center' }}>
+                        <div style={{ padding: '12px', backgroundColor: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.2)', color: '#b42318', borderRadius: '6px', fontSize: '0.9rem', textAlign: 'center' }}>
                             {error}
                         </div>
                     )}

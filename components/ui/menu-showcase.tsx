@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { isOptimizable } from '@/components/cms/cms-ui';
 
 export interface ShowcaseStep {
     categoryId: string;
@@ -9,12 +10,17 @@ export interface ShowcaseStep {
     dishTitle: string;
     imageSrc: string;
 }
-export interface MenuShowcaseProps { steps: ShowcaseStep[]; }
+export interface MenuShowcaseProps {
+    steps: ShowcaseStep[];
+    title?: string;
+    exploreLabel?: string;
+    hint?: string;
+}
 const wrap = (value: number, length: number) => ((value % length) + length) % length;
 
 /** A continuous position, not a scroll container with endpoints to reset.
  * Slides wrap only offscreen, so crossing the last category never reverses motion. */
-export default function MenuShowcase({ steps }: MenuShowcaseProps) {
+export default function MenuShowcase({ steps, title = 'A taste of Khao San', exploreLabel = 'Explore', hint = 'Drag to discover' }: MenuShowcaseProps) {
     const viewportRef = useRef<HTMLDivElement>(null);
     const positionRef = useRef(0);
     const targetRef = useRef(0);
@@ -104,8 +110,8 @@ export default function MenuShowcase({ steps }: MenuShowcaseProps) {
 
     if (!count) return null;
     return (
-        <section id="menu-carousel" className="menu-carousel" aria-label="A taste of Khao San">
-            <h2 className="menu-carousel__title">A taste of Khao San</h2>
+        <section id="menu-carousel" className="menu-carousel" aria-label={title || 'Dish carousel'}>
+            {title && <h2 className="menu-carousel__title">{title}</h2>}
             <div className="menu-carousel__stage">
                 <div ref={viewportRef} className="menu-carousel__viewport" role="region" aria-roledescription="carousel"
                     aria-label="Menu categories" aria-describedby="menu-carousel-hint" tabIndex={0}
@@ -145,7 +151,7 @@ export default function MenuShowcase({ steps }: MenuShowcaseProps) {
                         } as React.CSSProperties;
                         return <div key={`${slide.categoryId}-${index}`} className="menu-carousel__slide" style={style}
                             aria-hidden={Math.abs(distance) > 0.5}>
-                            <Image src={slide.imageSrc} alt={slide.dishTitle} fill draggable={false}
+                            <Image src={slide.imageSrc} alt={slide.dishTitle} fill draggable={false} unoptimized={!isOptimizable(slide.imageSrc)}
                                 sizes="(max-width: 767px) 78vw, 44vw" loading={Math.abs(distance) <= 2 ? 'eager' : 'lazy'} />
                         </div>;
                     })}
@@ -159,9 +165,9 @@ export default function MenuShowcase({ steps }: MenuShowcaseProps) {
                 <div className="menu-carousel__details" aria-live="polite" aria-atomic="true">
                     <p className="menu-carousel__eyebrow">{steps[active].categoryName} <span>{String(active + 1).padStart(2, '0')} / {String(count).padStart(2, '0')}</span></p>
                     <h3>{steps[active].dishTitle}</h3>
-                    <a href={`#${steps[active].categoryId}`}>Explore {steps[active].categoryName.toLowerCase()} <span aria-hidden="true">↗</span></a>
+                    <a href={`#${steps[active].categoryId}`}>{exploreLabel} {steps[active].categoryName.toLowerCase()} <span aria-hidden="true">↗</span></a>
                 </div>
-                <p id="menu-carousel-hint" className="menu-carousel__hint">Drag to discover <span aria-hidden="true">⟷</span></p>
+                <p id="menu-carousel-hint" className="menu-carousel__hint">{hint} <span aria-hidden="true">⟷</span></p>
             </div>
         </section>
     );

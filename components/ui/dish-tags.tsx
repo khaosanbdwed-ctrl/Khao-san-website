@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import { Flame, ChefHat, Star, Sparkles } from 'lucide-react';
+import { useContent } from '@/components/cms/content-context';
 
 /**
  * The dish mark vocabulary - one definition, used everywhere a dish appears.
@@ -57,6 +60,9 @@ export interface DishTagsProps {
  * icon and its label set in the accent, separated by a hairline dot.
  */
 export default function DishTags({ badges, className, reserveSpace = false }: DishTagsProps) {
+    // Labels are editable in the CMS (Menu page -> Dish mark names); the keys
+    // and icons are not, for the reason given above.
+    const labels = useContent().menu.badges;
     const marks = (badges ?? []).filter((b): b is MenuBadge => b in BADGE_META);
     if (marks.length === 0 && !reserveSpace) return null;
 
@@ -68,7 +74,7 @@ export default function DishTags({ badges, className, reserveSpace = false }: Di
             {marks.map((b) => (
                 <span className="menu-tag" key={b}>
                     {BADGE_META[b].icon}
-                    {BADGE_META[b].label}
+                    {labels[b] || BADGE_META[b].label}
                 </span>
             ))}
         </p>

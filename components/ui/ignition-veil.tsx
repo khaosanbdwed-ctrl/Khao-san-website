@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { useContent } from '@/components/cms/content-context';
+import { isOptimizable } from '@/components/cms/cms-ui';
 
 /**
  * The opening ritual. On a visitor's first arrival at the homepage, the whole
@@ -18,6 +20,7 @@ import Image from 'next/image';
  * mark the ritual as seen once the sequence finishes playing.
  */
 export default function IgnitionVeil() {
+    const { site } = useContent();
     useEffect(() => {
         if (document.documentElement.getAttribute('data-ignition') !== 'igniting') return;
         const timer = setTimeout(() => {
@@ -30,14 +33,17 @@ export default function IgnitionVeil() {
     return (
         <div className="ignition-veil" aria-hidden="true">
             <div className="ignition-logo-container">
-                <Image 
-                    src="/assets/Logos-20260709T183558Z-2-001/Logos/Khao San Logo.webp" 
-                    width={180} 
-                    height={180} 
-                    alt="Khao San" 
-                    className="ignition-logo-wipe" 
-                    priority
-                />
+                {site.logo.src && (
+                    <Image
+                        src={site.logo.src}
+                        width={180}
+                        height={180}
+                        alt={site.logo.alt || site.siteName}
+                        className="ignition-logo-wipe"
+                        priority
+                        unoptimized={!isOptimizable(site.logo.src)}
+                    />
+                )}
             </div>
         </div>
     );

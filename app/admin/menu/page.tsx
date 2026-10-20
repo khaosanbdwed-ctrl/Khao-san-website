@@ -1,323 +1,402 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronRight, ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
+import { api } from '@/components/admin/api';
+import { MediaPicker, MediaPreview, Modal } from '@/components/admin/media-picker';
+import { SortableList, arrayMove } from '@/components/admin/sortable';
 
 /**
- * Shape returned by /api/admin/menu — these are the real `menu_items` columns.
- * The previous version of this file declared `{ name, category, image }`, which
- * matched nothing in the database, so every row rendered a blank dish name and
- * a blank category pill while the data itself was arriving perfectly intact.
+ * Menu dishes and categories, straight from the Supabase menu tables.
+ *
+ * Unlike the other content areas there is no draft step here: the menu was
+ * already live-on-save before the CMS existed, and the client's workflow
+ * (fix a description, swap a photo) is the kind of change that should simply
+ * happen. Every save revalidates /menu immediately.
  */
-type MenuItem = {
+
+type Badge = 'spicy' | 'special' | 'featured' | 'new';
+interface Dish {
     id: string;
     category_id: string;
     item_number: number;
     title: string;
     price: string;
+    group_price: string | null;
+    portion_note: string | null;
     description: string | null;
     image_src: string | null;
-    portion_note: string | null;
-};
+    badges: Badge[] | null;
+    add_on_note: string | null;
+    sort_order: number;
+}
+interface Category { id: string; name: string; sort_order: number }
+interface AddOn { title: string; price: string }
 
-type Category = { id: string; name: string };
+const BADGES: { value: Badge; label: string }[] = [
+    { value: 'spicy', label: 'Spicy' },
+    { value: 'special', label: "Chef's Special" },
+    { value: 'featured', label: 'Signature' },
+    { value: 'new', label: 'New' },
+];
 
-type FormState = {
-    title: string;
-    category_id: string;
-    price: string;
-    description: string;
-    image_src: string;
-};
+/** Same rewrite the public menu applies: originals are cut-outs, the site shows plated versions. */
+const thumb = (src: string | null) => (src ?? '').replace('/assets/Menu/KS Menu Webp/', '/assets/menu-plated/');
 
-const EMPTY_FORM: FormState = { title: '', category_id: '', price: '', description: '', image_src: '' };
+type DishForm = Omit<Dish, 'id' | 'item_number' | 'sort_order'> & { id?: string };
 
-const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '12px', backgroundColor: 'rgba(22,22,22,0.05)',
-    border: '1px solid rgba(22,22,22,0.12)', borderRadius: '8px',
-    color: 'var(--color-text-primary)', fontFamily: 'inherit', fontSize: '0.95rem',
-};
-const labelStyle: React.CSSProperties = {
-    fontSize: '0.85rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em',
-};
+const emptyDish = (categoryId: string): DishForm => ({
+    category_id: categoryId, title: '', price: '', group_price: '', portion_note: '', description: '',
+    image_src: '', badges: [], add_on_note: '',
+});
 
-export default function AdminMenu() {
-    const [items, setItems] = useState<MenuItem[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [form, setForm] = useState<FormState>(EMPTY_FORM);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [notice, setNotice] = useState<string | null>(null);
-    const fileRef = useRef<HTMLInputElement>(null);
+export default function MenuManager() {
+    const [categories, setCategories] = useState<Category[] | null>(null);
+    const [dishes, setDishes] = useState<Dish[]>([]);
+    const [addOns, setAddOns] = useState<Record<string, AddOn[]>>({});
+    const [open, setOpen] = useState<Set<string>>(new Set());
+    const [message, setMessage] = useState<{ text: string; err?: boolean } | null>(null);
+    const [editing, setEditing] = useState<DishForm | null>(null);
+    const [editingCategory, setEditingCategory] = useState<{ id?: string; name: string; addOns: AddOn[] } | null>(null);
+    const orderTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const notify = useCallback((text: string, err = false) => {
+        setMessage({ text, err });
+        if (!err) setTimeout(() => setMessage(m => (m?.text === text ? null : m)), 3000);
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
-        (async () => {
-            try {
-                const res = await fetch('/api/admin/menu');
-                const json = await res.json();
+        api<{ data: Dish[]; categories: Category[]; addOns: (AddOn & { category_id: string })[] }>('/api/admin/menu')
+            .then(r => {
                 if (cancelled) return;
-                if (!res.ok) throw new Error(json.error || 'Could not load the menu.');
-                setItems(json.data ?? []);
-                setCategories(json.categories ?? []);
-            } catch (err) {
-                if (!cancelled) setError(err instanceof Error ? err.message : 'Could not load the menu.');
-            } finally {
-                if (!cancelled) setIsLoading(false);
-            }
-        })();
-        return () => { cancelled = true; };
-    }, []);
-
-    const categoryName = (id: string) => categories.find(c => c.id === id)?.name ?? id;
-
-    const openCreate = () => {
-        setEditingId(null);
-        setForm({ ...EMPTY_FORM, category_id: categories[0]?.id ?? '' });
-        setError(null);
-        setIsModalOpen(true);
-    };
-
-    const openEdit = (item: MenuItem) => {
-        setEditingId(item.id);
-        setForm({
-            title: item.title,
-            category_id: item.category_id,
-            price: item.price,
-            description: item.description ?? '',
-            image_src: item.image_src ?? '',
-        });
-        setError(null);
-        setIsModalOpen(true);
-    };
-
-    /** PNG only: dish photos are background-removed, and only PNG carries the
-     *  alpha channel the floating-dish treatment on the public menu needs. */
-    const handleFile = async (file: File) => {
-        setError(null);
-        if (file.type !== 'image/png' || !file.name.toLowerCase().endsWith('.png')) {
-            setError('Dish photos must be PNG files with the background removed.');
-            if (fileRef.current) fileRef.current.value = '';
-            return;
-        }
-        setIsUploading(true);
-        try {
-            const body = new FormData();
-            body.append('file', file);
-            const res = await fetch('/api/admin/upload', { method: 'POST', body });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Upload failed.');
-            setForm(f => ({ ...f, image_src: json.url }));
-            setNotice('Photo uploaded.');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Upload failed.');
-        } finally {
-            setIsUploading(false);
-            if (fileRef.current) fileRef.current.value = '';
-        }
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setError(null);
-        try {
-            const res = await fetch('/api/admin/menu', {
-                method: editingId ? 'PUT' : 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editingId ? { id: editingId, ...form } : form),
+                setCategories(r.categories);
+                setDishes(r.data);
+                const grouped: Record<string, AddOn[]> = {};
+                for (const a of r.addOns ?? []) (grouped[a.category_id] ??= []).push({ title: a.title, price: a.price });
+                setAddOns(grouped);
+            })
+            .catch(e => {
+                if (cancelled) return;
+                setCategories([]);
+                notify((e as Error).message, true);
             });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Save failed.');
+        return () => { cancelled = true; };
+    }, [notify]);
 
-            setItems(prev => editingId
-                ? prev.map(i => (i.id === editingId ? json.data : i))
-                : [...prev, json.data]);
-            setIsModalOpen(false);
-            setForm(EMPTY_FORM);
-            setEditingId(null);
-            setNotice(editingId ? 'Dish updated. The public menu will refresh.' : 'Dish added. The public menu will refresh.');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Save failed.');
-        } finally {
-            setIsSubmitting(false);
-        }
+    const dishesOf = (categoryId: string) =>
+        dishes.filter(d => d.category_id === categoryId).sort((a, b) => a.sort_order - b.sort_order);
+
+    /** Persist the whole order a moment after the last drag. */
+    const saveOrder = (cats: Category[], all: Dish[]) => {
+        if (orderTimer.current) clearTimeout(orderTimer.current);
+        orderTimer.current = setTimeout(async () => {
+            const items = cats.flatMap(c => all.filter(d => d.category_id === c.id).sort((a, b) => a.sort_order - b.sort_order).map(d => d.id));
+            try {
+                await api('/api/admin/menu/reorder', { method: 'POST', body: { categories: cats.map(c => c.id), items } });
+                notify('New order saved - it is live on the menu.');
+            } catch (e) {
+                notify((e as Error).message, true);
+            }
+        }, 600);
     };
 
-    const handleDelete = async (item: MenuItem) => {
-        if (!window.confirm(`Delete "${item.title}"? This removes it from the public menu.`)) return;
-        setError(null);
+    const moveCategory = (from: number, to: number) => {
+        if (!categories) return;
+        const next = arrayMove(categories, from, to).map((c, i) => ({ ...c, sort_order: i }));
+        setCategories(next);
+        saveOrder(next, dishes);
+    };
+
+    const moveDish = (categoryId: string, from: number, to: number) => {
+        const ordered = arrayMove(dishesOf(categoryId), from, to);
+        const base = Math.min(...ordered.map(d => d.sort_order));
+        const updated = new Map(ordered.map((d, i) => [d.id, base + i]));
+        const next = dishes.map(d => (updated.has(d.id) ? { ...d, sort_order: updated.get(d.id)! } : d));
+        setDishes(next);
+        if (categories) saveOrder(categories, next);
+    };
+
+    const saveDish = async (form: DishForm) => {
+        const body = {
+            ...form,
+            title: form.title.trim(),
+            group_price: form.group_price || null,
+            portion_note: form.portion_note || null,
+            description: form.description || '',
+            image_src: form.image_src || null,
+            add_on_note: form.add_on_note || null,
+            badges: form.badges ?? [],
+        };
+        if (!body.title) { notify('Give the dish a name.', true); return; }
         try {
-            const res = await fetch(`/api/admin/menu?id=${encodeURIComponent(item.id)}`, { method: 'DELETE' });
-            const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Delete failed.');
-            setItems(prev => prev.filter(i => i.id !== item.id));
-            setNotice(`"${item.title}" deleted.`);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Delete failed.');
+            if (form.id) {
+                const r = await api<{ data: Dish }>('/api/admin/menu', { method: 'PUT', body });
+                setDishes(list => list.map(d => (d.id === r.data.id ? r.data : d)));
+            } else {
+                const r = await api<{ data: Dish }>('/api/admin/menu', { method: 'POST', body });
+                setDishes(list => [...list, r.data]);
+                setOpen(s => new Set(s).add(r.data.category_id));
+            }
+            setEditing(null);
+            notify('Dish saved - it is live on the menu.');
+        } catch (e) {
+            notify((e as Error).message, true);
         }
     };
+
+    const deleteDish = async (dish: Dish) => {
+        if (!confirm(`Delete "${dish.title}" from the menu?`)) return;
+        try {
+            await api(`/api/admin/menu?id=${encodeURIComponent(dish.id)}`, { method: 'DELETE' });
+            setDishes(list => list.filter(d => d.id !== dish.id));
+            notify('Dish deleted.');
+        } catch (e) {
+            notify((e as Error).message, true);
+        }
+    };
+
+    const saveCategory = async (form: { id?: string; name: string; addOns: AddOn[] }) => {
+        try {
+            if (form.id) {
+                await api('/api/admin/menu/categories', { method: 'PUT', body: { id: form.id, name: form.name, addOns: form.addOns } });
+                setCategories(list => list?.map(c => (c.id === form.id ? { ...c, name: form.name.trim() } : c)) ?? null);
+                setAddOns(a => ({ ...a, [form.id!]: form.addOns.filter(x => x.title.trim()) }));
+            } else {
+                const r = await api<{ category: Category }>('/api/admin/menu/categories', { method: 'POST', body: { name: form.name } });
+                if (form.addOns.some(a => a.title.trim())) {
+                    await api('/api/admin/menu/categories', { method: 'PUT', body: { id: r.category.id, addOns: form.addOns } });
+                }
+                setCategories(list => [...(list ?? []), r.category]);
+                setAddOns(a => ({ ...a, [r.category.id]: form.addOns.filter(x => x.title.trim()) }));
+            }
+            setEditingCategory(null);
+            notify('Category saved.');
+        } catch (e) {
+            notify((e as Error).message, true);
+        }
+    };
+
+    const deleteCategory = async (category: Category) => {
+        if (!confirm(`Delete the empty category "${category.name}"?`)) return;
+        try {
+            await api(`/api/admin/menu/categories?id=${encodeURIComponent(category.id)}`, { method: 'DELETE' });
+            setCategories(list => list?.filter(c => c.id !== category.id) ?? null);
+            notify('Category deleted.');
+        } catch (e) {
+            notify((e as Error).message, true);
+        }
+    };
+
+    const toggle = (id: string) => setOpen(s => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
     return (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', gap: '20px', flexWrap: 'wrap' }}>
+        <div className="cms-page">
+            <div className="cms-page-head">
                 <div>
-                    <h1 className="display-3" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Menu Control</h1>
-                    <p style={{ color: 'var(--color-text-secondary)' }}>
-                        {isLoading ? 'Loading…' : `${items.length} dishes across ${categories.length} categories.`}
-                    </p>
+                    <h1>Menu dishes</h1>
+                    <p>Drag categories and dishes into any order with the <strong>⋮⋮</strong> handle. Every change goes live on the menu page straight away.</p>
                 </div>
-                <button onClick={openCreate} className="btn btn-primary" disabled={isLoading}>+ Add New Dish</button>
+                <div className="cms-row">
+                    <a className="cms-btn" href="/menu" target="_blank" rel="noopener"><ExternalLink size={14} /> View menu</a>
+                    <button type="button" className="cms-btn cms-btn--primary" onClick={() => setEditingCategory({ name: '', addOns: [] })}><Plus size={15} /> Add category</button>
+                </div>
             </div>
 
-            {error && (
-                <div role="alert" style={{ marginBottom: '20px', padding: '14px 18px', borderRadius: '8px', backgroundColor: 'rgba(141,54,31,0.10)', border: '1px solid rgba(141,54,31,0.35)', color: '#8D361F' }}>
-                    {error}
-                </div>
-            )}
-            {notice && !error && (
-                <div role="status" style={{ marginBottom: '20px', padding: '14px 18px', borderRadius: '8px', backgroundColor: 'rgba(30,65,123,0.08)', border: '1px solid rgba(30,65,123,0.28)', color: '#16233d' }}>
-                    {notice}
-                </div>
-            )}
+            {message && <div className={`cms-alert ${message.err ? 'cms-alert--err' : 'cms-alert--info'}`} role="status">{message.text}</div>}
 
-            <div style={{ backgroundColor: 'var(--color-surface-base)', borderRadius: '12px', border: '1px solid var(--color-border)', overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: 'rgba(22,22,22,0.03)', color: 'var(--color-text-secondary)', fontSize: '0.85rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
-                            <th scope="col" style={{ padding: '20px 24px', fontWeight: 500 }}>Dish Name</th>
-                            <th scope="col" style={{ padding: '20px 24px', fontWeight: 500 }}>Category</th>
-                            <th scope="col" style={{ padding: '20px 24px', fontWeight: 500 }}>Price</th>
-                            <th scope="col" style={{ padding: '20px 24px', fontWeight: 500, textAlign: 'right' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {isLoading ? (
-                            <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>Loading menu…</td></tr>
-                        ) : items.length === 0 ? (
-                            <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>No dishes yet.</td></tr>
-                        ) : items.map((item) => (
-                            <tr key={item.id} style={{ borderTop: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '20px 24px' }}>
-                                    <div style={{ fontWeight: 500, marginBottom: '4px' }}>
-                                        {item.title}
-                                        {item.portion_note && (
-                                            <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400, marginLeft: '6px' }}>{item.portion_note}</span>
-                                        )}
-                                    </div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', maxWidth: '420px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                        {item.description}
-                                    </div>
-                                </td>
-                                <td style={{ padding: '20px 24px' }}>
-                                    <span style={{ padding: '4px 12px', backgroundColor: 'var(--color-border)', borderRadius: '16px', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                                        {categoryName(item.category_id)}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '20px 24px', color: 'var(--color-primary)', whiteSpace: 'nowrap' }}>{item.price}</td>
-                                <td style={{ padding: '20px 24px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                    <button onClick={() => openEdit(item)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', textDecoration: 'underline', marginRight: '14px', font: 'inherit' }}>Edit</button>
-                                    <button onClick={() => handleDelete(item)} style={{ background: 'transparent', border: 'none', color: '#8D361F', cursor: 'pointer', textDecoration: 'underline', font: 'inherit' }}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {isModalOpen && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(22,22,22,0.35)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', overflowY: 'auto' }}>
-                    <div style={{ backgroundColor: 'var(--color-surface-elevated)', padding: '40px', borderRadius: '12px', width: '100%', maxWidth: '540px', border: '1px solid rgba(22,22,22,0.12)' }}>
-                        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.8rem', marginBottom: '24px' }}>
-                            {editingId ? 'Edit Dish' : 'Add New Dish'}
-                        </h2>
-
-                        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label htmlFor="dish-title" style={labelStyle}>Dish Name</label>
-                                <input id="dish-title" type="text" required value={form.title}
-                                    onChange={e => setForm({ ...form, title: e.target.value })} style={inputStyle} />
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 200px' }}>
-                                    <label htmlFor="dish-category" style={labelStyle}>Category</label>
-                                    <select id="dish-category" required value={form.category_id}
-                                        onChange={e => setForm({ ...form, category_id: e.target.value })} style={inputStyle}>
-                                        <option value="" disabled>Choose a category…</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: '1 1 160px' }}>
-                                    <label htmlFor="dish-price" style={labelStyle}>Price (e.g. 850)</label>
-                                    <input id="dish-price" type="text" required value={form.price}
-                                        onChange={e => setForm({ ...form, price: e.target.value })} style={inputStyle} />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label htmlFor="dish-desc" style={labelStyle}>Description</label>
-                                <textarea id="dish-desc" rows={3} value={form.description}
-                                    onChange={e => setForm({ ...form, description: e.target.value })}
-                                    style={{ ...inputStyle, resize: 'vertical' }} />
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <label htmlFor="dish-photo" style={labelStyle}>Photo — PNG only, background removed</label>
-                                <input
-                                    id="dish-photo"
-                                    ref={fileRef}
-                                    type="file"
-                                    accept="image/png,.png"
-                                    onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }}
-                                    disabled={isUploading}
-                                    style={{ ...inputStyle, padding: '10px', cursor: isUploading ? 'wait' : 'pointer' }}
-                                />
-                                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', margin: 0 }}>
-                                    The menu shows dishes floating on the background, so the photo must be a
-                                    transparent PNG. Max 5&nbsp;MB.
-                                </p>
-
-                                {isUploading && <p style={{ fontSize: '0.85rem', margin: 0 }}>Uploading…</p>}
-
-                                {form.image_src && !isUploading && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
-                                        {/* Plain <img>: the source is a runtime Supabase URL and this is a
-                                            40px admin thumbnail, so next/image optimisation buys nothing. */}
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={form.image_src} alt="" width={44} height={44}
-                                            style={{ objectFit: 'contain', borderRadius: '6px', background: 'rgba(22,22,22,0.05)' }} />
-                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                                            {form.image_src.split('/').pop()}
-                                        </span>
-                                        <button type="button" onClick={() => setForm({ ...form, image_src: '' })}
-                                            style={{ background: 'transparent', border: 'none', color: '#8D361F', cursor: 'pointer', textDecoration: 'underline', font: 'inherit', fontSize: '0.8rem' }}>
-                                            Remove
+            {categories === null ? <div className="cms-empty"><span className="cms-spinner" /></div> : (
+                <SortableList
+                    items={categories}
+                    keyOf={c => c.id}
+                    onMove={moveCategory}
+                    label="category"
+                    render={(category, { handle, dragging }) => {
+                        const list = dishesOf(category.id);
+                        const isOpen = open.has(category.id);
+                        return (
+                            <div className={`cms-card cms-item${dragging ? ' is-dragging' : ''}`} data-sortable-item="">
+                                <div className="cms-cat-head">
+                                    {handle}
+                                    <button type="button" className="cms-icon-btn" aria-expanded={isOpen} aria-label={isOpen ? `Collapse ${category.name}` : `Show dishes in ${category.name}`} onClick={() => toggle(category.id)}>
+                                        {isOpen ? <ChevronDown size={17} /> : <ChevronRight size={17} />}
+                                    </button>
+                                    <h3>
+                                        <button type="button" className="cms-item-title" style={{ fontSize: 15, padding: 0 }} onClick={() => toggle(category.id)}>
+                                            {category.name} <span className="cms-cat-count">· {list.length} dish{list.length === 1 ? '' : 'es'}</span>
                                         </button>
+                                    </h3>
+                                    <button type="button" className="cms-btn cms-btn--sm" onClick={() => setEditing(emptyDish(category.id))}><Plus size={13} /> Dish</button>
+                                    <button type="button" className="cms-icon-btn" aria-label={`Edit ${category.name}`} title="Rename / add-ons" onClick={() => setEditingCategory({ id: category.id, name: category.name, addOns: addOns[category.id] ?? [] })}><Pencil size={15} /></button>
+                                    <button type="button" className="cms-icon-btn cms-icon-btn--danger" aria-label={`Delete ${category.name}`} title={list.length ? 'Move or delete its dishes first' : 'Delete category'} disabled={list.length > 0} onClick={() => deleteCategory(category)}><Trash2 size={15} /></button>
+                                </div>
+                                {isOpen && (
+                                    <div className="cms-cat-body">
+                                        {list.length === 0 ? <p className="cms-empty" style={{ padding: 16 }}>No dishes yet.</p> : (
+                                            <SortableList
+                                                items={list}
+                                                keyOf={d => d.id}
+                                                onMove={(from, to) => moveDish(category.id, from, to)}
+                                                className=""
+                                                label="dish"
+                                                render={(dish, api2) => (
+                                                    <div className={`cms-dish${api2.dragging ? ' is-dragging' : ''}`} data-sortable-item="">
+                                                        {api2.handle}
+                                                        {dish.image_src
+                                                            // eslint-disable-next-line @next/next/no-img-element -- admin thumbnail
+                                                            ? <img className="cms-thumb" src={thumb(dish.image_src)} alt="" loading="lazy" />
+                                                            : <span className="cms-thumb" aria-hidden="true" />}
+                                                        <button type="button" className="cms-item-title cms-dish-name" onClick={() => setEditing({ ...dish, badges: dish.badges ?? [] })}>
+                                                            <strong>{dish.title} {dish.portion_note && <span>{dish.portion_note}</span>}</strong>
+                                                            <span>{(dish.badges ?? []).map(b => BADGES.find(x => x.value === b)?.label).filter(Boolean).join(' · ') || ' '}</span>
+                                                        </button>
+                                                        <button type="button" className="cms-icon-btn" aria-label={`Edit ${dish.title}`} onClick={() => setEditing({ ...dish, badges: dish.badges ?? [] })}><Pencil size={15} /></button>
+                                                        <button type="button" className="cms-icon-btn cms-icon-btn--danger" aria-label={`Delete ${dish.title}`} onClick={() => deleteDish(dish)}><Trash2 size={15} /></button>
+                                                    </div>
+                                                )}
+                                            />
+                                        )}
+                                        {(addOns[category.id]?.length ?? 0) > 0 && (
+                                            <p className="cms-help" style={{ padding: '8px 8px 0' }}>Add-ons: {addOns[category.id].map(a => a.title).join(', ')}</p>
+                                        )}
                                     </div>
                                 )}
                             </div>
+                        );
+                    }}
+                />
+            )}
 
-                            {error && (
-                                <p role="alert" style={{ margin: 0, color: '#8D361F', fontSize: '0.9rem' }}>{error}</p>
-                            )}
-
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                                <button type="button" onClick={() => { setIsModalOpen(false); setError(null); }}
-                                    style={{ flex: 1, padding: '12px', background: 'transparent', border: '1px solid rgba(22,22,22,0.12)', color: 'var(--color-text-primary)', borderRadius: '8px', cursor: 'pointer', font: 'inherit' }}>
-                                    Cancel
-                                </button>
-                                <button type="submit" disabled={isSubmitting || isUploading} className="btn btn-primary" style={{ flex: 1 }}>
-                                    {isSubmitting ? 'Saving…' : editingId ? 'Save Changes' : 'Save Dish'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+            {editing && categories && (
+                <DishEditor dish={editing} categories={categories} onCancel={() => setEditing(null)} onSave={saveDish} />
+            )}
+            {editingCategory && (
+                <CategoryEditor value={editingCategory} onCancel={() => setEditingCategory(null)} onSave={saveCategory} />
             )}
         </div>
+    );
+}
+
+function DishEditor({ dish, categories, onCancel, onSave }: {
+    dish: DishForm;
+    categories: Category[];
+    onCancel: () => void;
+    onSave: (d: DishForm) => Promise<void>;
+}) {
+    const [form, setForm] = useState<DishForm>(dish);
+    const [picking, setPicking] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const set = <K extends keyof DishForm>(key: K, value: DishForm[K]) => setForm(f => ({ ...f, [key]: value }));
+
+    const submit = async () => { setSaving(true); await onSave(form); setSaving(false); };
+
+    return (
+        <Modal
+            title={dish.id ? `Edit ${dish.title}` : 'Add a dish'}
+            onClose={onCancel}
+            footer={<>
+                <button type="button" className="cms-btn" onClick={onCancel}>Cancel</button>
+                <button type="button" className="cms-btn cms-btn--primary" disabled={saving} onClick={submit}>{saving ? <span className="cms-spinner" /> : null} Save dish</button>
+            </>}
+        >
+            <div className="cms-modal-body">
+                <div className="cms-field">
+                    <span className="cms-label">Photo</span>
+                    <div className="cms-media">
+                        <MediaPreview src={thumb(form.image_src)} kind="image" />
+                        <div className="cms-media-meta">
+                            <div className="cms-row">
+                                <button type="button" className="cms-btn cms-btn--sm" onClick={() => setPicking(true)}>{form.image_src ? 'Replace photo' : 'Choose photo'}</button>
+                                {form.image_src && <button type="button" className="cms-btn cms-btn--sm cms-btn--ghost" onClick={() => set('image_src', '')}>Remove</button>}
+                            </div>
+                            <span className="cms-help">A normal photo is fine (JPG, PNG or WebP). Square photos fit the menu grid best.</span>
+                        </div>
+                    </div>
+                </div>
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="dish-title">Name</label>
+                    <input id="dish-title" className="cms-input" value={form.title} onChange={e => set('title', e.target.value)} />
+                </div>
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="dish-portion">Portion note</label>
+                    <input id="dish-portion" className="cms-input" placeholder="(4pcs)" value={form.portion_note ?? ''} onChange={e => set('portion_note', e.target.value)} />
+                </div>
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="dish-category">Category</label>
+                    <select id="dish-category" className="cms-select" value={form.category_id} onChange={e => set('category_id', e.target.value)}>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                </div>
+                <div className="cms-field">
+                    <span className="cms-label">Marks</span>
+                    <div className="cms-chips">
+                        {BADGES.map(b => {
+                            const on = (form.badges ?? []).includes(b.value);
+                            return <button key={b.value} type="button" className="cms-chip" aria-pressed={on} onClick={() => set('badges', on ? (form.badges ?? []).filter(x => x !== b.value) : [...(form.badges ?? []), b.value])}>{b.label}</button>;
+                        })}
+                    </div>
+                </div>
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="dish-desc">Description</label>
+                    <textarea id="dish-desc" className="cms-textarea" value={form.description ?? ''} onChange={e => set('description', e.target.value)} />
+                </div>
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="dish-addon">Add-on note</label>
+                    <input id="dish-addon" className="cms-input" placeholder="Add coconut ice cream" value={form.add_on_note ?? ''} onChange={e => set('add_on_note', e.target.value)} />
+                </div>
+                <div className="cms-row" style={{ marginTop: 14, alignItems: 'flex-start' }}>
+                    <div className="cms-field" style={{ flex: 1 }}>
+                        <label className="cms-label" htmlFor="dish-price">Price</label>
+                        <input id="dish-price" className="cms-input" value={form.price ?? ''} onChange={e => set('price', e.target.value)} />
+                    </div>
+                    <div className="cms-field" style={{ flex: 1, marginTop: 0 }}>
+                        <label className="cms-label" htmlFor="dish-group">Sharing price</label>
+                        <input id="dish-group" className="cms-input" value={form.group_price ?? ''} onChange={e => set('group_price', e.target.value)} />
+                    </div>
+                </div>
+                <p className="cms-help">Prices are kept for your records but are not currently shown on the website.</p>
+            </div>
+            {picking && <MediaPicker kind="image" onClose={() => setPicking(false)} onSelect={p => set('image_src', p.src)} />}
+        </Modal>
+    );
+}
+
+function CategoryEditor({ value, onCancel, onSave }: {
+    value: { id?: string; name: string; addOns: AddOn[] };
+    onCancel: () => void;
+    onSave: (v: { id?: string; name: string; addOns: AddOn[] }) => Promise<void>;
+}) {
+    const [form, setForm] = useState(value);
+    const [saving, setSaving] = useState(false);
+    const setAddOn = (i: number, patch: Partial<AddOn>) => setForm(f => ({ ...f, addOns: f.addOns.map((a, j) => (j === i ? { ...a, ...patch } : a)) }));
+    return (
+        <Modal
+            narrow
+            title={value.id ? `Edit ${value.name}` : 'Add a category'}
+            onClose={onCancel}
+            footer={<>
+                <button type="button" className="cms-btn" onClick={onCancel}>Cancel</button>
+                <button type="button" className="cms-btn cms-btn--primary" disabled={saving || !form.name.trim()} onClick={async () => { setSaving(true); await onSave(form); setSaving(false); }}>Save</button>
+            </>}
+        >
+            <div className="cms-modal-body">
+                <div className="cms-field">
+                    <label className="cms-label" htmlFor="cat-name">Name</label>
+                    <input id="cat-name" className="cms-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+                    {value.id && <p className="cms-help">Links to this category (/menu#{value.id}) keep working after a rename.</p>}
+                </div>
+                <div className="cms-field">
+                    <span className="cms-label">Add-ons shown under this category</span>
+                    {form.addOns.map((a, i) => (
+                        <div className="cms-row" key={i}>
+                            <input className="cms-input" aria-label={`Add-on ${i + 1}`} placeholder="Poached Egg" value={a.title} onChange={e => setAddOn(i, { title: e.target.value })} />
+                            <input className="cms-input" aria-label={`Add-on ${i + 1} price`} placeholder="Price" style={{ maxWidth: 100, minWidth: 80 }} value={a.price} onChange={e => setAddOn(i, { price: e.target.value })} />
+                            <button type="button" className="cms-icon-btn cms-icon-btn--danger" aria-label={`Remove add-on ${i + 1}`} onClick={() => setForm(f => ({ ...f, addOns: f.addOns.filter((_, j) => j !== i) }))}><Trash2 size={15} /></button>
+                        </div>
+                    ))}
+                    <button type="button" className="cms-btn cms-add" onClick={() => setForm(f => ({ ...f, addOns: [...f.addOns, { title: '', price: '' }] }))}><Plus size={14} /> Add an add-on</button>
+                </div>
+            </div>
+        </Modal>
     );
 }
