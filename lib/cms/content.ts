@@ -29,7 +29,19 @@ type Stored = { data: unknown };
 
 async function read(path: string): Promise<Stored | null> {
     try {
-        return await readJson<Stored>(path);
+        // Retried twice (0.3 s, then 1 s) so a momentary blip between the host
+        // and Supabase is absorbed rather than failing the render.
+        try {
+            return await readJson<Stored>(path);
+        } catch {
+            await new Promise(r => setTimeout(r, 300));
+            try {
+                return await readJson<Stored>(path);
+            } catch {
+                await new Promise(r => setTimeout(r, 1000));
+                return await readJson<Stored>(path);
+            }
+        }
     } catch (e) {
         if (process.env.NEXT_PHASE === 'phase-production-build') {
             console.warn(`[cms] ${(e as Error).message}; building with the built-in content.`);
