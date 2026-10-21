@@ -40,7 +40,7 @@ export default function AdminLogin() {
     };
 
     return (
-        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-surface-base)' }}>
+        <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-surface-base)' }}>
             <div style={{ position: 'absolute', inset: 0, opacity: 0.2, zIndex: 0 }}>
                 <Image
                     src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp"
@@ -103,6 +103,6 @@ export default function AdminLogin() {
                     </button>
                 </form>
             </div>
-        </div>
+        </main>
     );
 }

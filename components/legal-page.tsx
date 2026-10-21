@@ -25,12 +25,16 @@ export default function LegalPage({ page }: { page: LegalPageContent }) {
               <RichBlocks
                 text={block.body}
                 listStyle={{ marginLeft: '20px', marginBottom: '16px' }}
-                linkStyle={{ color: 'var(--color-primary)' }}
+                // Underlined: the blue alone is too close to the grey text
+                // around it to read as a link without colour vision.
+                linkStyle={{ color: 'var(--color-primary)', textDecoration: 'underline', textUnderlineOffset: '0.18em' }}
               />
             </Fragment>
           ))}
 
-          {page.updated && <p style={{ marginTop: '60px', fontSize: '0.9rem', opacity: 0.6 }}>{page.updated}</p>}
+          {/* Secondary ink at full strength - at 60% opacity it measured
+              2.6:1, below the 4.5:1 body-text minimum. */}
+          {page.updated && <p style={{ marginTop: '60px', fontSize: '0.9rem' }}>{page.updated}</p>}
         </div>
       </div>
     </div>

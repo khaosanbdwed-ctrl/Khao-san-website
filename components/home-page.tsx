@@ -42,7 +42,11 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
             <React.Fragment key="hero">
                 <section
                     {...sectionBackground(hero.background, {
-                        position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center',
+                        // svh, not vh: an inline 100vh outranked 14-phone.css's
+                        // `.hero { min-height: 100svh }`, so on phones the hero
+                        // was taller than the visible screen and its buttons sat
+                        // under the address bar. Identical on desktop.
+                        position: 'relative', minHeight: '100svh', display: 'flex', alignItems: 'center',
                         justifyContent: 'center', overflow: 'hidden', backgroundColor: 'var(--color-surface-base)',
                     }, 'hero')}
                 >

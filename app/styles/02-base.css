@@ -76,3 +76,17 @@ body::after {
     margin: 0 auto;
     padding: 0 max(8vw, 24px);
 }
+
+/* Read by screen readers, not drawn. For headings that give assistive tech
+   the page outline the visual design already makes obvious. */
+.sr-only {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

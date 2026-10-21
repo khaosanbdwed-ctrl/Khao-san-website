@@ -226,6 +226,10 @@ export default function Footer({ content, locations, whatsapp }: Props) {
             <div className="container site-footer__inner">
 
                 {/* ZONE 1 - one grid. Brand, then the three rooms. */}
+                {/* The outlet names below are h3s; this gives them a parent
+                    in the outline on every page (the 404 page has no h2 of
+                    its own). Not drawn. */}
+                <h2 className="sr-only">Our locations</h2>
                 <div className="footer-grid">
 
                     <div className="footer-brand">
