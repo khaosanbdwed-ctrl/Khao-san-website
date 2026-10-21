@@ -4,7 +4,9 @@ Orientation index. Read this first; it points at the file that owns each
 concern so a round does not re-derive the whole project. It does **not**
 replace `PRD.md` (the decision log) — it is the table of contents for it.
 
-Last synced: 2026-08-21, end of Round 9.
+Last synced: 2026-08-21, end of Round 9. Lines touched 2026-10-21 (QA/security
+pass) are marked *(10-21)*; for the current state read `PRODUCTION_AUDIT.md`
+and `HANDOFF.md` first.
 
 ---
 
@@ -26,11 +28,11 @@ Dev: `npm run dev -- -p 3200` (3000 belongs to the portfolio copy).
 |---|---|---|
 | `MAP.md` | this index | current |
 | `PRD.md` | decision log, Rounds 1–9 + client feedback verbatim | **source of truth** |
-| `PRODUCTION_AUDIT.md` (645 ln) | launch-readiness scoring, 6 axes | current |
+| `PRODUCTION_AUDIT.md` | launch-readiness and security audit, scored, with the owner checklist *(10-21)* | **current** |
+| `CLIENT_GUIDE.md` | the restaurant team's manual: dashboard + photo/video sizes *(10-21)* | current |
+| `qa/` | security + dashboard regression suites against a local Supabase mock *(10-21)* | current |
 | `DESIGN_AUDIT.md` (224 ln) | 115 numbered issues by priority | partly reconciled — see its own "Reconciliation note" |
 | `README.md` | run/deploy + the two classic traps | current |
-| `COZY_DARK_PLAN.md` | **STALE** — the abandoned dark "midnight navy" direction | ignore; superseded by PRD §3 |
-| `temp.txt` | stray 21st.dev HeroUI paste, unrelated to this project | delete |
 | `_masters/Brand_Asset` | scanned printed menus + social posts | reference |
 | `graphify-out/` | generated knowledge graph of the repo | regenerate, don't edit |
 
@@ -59,9 +61,9 @@ launch**), Montserrat (body/UI/numerals), Good Brush (script accent).
 /menu             Supabase-backed, ISR 1h + on-demand    app/menu/page.tsx + components/menu-page-client.tsx
 /legal/privacy    static
 /legal/terms      static
-/admin/login → /admin → /admin/menu   menu CRUD only
+/admin/login → /admin → /admin/content, /admin/menu, /admin/media   (CMS, see CMS.md)
 /api/admin/menu   CRUD (service role)
-/api/admin/upload dish photo — PNG signature-checked
+/api/admin/upload signed URLs for plated dish photos (plated in the browser) *(10-21)*
 /api/auth/{login,logout}
 robots.ts · sitemap.ts   ← SITE const must point at the real domain before launch
 ```
@@ -223,11 +225,11 @@ Orange is never a background and never a texture. `--color-dish-field`
   the digit-excluding `unicode-range` in `app/layout.tsx`.
 - **Deploy env vars** — all five must be set on the host for Production,
   Preview *and* Development or `/menu` fails to prerender (see `.env.example`).
-- **`SITE`** in `robots.ts` / `sitemap.ts` → the real domain.
-- **Security scored 6.5/10** and left there by instruction (`PRODUCTION_AUDIT.md` §3).
+- Domain: `https://khaosan.bd`, set once in `lib/site.ts` *(10-21)*.
+- Security: 10/10 after the 10-21 pass - see `PRODUCTION_AUDIT.md` §1.
 - **Dish cards (PRD §6) is now moot** — R8 settled the dish presentation as a
   photograph, a category and a name, with no container at all.
-- `package.json` `"name"` still says `khao-san-app`.
+- `package.json` `"name"` is `khao-san-website` *(10-21)*.
 
 ## 10. How a round is verified
 
