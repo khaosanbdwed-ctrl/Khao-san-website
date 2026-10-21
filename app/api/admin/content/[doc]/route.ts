@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { isDocKey } from '@/lib/cms/registry';
 import { discardDraft, getDocState, listVersions, publish, restoreVersion, saveDraft } from '@/lib/cms/store';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 /**
  * One editable area of the site.
@@ -38,7 +39,9 @@ async function readJson(request: Request): Promise<Record<string, unknown> | Nex
     }
 }
 
-export async function GET(_request: Request, { params }: Ctx) {
+export async function GET(request: Request, { params }: Ctx) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     const { doc } = await params;
     if (!isDocKey(doc)) return NextResponse.json({ error: 'Unknown page area.' }, { status: 404 });
     try {
@@ -50,6 +53,8 @@ export async function GET(_request: Request, { params }: Ctx) {
 }
 
 export async function PUT(request: Request, { params }: Ctx) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     const { doc } = await params;
     if (!isDocKey(doc)) return NextResponse.json({ error: 'Unknown page area.' }, { status: 404 });
     const body = await readJson(request);
@@ -63,6 +68,8 @@ export async function PUT(request: Request, { params }: Ctx) {
 }
 
 export async function POST(request: Request, { params }: Ctx) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     const { doc } = await params;
     if (!isDocKey(doc)) return NextResponse.json({ error: 'Unknown page area.' }, { status: 404 });
     const body = await readJson(request);

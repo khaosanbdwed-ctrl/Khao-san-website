@@ -27,7 +27,10 @@ export default function AdminLogin() {
                 router.push('/admin');
                 router.refresh();
             } else {
-                setError('Invalid credentials');
+                // The server says why: wrong details, too many attempts, or
+                // login not configured on this deployment.
+                const json = await res.json().catch(() => null);
+                setError(json?.error || 'Sign-in failed. Please try again.');
             }
         } catch {
             setError('An error occurred. Please try again.');
@@ -41,8 +44,9 @@ export default function AdminLogin() {
             <div style={{ position: 'absolute', inset: 0, opacity: 0.2, zIndex: 0 }}>
                 <Image
                     src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp"
-                    alt="Background"
+                    alt=""
                     fill
+                    priority
                     style={{ objectFit: 'cover' }}
                 />
             </div>
@@ -50,19 +54,26 @@ export default function AdminLogin() {
             <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: '420px', padding: '48px', backgroundColor: 'var(--color-surface-base)', borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: '0 24px 64px rgba(30, 41, 59, 0.18)' }}>
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <span className="overline" style={{ color: 'var(--color-primary)', display: 'block', marginBottom: '16px' }}>Khao San Admin</span>
-                    <h1 className="display-3" style={{ fontSize: '2.5rem' }}>Log In.</h1>
+                    <h1 className="display-2" style={{ fontSize: '2.5rem' }}>Log In.</h1>
                 </div>
 
                 <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {error && (
-                        <div style={{ padding: '12px', backgroundColor: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.2)', color: '#f87171', borderRadius: '6px', fontSize: '0.9rem', textAlign: 'center' }}>
+                        <div role="alert" style={{ padding: '12px', backgroundColor: 'rgba(220, 38, 38, 0.1)', border: '1px solid rgba(220, 38, 38, 0.2)', color: '#f87171', borderRadius: '6px', fontSize: '0.9rem', textAlign: 'center' }}>
                             {error}
                         </div>
                     )}
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px' }}>Username</label>
+                        <label htmlFor="admin-username" style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px' }}>Username</label>
                         <input
+                            id="admin-username"
+                            name="username"
+                            autoComplete="username"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            autoFocus
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
@@ -73,8 +84,11 @@ export default function AdminLogin() {
                     </div>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px' }}>Password</label>
+                        <label htmlFor="admin-password" style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: '2px' }}>Password</label>
                         <input
+                            id="admin-password"
+                            name="password"
+                            autoComplete="current-password"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}

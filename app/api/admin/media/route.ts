@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { MEDIA_BUCKET as BUCKET, ensureBucket } from '@/lib/cms/bucket';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 /**
  * The website media library - photos and videos for every CMS section, in the
@@ -50,7 +51,9 @@ const safeName = (original: string, ext: string) => `${safeStem(original)}.${ext
  *  and deleted with it. */
 const COMPANION = /\.(web-sm\.mp4|web\.webp)$/;
 
-export async function GET() {
+export async function GET(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     try {
         await ensureBucket(BUCKET);
     } catch (e) {
@@ -114,6 +117,8 @@ async function signVideoSet(name: string, sizes: unknown) {
 }
 
 export async function POST(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     let body: { name?: unknown; type?: unknown; size?: unknown; set?: unknown; sizes?: unknown };
     try {
         body = await request.json();
@@ -152,6 +157,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     let body: { path?: unknown };
     try {
         body = await request.json();

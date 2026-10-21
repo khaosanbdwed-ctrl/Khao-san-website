@@ -123,6 +123,12 @@ export async function optimizeVideo(file: File, onProgress: (fraction: number) =
  * Photo -> WebP no larger than MAX_PHOTO_EDGE. Returns the original when that
  * would not help: animated GIFs (a canvas keeps only the first frame), and
  * files the re-save would make bigger.
+ *
+ * Safari cannot encode WebP. There a JPEG or HEIC-converted photo is re-saved
+ * as JPEG instead, so a 12 MB iPhone picture is still scaled down rather than
+ * refused at the 10 MB limit. PNG/WebP sources may be see-through (logos,
+ * the brush stroke), and JPEG has no transparency, so those are kept as they
+ * are when WebP is unavailable.
  */
 export async function optimizePhoto(file: File): Promise<File> {
     if (file.type === 'image/gif' || typeof createImageBitmap === 'undefined') return file;
@@ -143,11 +149,15 @@ export async function optimizePhoto(file: File): Promise<File> {
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
 
-    const blob = await canvasToBlob(canvas, 'image/webp', 0.86).catch(() => null);
-    // A browser without WebP encoding hands back a PNG instead - keep the
-    // original rather than inflate it.
-    if (!blob || blob.type !== 'image/webp') return file;
+    let blob = await canvasToBlob(canvas, 'image/webp', 0.86).catch(() => null);
+    // A browser without WebP encoding hands back a PNG instead.
+    if (!blob || blob.type !== 'image/webp') {
+        if (file.type !== 'image/jpeg') return file;
+        blob = await canvasToBlob(canvas, 'image/jpeg', 0.86).catch(() => null);
+        if (!blob || blob.type !== 'image/jpeg') return file;
+    }
     const resized = width !== original.width || height !== original.height;
     if (!resized && blob.size >= file.size) return file;
-    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.webp', { type: 'image/webp' });
+    const ext = blob.type === 'image/webp' ? '.webp' : '.jpg';
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + ext, { type: blob.type });
 }

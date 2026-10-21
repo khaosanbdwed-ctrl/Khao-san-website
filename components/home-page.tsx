@@ -197,7 +197,13 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
                                     <h3>{loc.name}</h3>
                                     <div className="haven-card-meta">
                                         <p className="haven-card-address">{loc.address}</p>
-                                        <p className="haven-card-hours">{loc.hours.join(' · ')}</p>
+                                        <p className="haven-card-hours">
+                                            {/* One run per set of hours, so a line breaks between
+                                                "Sat–Thu …" and "Friday …", never inside a time. */}
+                                            {loc.hours.map((h, hi) => (
+                                                <React.Fragment key={hi}>{hi > 0 && ' · '}<span className="hours-run">{h}</span></React.Fragment>
+                                            ))}
+                                        </p>
                                     </div>
                                     <div className="haven-card-actions">
                                         {content.locations.contactLabel && (

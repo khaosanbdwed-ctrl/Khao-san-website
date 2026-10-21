@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { safeMediaUrl } from '@/lib/cms/fields';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 /**
  * Columns a client is allowed to write. `PUT` previously spread the whole
@@ -15,6 +17,18 @@ const WRITABLE = [
 
 type Writable = (typeof WRITABLE)[number];
 
+/** The four marks the site knows how to draw (components/ui/dish-tags.tsx). */
+const BADGES = ['spicy', 'special', 'featured', 'new'];
+
+/** Longest value each text column may hold. Generous for real content, and
+ *  a cap on what a malformed request can put in front of every visitor. */
+const MAX_LENGTH: Partial<Record<Writable, number>> = {
+    category_id: 80, title: 200, price: 40, description: 1000, image_src: 1000,
+    portion_note: 80, group_price: 80, add_on_note: 300,
+};
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** The menu page is statically cached; a write has to invalidate it or the
  *  admin appears to do nothing until the next revalidation window. */
 function refreshPublicMenu() {
@@ -25,7 +39,13 @@ function refreshPublicMenu() {
 function pickWritable(body: Record<string, unknown>): Partial<Record<Writable, unknown>> {
     const out: Partial<Record<Writable, unknown>> = {};
     for (const key of WRITABLE) {
-        if (body[key] !== undefined) out[key] = body[key];
+        if (body[key] === undefined) continue;
+        const v = body[key];
+        // Optional text columns store NULL rather than an empty string, so the
+        // menu's `|| undefined` checks treat a cleared field as absent.
+        out[key] = typeof v === 'string' && !['category_id', 'title', 'price'].includes(key)
+            ? (v.trim() ? v.trim() : null)
+            : typeof v === 'string' ? v.trim() : v;
     }
     return out;
 }
@@ -40,24 +60,34 @@ function validate(fields: Partial<Record<Writable, unknown>>, { partial }: { par
             }
         }
     }
-    for (const key of ['category_id', 'title', 'price', 'description', 'image_src'] as Writable[]) {
-        if (fields[key] !== undefined && fields[key] !== null && typeof fields[key] !== 'string') {
-            return `\`${key}\` must be a string.`;
+    for (const key of Object.keys(MAX_LENGTH) as Writable[]) {
+        const v = fields[key];
+        if (v === undefined || v === null) continue;
+        if (typeof v !== 'string') return `\`${key}\` must be text.`;
+        if (v.length > MAX_LENGTH[key]!) return `\`${key}\` is too long (max ${MAX_LENGTH[key]} characters).`;
+    }
+    if (partial) {
+        for (const key of required) {
+            if (fields[key] !== undefined && (typeof fields[key] !== 'string' || !(fields[key] as string).trim())) {
+                return `\`${key}\` cannot be empty.`;
+            }
         }
     }
-    if (fields.badges !== undefined && !Array.isArray(fields.badges)) {
-        return '`badges` must be an array.';
+    if (typeof fields.image_src === 'string' && !safeMediaUrl(fields.image_src)) {
+        return 'The photo address is not valid.';
+    }
+    if (fields.badges !== undefined && (!Array.isArray(fields.badges) || fields.badges.some(b => !BADGES.includes(b as string)))) {
+        return `\`badges\` must be a list of: ${BADGES.join(', ')}.`;
     }
     if (fields.angled !== undefined && typeof fields.angled !== 'boolean') {
-        return '`angled` must be a boolean.';
-    }
-    if (typeof fields.title === 'string' && fields.title.length > 200) {
-        return '`title` is too long (max 200 characters).';
+        return '`angled` must be true or false.';
     }
     return null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     const supabase = createAdminClient();
 
     // The admin UI needs the category list to build its picker. Hardcoding it
@@ -80,8 +110,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     try {
         const body = await request.json();
+        if (typeof body !== 'object' || !body) return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
         const fields = pickWritable(body);
 
         const invalid = validate(fields, { partial: false });
@@ -126,11 +159,13 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     try {
         const body = await request.json();
         const { id } = body;
 
-        if (typeof id !== 'string' || !id) {
+        if (typeof id !== 'string' || !UUID.test(id)) {
             return NextResponse.json({ error: 'Missing item id.' }, { status: 400 });
         }
 
@@ -165,11 +200,13 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
 
-        if (!id) {
+        if (!id || !UUID.test(id)) {
             return NextResponse.json({ error: 'Missing item id.' }, { status: 400 });
         }
 

@@ -15,7 +15,9 @@ import { createAdminClient } from '@/lib/supabase/admin';
  *                           <area>/versions/*.json  every past publish
  *                           security/login/*.json   failed sign-in counters
  *   site-media   (public)   images/*, videos/*      uploaded photos and films
- *   dish-images  (public)   menu dish photos (Menu Control)
+ *   dish-images  (public)   dishes/*     plated dish photos the menu shows
+ *                           originals/*  the background-removed cut-outs
+ *                           (Menu Control - see app/api/admin/upload)
  *
  * site-content is private, so drafts and the login counters can only be read
  * with the service key - never from the browser.
@@ -33,24 +35,44 @@ const BUCKETS: Record<string, { public: boolean; fileSizeLimit: number; allowedM
         fileSizeLimit: 50 * 1024 * 1024,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif', 'video/mp4', 'video/webm'],
     },
-    [DISH_BUCKET]: { public: true, fileSizeLimit: 5 * 1024 * 1024, allowedMimeTypes: ['image/png'] },
+    [DISH_BUCKET]: { public: true, fileSizeLimit: 15 * 1024 * 1024, allowedMimeTypes: ['image/png', 'image/webp', 'image/jpeg'] },
 };
+
+const sameList = (a: string[] | null | undefined, b: string[]) =>
+    Boolean(a) && a!.length === b.length && b.every(x => a!.includes(x));
 
 export const isNotFound = (e: { message?: string; statusCode?: string; status?: number } | null | undefined) =>
     Boolean(e && (/not.?found/i.test(e.message ?? '') || e.statusCode === '404' || e.status === 404));
 
 const ensured = new Set<string>();
 
-/** Create the bucket if it does not exist yet. Cheap after the first call. */
+/**
+ * Create the bucket if it does not exist yet, and bring an existing one back
+ * to the settings above if they have drifted - most importantly, a
+ * `site-content` bucket switched to public in the Supabase dashboard (which
+ * would publish every draft) is made private again. Cheap after the first call.
+ */
 export async function ensureBucket(name: string) {
     if (ensured.has(name)) return;
+    const want = BUCKETS[name];
     const storage = createAdminClient().storage;
-    const { error } = await storage.getBucket(name);
+    const { data, error } = await storage.getBucket(name);
     if (error) {
         if (!isNotFound(error)) throw new Error(`Storage is unavailable: ${error.message}`);
-        const { error: createError } = await storage.createBucket(name, BUCKETS[name]);
+        const { error: createError } = await storage.createBucket(name, want);
         if (createError && !/already exists/i.test(createError.message)) {
             throw new Error(`Could not create the "${name}" storage bucket: ${createError.message}`);
+        }
+    } else if (
+        data.public !== want.public ||
+        (data.file_size_limit ?? null) !== want.fileSizeLimit ||
+        !sameList(data.allowed_mime_types, want.allowedMimeTypes)
+    ) {
+        const { error: updateError } = await storage.updateBucket(name, want);
+        if (updateError) {
+            // A private bucket that cannot be made private must not be used.
+            if (!want.public && data.public) throw new Error(`The "${name}" storage bucket is public and could not be made private: ${updateError.message}`);
+            console.warn(`[cms] could not update the "${name}" bucket settings: ${updateError.message}`);
         }
     }
     ensured.add(name);
@@ -71,10 +93,19 @@ export async function readJson<T = unknown>(path: string): Promise<T | null> {
 }
 
 export async function writeJson(path: string, value: unknown) {
-    await ensureBucket(CONTENT_BUCKET);
-    const { error } = await createAdminClient().storage
-        .from(CONTENT_BUCKET)
-        .upload(path, JSON.stringify(value), { contentType: 'application/json', upsert: true, cacheControl: '0' });
+    const upload = async () => {
+        await ensureBucket(CONTENT_BUCKET);
+        return createAdminClient().storage
+            .from(CONTENT_BUCKET)
+            .upload(path, JSON.stringify(value), { contentType: 'application/json', upsert: true, cacheControl: '0' });
+    };
+    let { error } = await upload();
+    // The bucket was deleted while this server was running (ensureBucket
+    // remembers it as present): forget that and create it again, once.
+    if (error && /bucket not found/i.test(error.message)) {
+        ensured.delete(CONTENT_BUCKET);
+        ({ error } = await upload());
+    }
     if (error) throw new Error(`Could not save ${path}: ${error.message}`);
 }
 

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-const SITE = 'https://khaosan.com.bd';
+import { SITE_URL as SITE } from '@/lib/site';
 
 /**
  * The public surface is small and stable: a homepage whose chapters are

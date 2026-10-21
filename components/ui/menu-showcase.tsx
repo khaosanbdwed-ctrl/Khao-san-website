@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
+import { isOptimizable } from '@/lib/media';
 
 export interface ShowcaseStep {
     categoryId: string;
@@ -157,8 +158,9 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
                         } as React.CSSProperties;
                         return <div key={`${slide.categoryId}-${index}`} className="menu-carousel__slide" style={style}
                             aria-hidden={Math.abs(distance) > 0.5}>
-                            <Image src={slide.imageSrc} alt={slide.dishTitle} fill draggable={false}
-                                sizes="(max-width: 767px) 78vw, 44vw" loading={Math.abs(distance) <= 2 ? 'eager' : 'lazy'} />
+                            {slide.imageSrc && <Image src={slide.imageSrc} alt={slide.dishTitle} fill draggable={false}
+                                sizes="(max-width: 767px) 78vw, 44vw" loading={Math.abs(distance) <= 2 ? 'eager' : 'lazy'}
+                                unoptimized={!isOptimizable(slide.imageSrc)} />}
                         </div>;
                     })}
                 </div>

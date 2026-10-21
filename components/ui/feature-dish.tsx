@@ -3,6 +3,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import DishTags, { type MenuBadge } from '@/components/ui/dish-tags';
+import { isOptimizable } from '@/lib/media';
+import { safeHref } from '@/lib/cms/fields';
 
 export interface FeatureDishItem {
     src: string;
@@ -54,7 +56,7 @@ export default function FeatureDish({ dishes }: FeatureDishProps) {
         <div className="feature-grid">
             {dishes.map((dish, i) => (
                 <div
-                    key={dish.src}
+                    key={`${dish.src}-${i}`}
                     /* Odd rows put the photograph on the right. `is-inverse`
                        reverses the flex direction rather than reordering the
                        DOM, so the reading order stays photo-then-copy for
@@ -70,6 +72,7 @@ export default function FeatureDish({ dishes }: FeatureDishProps) {
                                 style={{ objectFit: 'cover' }}
                                 sizes="(max-width: 900px) 92vw, 42vw"
                                 loading="lazy"
+                                unoptimized={!isOptimizable(dish.src)}
                             />
                         </div>
                     </div>
@@ -90,10 +93,12 @@ export default function FeatureDish({ dishes }: FeatureDishProps) {
                             <DishTags badges={dish.badges} className="feature-tags" />
                             <h3 className="feature-name">{dish.name}</h3>
                             <p className="feature-blurb">{dish.blurb}</p>
-                            <Link href={dish.href} className="feature-link">
-                                View Menu
-                                <ArrowRight size={17} strokeWidth={1.75} aria-hidden="true" />
-                            </Link>
+                            {safeHref(dish.href) && (
+                                <Link href={safeHref(dish.href)} className="feature-link">
+                                    View Menu
+                                    <ArrowRight size={17} strokeWidth={1.75} aria-hidden="true" />
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

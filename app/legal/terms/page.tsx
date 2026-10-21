@@ -4,7 +4,7 @@ import { getSiteContent } from '@/lib/cms/content';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { legal } = await getSiteContent();
-  return { title: `${legal.terms.title} | Khao San`, description: legal.terms.metaDescription };
+  return { title: `${legal.terms.title} | Khao San`, description: legal.terms.metaDescription, alternates: { canonical: '/legal/terms' } };
 }
 
 export default async function Page() {

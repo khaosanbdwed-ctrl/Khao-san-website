@@ -8,7 +8,9 @@ import { RichBlocks } from '@/components/cms/cms-ui';
 export default function LegalPage({ page }: { page: LegalPageContent }) {
   const h2: React.CSSProperties = { fontSize: '1.5rem', marginTop: '40px', marginBottom: '24px', color: 'var(--color-text-primary)' };
   return (
-    <main style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface-base)', color: 'var(--color-text-primary)' }}>
+    // A <div>, not <main>: ClientWrapper already wraps every page in the one
+    // <main> landmark a document may have.
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-surface-base)', color: 'var(--color-text-primary)' }}>
       <div className="container" style={{ padding: '120px max(8vw, 24px)', maxWidth: '900px', margin: '0 auto' }}>
         {page.backLabel && (
           <Link href="/" style={{ color: 'var(--color-primary)', textDecoration: 'none', marginBottom: '48px', display: 'inline-block' }}>{page.backLabel}</Link>
@@ -31,6 +33,6 @@ export default function LegalPage({ page }: { page: LegalPageContent }) {
           {page.updated && <p style={{ marginTop: '60px', fontSize: '0.9rem', opacity: 0.6 }}>{page.updated}</p>}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next';
-
-const SITE = 'https://khaosan.com.bd';
+import { SITE_URL as SITE } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
     return {

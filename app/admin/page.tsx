@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { isAdmin } from '@/lib/auth/require-admin';
 
 /** These are live counts, so the page must not be prerendered at build time —
  *  otherwise it reports whatever the totals were when the site was deployed. */
@@ -15,6 +17,9 @@ export const dynamic = 'force-dynamic';
  * instead of guessing.
  */
 export default async function AdminOverview() {
+    // This page reads with the service key, so it checks the session itself
+    // rather than relying on proxy.ts alone (see lib/auth/require-admin.ts).
+    if (!(await isAdmin())) redirect('/admin/login');
     const supabase = createAdminClient();
 
     const [{ count: dishCount }, { count: categoryCount }] = await Promise.all([
@@ -60,8 +65,9 @@ export default async function AdminOverview() {
                 <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '20px' }}>
                     Everything on the public menu page is served from this database, so any dish you add,
                     edit or delete in <strong>Menu Control</strong> appears on the live site straight away.
-                    Dish photos must be <strong>PNG files with the background removed</strong> — the menu
-                    presents each dish floating on the page, and only a transparent PNG can do that.
+                    Upload each dish photo <strong>with the background removed</strong> (a PNG or WebP with a
+                    see-through background). The dashboard places it on the menu&apos;s studio backdrop with a
+                    soft shadow, at the same size as every other dish, so new dishes always match.
                 </p>
                 <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '24px' }}>
                     Visitor and click figures are not shown here because no analytics provider is connected

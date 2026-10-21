@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import HomePage from '@/components/home-page';
 import { getSiteContent } from '@/lib/cms/content';
 import { toLocations } from '@/lib/locations';
@@ -8,6 +9,8 @@ import { toLocations } from '@/lib/locations';
  * the hour is only a backstop for edits made directly in Supabase.
  */
 export const revalidate = 3600;
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 export default async function Home() {
     const site = await getSiteContent();

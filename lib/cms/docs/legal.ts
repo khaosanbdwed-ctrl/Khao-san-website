@@ -19,7 +19,7 @@ export const legalDefaults: LegalContent = {
         metaDescription: 'Khao San privacy policy and data protection information.',
         backLabel: '← Back to Home',
         blocks: [
-            { heading: 'Introduction', body: 'Khao San (“we” or “us” or “our”) operates the https://www.khaosandhaka.com website (the “Site”).' },
+            { heading: 'Introduction', body: 'Khao San (“we” or “us” or “our”) operates the https://khaosan.bd website (the “Site”).' },
             { heading: 'Information We Collect', body: 'We collect information you voluntarily provide when you contact us, such as through WhatsApp or Facebook. This may include your name, phone number, and the details of your inquiry.' },
             { heading: 'How We Use Your Information', body: 'We use the information we collect to respond to your inquiries, arrange reservations and gift card purchases, and improve our service.' },
             { heading: 'Data Protection', body: 'We implement appropriate security measures to protect your personal information against unauthorized access or disclosure.' },

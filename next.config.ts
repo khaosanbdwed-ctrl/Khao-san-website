@@ -12,7 +12,40 @@ const supabaseHost = (() => {
   }
 })();
 
+/* Content-Security-Policy: the browser refuses anything this list does not
+   name, so injected markup cannot load a script from elsewhere, post a form to
+   another site, or frame the dashboard.
+
+   - Scripts: this site only. 'unsafe-inline' is required by Next's own inline
+     bootstrapping of statically cached pages (a per-request nonce would make
+     every page dynamic) and by the ignition script in app/layout.tsx.
+   - Photos and videos: any https address, because the dashboard lets an editor
+     paste a link to media hosted elsewhere.
+   - connect-src includes Supabase: the dashboard uploads straight to storage.
+   - worker-src blob: - the in-browser video optimiser runs workers from blobs.
+   Production only: the dev server needs eval and a websocket for hot reload. */
+const supabaseOrigin = supabaseHost ? `${supabaseHost.protocol}://${supabaseHost.hostname}${supabaseHost.port ? `:${supabaseHost.port}` : ''}` : '';
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob: https: ${supabaseOrigin}`.trim(),
+  `media-src 'self' blob: https: ${supabaseOrigin}`.trim(),
+  "font-src 'self' data:",
+  `connect-src 'self' ${supabaseOrigin} https://*.supabase.co`.trim(),
+  "worker-src 'self' blob:",
+  "frame-src 'self'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "manifest-src 'self'",
+].join('; ');
+
 const nextConfig: NextConfig = {
+  // Do not advertise the framework (and so its version's known issues).
+  poweredByHeader: false,
+
   images: {
     // Dish photos and every photo uploaded through the website CMS are served
     // from Supabase Storage, so next/image needs the bucket host allowlisted
@@ -53,6 +86,28 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
+          // A page opened from this site cannot reach back into it.
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          ...(process.env.NODE_ENV === "production"
+            ? [{ key: "Content-Security-Policy", value: csp }]
+            : []),
+        ],
+      },
+      {
+        // The dashboard and its API: never cached by a browser or a shared
+        // proxy (a signed-out visitor must not be served a signed-in page from
+        // cache), and never indexed even if a link to it leaks.
+        source: "/admin/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+        ],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
     ];

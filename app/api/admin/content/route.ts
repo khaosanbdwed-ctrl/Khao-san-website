@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { DOC_KEYS, DOCS } from '@/lib/cms/registry';
 import { listStatus } from '@/lib/cms/store';
+import { requireAdmin } from '@/lib/auth/require-admin';
 
 /** The dashboard's list of editable areas, with which ones have unpublished
  *  changes. */
-export async function GET() {
+export async function GET(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
     try {
         const status = await listStatus();
         const byKey = new Map(status.map(s => [s.key, s]));

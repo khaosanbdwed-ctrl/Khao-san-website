@@ -6,6 +6,7 @@ import ClientWrapper from "@/components/ClientWrapper";
 import PreviewBar from "@/components/cms/preview-bar";
 import { getSiteContent } from "@/lib/cms/content";
 import { toLocations } from "@/lib/locations";
+import { SITE_URL, encodePath } from "@/lib/site";
 
 // Playfair Display was removed on 2026-08-09. It was declared with four
 // weights in two styles — eight font files — and nothing on the site set it.
@@ -84,17 +85,17 @@ export const viewport: Viewport = {
 export async function generateMetadata(): Promise<Metadata> {
   const { site } = await getSiteContent();
   const seo = site.seo;
-  const images = seo.shareImage ? [{ url: encodeURI(seo.shareImage), alt: "Khao San Restaurant" }] : [];
+  const images = seo.shareImage ? [{ url: encodePath(seo.shareImage), alt: "Khao San Restaurant" }] : [];
   return {
-    metadataBase: new URL('https://khaosan.com.bd'),
+    metadataBase: new URL(SITE_URL),
     title: seo.title,
     description: seo.description,
     keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
-    icons: seo.favicon ? { icon: encodeURI(seo.favicon) } : undefined,
+    icons: seo.favicon ? { icon: encodePath(seo.favicon) } : undefined,
     openGraph: {
         title: seo.shareTitle,
         description: seo.shareDescription,
-        url: "https://khaosan.com.bd",
+        url: SITE_URL,
         siteName: "Khao San",
         images,
         type: "website",

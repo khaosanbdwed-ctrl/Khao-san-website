@@ -327,6 +327,9 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
 }
+@media (min-width: 360px) {
+    .hours-run { white-space: nowrap; }
+}
 .haven-card-actions {
     display: flex;
     gap: 12px;

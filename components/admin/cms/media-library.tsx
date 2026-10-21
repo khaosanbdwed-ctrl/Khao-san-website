@@ -17,30 +17,42 @@ const ACCEPT: Record<MediaKind, string> = {
 
 type Progress = (stage: string, fraction?: number) => void;
 
-const browserStorage = () => createClient(
+const browserStorage = (bucket: string) => createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     { auth: { persistSession: false } },
-).storage.from('site-media');
+).storage.from(bucket);
 
-async function post(body: Record<string, unknown>) {
+/** Parse a dashboard API response. Turns the two failures that are not JSON
+ *  - an expired session, and a host error page - into sentences. */
+export async function readApi<T = Record<string, unknown>>(res: Response, fallback = 'Something went wrong.'): Promise<T> {
+    const json = await res.json().catch(() => null) as (T & { error?: string }) | null;
+    if (res.status === 401) throw new Error('Your session has expired. Sign in again in a new tab (your changes here are kept), then try again.');
+    if (!res.ok || !json) throw new Error(json?.error || `${fallback} (error ${res.status})`);
+    return json;
+}
+
+export type Signed = { path: string; token: string; publicUrl: string };
+
+async function post<T>(body: Record<string, unknown>): Promise<T> {
     const res = await fetch('/api/admin/media', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || 'Upload failed.');
-    return json;
+    return readApi<T>(res, 'Upload failed.');
 }
 
-async function put(target: { path: string; token: string }, blob: Blob, type: string) {
-    const { error } = await browserStorage().uploadToSignedUrl(target.path, target.token, blob, { contentType: type });
-    if (error) throw new Error(error.message);
+/** Send one file straight to Supabase with a signed URL from our API. */
+export async function putSigned(bucket: string, target: { path: string; token: string }, blob: Blob, type: string) {
+    const { error } = await browserStorage(bucket).uploadToSignedUrl(target.path, target.token, blob, { contentType: type });
+    if (error) throw new Error(`Upload failed: ${error.message}`);
 }
+
+const put = (target: { path: string; token: string }, blob: Blob, type: string) => putSigned('site-media', target, blob, type);
 
 async function uploadOne(file: Blob, name: string, type: string): Promise<string> {
-    const target = await post({ name, type, size: file.size });
+    const target = await post<Signed>({ name, type, size: file.size });
     await put(target, file, type);
     return target.publicUrl as string;
 }
@@ -63,7 +75,7 @@ export async function uploadMedia(file: File, onProgress: Progress = () => {}): 
             onProgress('Optimising for phones and computers', 0);
             const v = await optimizeVideo(file, f => onProgress('Optimising for phones and computers', f));
             onProgress('Uploading');
-            const set = await post({ set: 'video', name: file.name, sizes: { large: v.large.size, small: v.small.size, poster: v.poster.size } });
+            const set = await post<{ large: Signed; small: Signed; poster: Signed; publicUrl: string }>({ set: 'video', name: file.name, sizes: { large: v.large.size, small: v.small.size, poster: v.poster.size } });
             await Promise.all([
                 put(set.large, v.large, 'video/mp4'),
                 put(set.small, v.small, 'video/mp4'),
@@ -95,12 +107,10 @@ export async function uploadMedia(file: File, onProgress: Progress = () => {}): 
 
 async function fetchLibrary(): Promise<{ files: MediaFile[]; error: string | null }> {
     try {
-        const res = await fetch('/api/admin/media');
-        const json = await res.json();
-        if (!res.ok) return { files: [], error: json.error || 'Could not load the media library.' };
+        const json = await readApi<{ files: MediaFile[] }>(await fetch('/api/admin/media'), 'Could not load the media library.');
         return { files: json.files, error: null };
-    } catch {
-        return { files: [], error: 'Could not load the media library.' };
+    } catch (e) {
+        return { files: [], error: (e as Error).message || 'Could not load the media library.' };
     }
 }
 
@@ -184,7 +194,7 @@ export function MediaGrid({ kind, onChoose }: { kind?: MediaKind; onChoose?: (ur
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path: file.path }),
         });
-        if (!res.ok) setError((await res.json()).error || 'Could not delete.');
+        await readApi(res, 'Could not delete.').catch(e => setError((e as Error).message));
         load();
     };
 

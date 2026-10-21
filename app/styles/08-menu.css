@@ -1486,13 +1486,25 @@
     max-width: 640px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 599px) {
     /* One dish at a time on a phone - two columns of large blocks would make
-       each photograph too small to be worth showing. */
+       each photograph too small to be worth showing.
+
+       ⚠ Was max-width: 900px, which put TABLETS in the phone layout too: on a
+       768px iPad every dish was a ~700px square, one per screen, and the menu
+       ran to ~70,000px of scrolling. From 600px two columns give each
+       photograph ~280-400px - larger than a desktop column - so tablets now
+       share the two-up grid that already ran from 901px to 1180px. */
     .menu-list {
         grid-template-columns: 1fr;
         gap: clamp(36px, 8vw, 56px);
     }
+}
+/* A dish saved without a photo keeps its square as an empty plate ground (the
+   same warm studio tones the plated photos use), so its row stays aligned
+   instead of collapsing. */
+.menu-row-photo:empty {
+    background: radial-gradient(circle at 50% 46%, rgb(232, 226, 216) 0%, rgb(203, 194, 180) 100%);
 }
 
 /* HISTORICAL, Round 8: `.dish`, `.dish--angled`, `.dish-img` and the whole

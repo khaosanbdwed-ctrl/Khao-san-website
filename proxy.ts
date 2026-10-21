@@ -36,7 +36,8 @@ export async function proxy(request: NextRequest) {
 
     if (isAdminApi && !['GET', 'HEAD'].includes(request.method)) {
         const origin = request.headers.get('origin');
-        if (origin && origin !== request.nextUrl.origin) {
+        const site = request.headers.get('sec-fetch-site');
+        if ((origin && origin !== request.nextUrl.origin) || site === 'cross-site') {
             return NextResponse.json({ error: 'Cross-site request refused.' }, { status: 403 });
         }
     }

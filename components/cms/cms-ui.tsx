@@ -6,6 +6,7 @@ import Image from 'next/image';
 import BackgroundVideo from '@/components/ui/background-video';
 import { safeHref, type Background, type CmsLink } from '@/lib/cms/fields';
 import { waLink } from '@/lib/locations';
+import { isOptimizable } from '@/lib/media';
 
 /**
  * The small set of pieces every CMS-driven section is built from: a button
@@ -183,11 +184,4 @@ export function BackgroundLayers({
     );
 }
 
-/** Remote images (anything not under /public or the Supabase bucket host
- *  allowlisted in next.config.ts) skip the optimiser, which would otherwise
- *  refuse the host and render a broken image. */
-export function isOptimizable(src: string) {
-    if (src.startsWith('/')) return true;
-    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    return Boolean(base && src.startsWith(`${base}/storage/v1/object/public/`));
-}
+export { isOptimizable };

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { HeaderContent } from '@/lib/cms/docs/chrome';
 import { CmsButton } from '@/components/cms/cms-ui';
+import { safeHref } from '@/lib/cms/fields';
 
 /* Logo, links, button and bar colours come from the CMS (Header in the
    dashboard; defaults in lib/cms/docs/chrome.ts). */
@@ -14,7 +15,10 @@ export default function Header({ content, whatsapp }: { content: HeaderContent; 
     /* A link that points at the page you are on becomes the way back home -
        on /menu, "Menu" reads "Home". Generalised from the old hardcoded
        Menu/Home swap so it holds for any link the dashboard adds. */
-    const links = content.navigation.links.map(l => {
+    const links = content.navigation.links
+        .filter(l => l.label && safeHref(l.href))
+        .map(l => ({ ...l, href: safeHref(l.href) }))
+        .map(l => {
         const path = l.href.split('#')[0];
         return path && path === pathname && !l.href.includes('#')
             ? { label: content.navigation.homeLabel || 'Home', href: '/' }
@@ -33,7 +37,7 @@ export default function Header({ content, whatsapp }: { content: HeaderContent; 
         const handleScroll = () => {
             setScrolled(window.scrollY > 20);
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll();
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
@@ -227,6 +231,27 @@ export default function Header({ content, whatsapp }: { content: HeaderContent; 
                     display: none;
                 }
             }
+            /* The overlay centres its links when they fit and scrolls when
+               they do not. justify-content: center alone pushed the first
+               link above the screen and the button below it on a phone held
+               sideways (390px tall), with no way to scroll to either. Auto
+               margins on the first and last item centre the column but
+               collapse to zero once it overflows, so it starts at the top. */
+            .mobile-nav-overlay {
+                justify-content: flex-start !important;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                padding: 24px 0;
+            }
+            .mobile-nav-overlay > :first-child { margin-top: auto; }
+            .mobile-nav-overlay > :last-child { margin-bottom: auto; }
+            @media (max-height: 500px) {
+                .mobile-nav-overlay {
+                    gap: 6px !important;
+                    padding: 64px 0 16px;
+                }
+                .mobile-nav-overlay > .btn { margin-top: 12px !important; }
+            }
         `}} />
 
         <header className={`header-container ${scrolled ? 'scrolled' : 'top'}${inHero && !menuOpen ? ' in-hero' : ''}`} style={barStyle}>
@@ -322,7 +347,7 @@ export default function Header({ content, whatsapp }: { content: HeaderContent; 
                     top: 0,
                     right: 0,
                     width: '100%',
-                    height: '100vh',
+                    height: '100dvh',
                     backgroundColor: 'rgba(255, 248, 236, 0.98)',
                     backdropFilter: 'blur(20px)',
                     display: 'flex',

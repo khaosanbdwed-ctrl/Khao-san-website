@@ -14,7 +14,11 @@
  * password signs everyone out - the behaviour you want after a password leak.
  */
 
-export const SESSION_COOKIE = 'khao_san_admin_session';
+/* `__Host-` in production: the browser then refuses the cookie unless it is
+   Secure, host-only and path=/, so no other subdomain (or a page served over
+   plain http) can plant or overwrite a session. Plain http on localhost in
+   development cannot carry a Secure cookie, hence the second name. */
+export const SESSION_COOKIE = process.env.NODE_ENV === 'production' ? '__Host-khao_san_admin' : 'khao_san_admin_session';
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // one week
 
 const enc = new TextEncoder();

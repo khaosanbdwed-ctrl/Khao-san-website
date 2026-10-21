@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import DishTags, { type MenuBadge } from '@/components/ui/dish-tags';
+import { isOptimizable } from '@/lib/media';
 
 export type { MenuBadge };
 
@@ -66,15 +67,21 @@ export default function MenuRow({
 }: MenuRowProps) {
     return (
         <li className="menu-row reveal-hidden">
+            {/* A dish saved without a photo keeps its square (an empty plate
+                ground) so the grid row stays aligned; next/image would throw
+                on an empty src. */}
             <div className="menu-row-photo">
-                <Image
-                    src={imageSrc}
-                    alt={title}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    sizes="(max-width: 900px) 92vw, 31vw"
-                    loading="lazy"
-                />
+                {imageSrc && (
+                    <Image
+                        src={imageSrc}
+                        alt={title}
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        sizes="(max-width: 599px) 92vw, (max-width: 1180px) 46vw, 31vw"
+                        loading="lazy"
+                        unoptimized={!isOptimizable(imageSrc)}
+                    />
+                )}
             </div>
 
             {/* reserveSpace: the marks sit above the name, and roughly a third

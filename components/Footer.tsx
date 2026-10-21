@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { clock, dayRanges, mapLink, type Location } from '@/lib/locations';
 import type { FooterContent } from '@/lib/cms/docs/chrome';
 import { BackgroundLayers, CmsButton, sectionBackground } from '@/components/cms/cms-ui';
+import { safeHref } from '@/lib/cms/fields';
+import { SITE_URL, absoluteUrl } from '@/lib/site';
 
 /**
  * The footer, rebuilt around what a restaurant footer is actually FOR.
@@ -165,12 +167,12 @@ function outletSchema(locations: Location[]) {
         '@context': 'https://schema.org',
         '@graph': locations.map((loc) => ({
             '@type': 'Restaurant',
-            '@id': `https://khaosan.com.bd/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
+            '@id': `${SITE_URL}/#${loc.name.toLowerCase().replace(/\s+/g, '-')}`,
             name: `Khao San ${loc.name}`,
             servesCuisine: 'Thai',
-            url: 'https://khaosan.com.bd',
-            telephone: loc.tel,
-            image: loc.imageSrc.startsWith('/') ? `https://khaosan.com.bd${loc.imageSrc}` : loc.imageSrc,
+            url: SITE_URL,
+            ...(loc.tel ? { telephone: loc.tel } : {}),
+            ...(loc.imageSrc ? { image: absoluteUrl(loc.imageSrc) } : {}),
             address: {
                 '@type': 'PostalAddress',
                 streetAddress: loc.address,
@@ -183,7 +185,7 @@ function outletSchema(locations: Location[]) {
                 opens: h.opens,
                 closes: h.closes,
             })),
-            hasMenu: 'https://khaosan.com.bd/menu',
+            hasMenu: `${SITE_URL}/menu`,
         })),
     };
 }
@@ -299,12 +301,14 @@ export default function Footer({ content, locations, whatsapp }: Props) {
                             <div className="footer-location-panel">
                                 <h3 className="footer-location-panel-name">{activeLocation.name}</h3>
                                 <address className="footer-location-panel-address">{activeLocation.address}</address>
-                                <a
-                                    className="footer-location-panel-tel"
-                                    href={`tel:${activeLocation.tel}`}
-                                >
-                                    {activeLocation.phoneDisplay}
-                                </a>
+                                {activeLocation.tel && (
+                                    <a
+                                        className="footer-location-panel-tel"
+                                        href={`tel:${activeLocation.tel}`}
+                                    >
+                                        {activeLocation.phoneDisplay}
+                                    </a>
+                                )}
                                 <a
                                     className="footer-location-panel-map"
                                     href={mapLink(activeLocation.mapQuery)}
@@ -327,19 +331,19 @@ export default function Footer({ content, locations, whatsapp }: Props) {
                     links and they were occupying 278px as three vertical lists. */}
                 <nav className="footer-nav" aria-label="Footer">
                     <ul className="footer-nav-list">
-                        {content.links.items.map((item, i) => (
+                        {content.links.items.filter(item => item.label && safeHref(item.href)).map((item, i) => (
                             <li key={`${item.href}-${i}`}>
-                                <Link href={item.href} className="footer-link">{item.label}</Link>
+                                <Link href={safeHref(item.href)} className="footer-link">{item.label}</Link>
                             </li>
                         ))}
                     </ul>
                     <ul className="footer-nav-list footer-nav-list--social">
-                        {content.social.items.filter(s => s.url.startsWith('https://') && SOCIAL_MARKS[s.platform]).map(({ platform, url }) => {
+                        {content.social.items.filter(s => /^https:\/\/[^\s"'<>]+$/i.test(s.url.trim()) && SOCIAL_MARKS[s.platform]).map(({ platform, url }, i) => {
                             const { label, Mark } = SOCIAL_MARKS[platform];
                             return (
-                            <li key={url}>
+                            <li key={`${platform}-${i}`}>
                                 <a
-                                    href={url}
+                                    href={url.trim()}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="footer-social"
@@ -355,10 +359,12 @@ export default function Footer({ content, locations, whatsapp }: Props) {
 
                 {/* ZONE 3 - one line. */}
                 <div className="footer-bottom">
-                    <p>{content.bottom.copyright.replaceAll('{year}', String(new Date().getFullYear()))}</p>
+                    {/* suppressHydrationWarning: the cached page and the
+                        visitor's browser can sit either side of New Year. */}
+                    <p suppressHydrationWarning>{content.bottom.copyright.replaceAll('{year}', String(new Date().getFullYear()))}</p>
                     <div className="footer-legal">
-                        {content.bottom.legal.map((l, i) => (
-                            <Link key={`${l.href}-${i}`} href={l.href}>{l.label}</Link>
+                        {content.bottom.legal.filter(l => l.label && safeHref(l.href)).map((l, i) => (
+                            <Link key={`${l.href}-${i}`} href={safeHref(l.href)}>{l.label}</Link>
                         ))}
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { DOCS, type DocKey } from '@/lib/cms/registry';
 import { EditorContext, Fields, Chevron } from './field-editors';
+import { readApi } from './media-library';
 
 type Version = { id: string; publishedAt: string | null };
 type State = {
@@ -46,17 +47,14 @@ export default function DocEditor({ docKey }: { docKey: DocKey }) {
     useEffect(() => {
         (async () => {
             try {
-                const res = await fetch(`/api/admin/content/${docKey}`);
-                const json = await res.json();
-                if (!res.ok) throw new Error(json.error || 'Could not load.');
-                apply(json);
+                apply(await readApi<State>(await fetch(`/api/admin/content/${docKey}`), 'Could not load.'));
             } catch (e) {
                 setError((e as Error).message);
             }
         })();
         // The dish showcase picks a menu category by id.
         if (docKey === 'menu') {
-            fetch('/api/admin/menu').then(r => r.json()).then(j => setCategories(j.categories ?? [])).catch(() => {});
+            fetch('/api/admin/menu').then(r => readApi<{ categories?: { id: string; name: string }[] }>(r)).then(j => setCategories(j.categories ?? [])).catch(() => {});
         }
     }, [docKey, apply]);
 
@@ -71,13 +69,17 @@ export default function DocEditor({ docKey }: { docKey: DocKey }) {
     const save = useCallback(async (): Promise<boolean> => {
         if (!content) return false;
         setError(null);
-        const res = await fetch(`/api/admin/content/${docKey}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content }),
-        });
-        const json = await res.json();
-        if (!res.ok) { setError(json.error || 'Could not save.'); return false; }
+        let json: State;
+        try {
+            json = await readApi<State>(await fetch(`/api/admin/content/${docKey}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            }), 'Could not save.');
+        } catch (e) {
+            setError((e as Error).message);
+            return false;
+        }
         setState(s => (s ? { ...s, ...json } : json));
         setContent(json.content);
         setSaved(JSON.stringify(json.content));
@@ -90,14 +92,11 @@ export default function DocEditor({ docKey }: { docKey: DocKey }) {
     };
 
     const action = async (body: Record<string, unknown>) => {
-        const res = await fetch(`/api/admin/content/${docKey}`, {
+        apply(await readApi<State>(await fetch(`/api/admin/content/${docKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
-        });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Something went wrong.');
-        apply(json);
+        })));
     };
 
     const onSave = () => run('save', async () => { if (await save()) flash('Draft saved. The live site has not changed.'); });
@@ -110,6 +109,9 @@ export default function DocEditor({ docKey }: { docKey: DocKey }) {
             const ok = dirty ? await save() : true;
             if (!ok) { tab?.close(); return; }
             const url = `/api/admin/preview?path=${encodeURIComponent(def.previewPath)}`;
+            // A full navigation on purpose: the preview route sets the Draft
+            // Mode cookie and redirects, which a client-side push would skip.
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             if (tab) tab.location.href = url; else window.location.href = url;
         });
     };

@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import { createPublicClient } from '@/lib/supabase/public';
 import MenuPageClient from '@/components/menu-page-client';
 import type { MenuCategory } from '@/components/menu-page-client';
 import { getSiteContent } from '@/lib/cms/content';
+import { encodePath } from '@/lib/site';
 
 /**
  * The menu was fully dynamic, so all three queries below ran on every single
@@ -14,6 +16,28 @@ import { getSiteContent } from '@/lib/cms/content';
  * changes made directly in the Supabase dashboard.
  */
 export const revalidate = 3600;
+
+/* The menu is the page people search for ("khao san menu"), so it carries its
+   own title and description - it used to inherit the homepage's. */
+export async function generateMetadata(): Promise<Metadata> {
+    const { menu, site } = await getSiteContent();
+    const description = menu.hero.lede || undefined;
+    // openGraph replaces the layout's as a whole, so the share picture and
+    // site name are carried over rather than lost.
+    return {
+        title: 'Menu | Khao San',
+        description,
+        alternates: { canonical: '/menu' },
+        openGraph: {
+            title: 'Menu | Khao San',
+            description,
+            url: '/menu',
+            siteName: 'Khao San',
+            type: 'website',
+            images: site.seo.shareImage ? [{ url: encodePath(site.seo.shareImage), alt: 'Khao San Restaurant' }] : [],
+        },
+    };
+}
 
 /**
  * Point a dish at its plated photograph.

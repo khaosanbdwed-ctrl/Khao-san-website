@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useSyncExternalStore } from 'react';
 import Image from 'next/image';
+import { isOptimizable } from '@/lib/media';
 
 export interface RoomShot {
     src: string;
@@ -236,12 +237,13 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
                                 style={{ objectFit: 'cover' }}
                                 sizes="(max-width: 900px) 78vw, 42vw"
                                 loading={gi === 0 ? 'eager' : 'lazy'}
+                                unoptimized={!isOptimizable(group[0].src)}
                             />
                         </figure>
                         {group.length > 1 && (
                             <div className="room-stack">
-                                {group.slice(1).map((shot) => (
-                                    <figure className="room-frame" key={shot.src}>
+                                {group.slice(1).map((shot, si) => (
+                                    <figure className="room-frame" key={`${shot.src}-${si}`}>
                                         <Image
                                             src={shot.src}
                                             alt={shot.alt}
@@ -249,6 +251,7 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
                                             style={{ objectFit: 'cover' }}
                                             sizes="(max-width: 900px) 46vw, 22vw"
                                             loading="lazy"
+                                            unoptimized={!isOptimizable(shot.src)}
                                         />
                                     </figure>
                                 ))}

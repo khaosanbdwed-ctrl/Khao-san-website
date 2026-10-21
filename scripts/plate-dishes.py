@@ -35,8 +35,12 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
-SRC = Path(r'C:\Users\HP\Downloads\Khao san\khao-san-client\public\assets\Menu\KS Menu Webp')
-OUT = Path(r'C:\Users\HP\Downloads\Khao san\khao-san-client\public\assets\menu-plated')
+# Relative to this file, so it runs from any checkout (it used to point at one
+# developer's Downloads folder). Dishes added later are plated in the
+# dashboard instead - components/admin/plate-dish.ts is this script, ported.
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / 'public' / 'assets' / 'Menu' / 'KS Menu Webp'
+OUT = ROOT / 'public' / 'assets' / 'menu-plated'
 
 W, H = 1000, 1000            # square, matching .menu-row-photo
 FILL_W, FILL_H = 0.82, 0.82  # share of the frame the dish may occupy

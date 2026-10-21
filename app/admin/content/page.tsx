@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { readApi } from '@/components/admin/cms/media-library';
 
 type Doc = { key: string; title: string; description: string; hasDraft: boolean; publishedAt: string | null };
 
@@ -12,7 +13,8 @@ export default function WebsiteContent() {
 
     useEffect(() => {
         fetch('/api/admin/content')
-            .then(async r => { const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Could not load.'); setDocs(j.docs); })
+            .then(r => readApi<{ docs: Doc[] }>(r, 'Could not load.'))
+            .then(j => setDocs(j.docs))
             .catch(e => setError(e.message));
     }, []);
 
