@@ -9,6 +9,9 @@ current content.
 
 ## For the people editing the site
 
+The full manual for the restaurant team, including the photo and video size
+for every place on the site, is `CLIENT_GUIDE.md`. The summary:
+
 Sidebar → **Website Content** lists every area:
 
 | Area | What it covers |
@@ -67,7 +70,9 @@ uses. Buckets are created on first use (`lib/cms/bucket.ts`):
 
 - `site-content` (**private**): `<area>/published.json`, `<area>/draft.json`, `<area>/versions/*.json`, and the login rate-limit counters. Drafts are never readable with the public key.
 - `site-media` (public): uploaded photos and videos. The browser optimises them first (`components/admin/cms/optimize-media.ts`, WebCodecs via `mediabunny`), then uploads straight to Supabase with signed URLs from `/api/admin/media`, so no file passes through Vercel's ~4.5 MB request limit. An optimised video is `videos/<stem>.web.mp4`, with `.web-sm.mp4` (phone) and `.web.webp` (still) beside it. Only the first is stored in content; `lib/media.ts` derives the others, and `BackgroundVideo` lists the phone file as a `<source media="(max-width: 768px)">`.
-- `dish-images` (public): Menu Control's dish photos. It is now created automatically too (it used to be an undocumented manual step).
+- `dish-images` (public): Menu Control's dish photos - `dishes/*` the plated squares the menu shows, `originals/*` the transparent cut-outs they were made from. Plating happens in the browser (`components/admin/plate-dish.ts`, a port of `scripts/plate-dishes.py`); `/api/admin/upload` only signs the two paths.
+
+`ensureBucket` also corrects a bucket whose settings have drifted from `lib/cms/bucket.ts` (public flag, size limit, allowed types) - so `site-content` switched to public by hand is made private again on the next save.
 
 Where things live:
 
@@ -81,9 +86,17 @@ Where things live:
 Section keys (`hero`, `craft`, `story`…) are stored ids. Rename a section's
 `title`, never its `key`, or its saved content is orphaned.
 
-Admin auth is one shared login, hardened. The session cookie is signed and
-expires (`lib/auth/session.ts`), the proxy checks it plus the request origin on
-writes, and failed logins are rate limited per IP (8 per 15 minutes).
+Admin auth is one shared login, hardened. The session cookie is signed,
+expires after 7 days and is `__Host-` prefixed in production
+(`lib/auth/session.ts`). The proxy checks it, and **every admin route handler
+checks it again** (`requireAdmin` in `lib/auth/require-admin.ts`) together with
+the request origin on writes - call it first in any new admin route. Failed
+logins are delayed and rate limited per IP (8 per 15 minutes).
 `ADMIN_SESSION_SECRET` is optional. Without it, the signing key is derived
 from `ADMIN_PASSWORD` and the service key, so changing the password signs
 everyone out.
+
+Links typed into the CMS go through `safeHref` and media through
+`safeMediaUrl` (`lib/cms/fields.ts`) before they reach the page (buttons and
+media are also cleaned when saved), and the
+Content-Security-Policy in `next.config.ts` blocks scripts from anywhere else.

@@ -36,7 +36,7 @@ const Help = ({ text }: { text?: string }) => (text ? <p className="cms-field__h
 
 /* ------------------------------------------------------------------ */
 
-function MediaInput({ kind, value, onChange }: { kind: MediaKind; value: string; onChange: (v: string) => void }) {
+function MediaInput({ kind, value, onChange, jpeg }: { kind: MediaKind; value: string; onChange: (v: string) => void; jpeg?: boolean }) {
     const [picking, setPicking] = useState(false);
     const [showUrl, setShowUrl] = useState(false);
     return (
@@ -50,7 +50,7 @@ function MediaInput({ kind, value, onChange }: { kind: MediaKind; value: string;
             </div>
             <div className="cms-media__side">
                 <div className="cms-row" style={{ gap: 6 }}>
-                    <UploadButton kind={kind} onUploaded={onChange} />
+                    <UploadButton kind={kind} onUploaded={onChange} jpeg={jpeg} />
                     <button type="button" className="cms-btn cms-btn--small" onClick={() => setPicking(true)}>Choose from library</button>
                     {value && <button type="button" className="cms-btn cms-btn--small cms-btn--danger" onClick={() => onChange('')}>Remove</button>}
                 </div>
@@ -271,7 +271,7 @@ export function FieldEditor({ field, value, defaultValue, onChange }: { field: F
             break;
         case 'image':
         case 'video':
-            control = <MediaInput kind={field.kind} value={value as string} onChange={onChange} />;
+            control = <MediaInput kind={field.kind} value={value as string} onChange={onChange} jpeg={field.kind === 'image' && field.format === 'jpeg'} />;
             if (field.kind === 'video') {
                 control = <>{control}<Help text="Uploads are optimised automatically, with a lighter version for phones." /></>;
             }

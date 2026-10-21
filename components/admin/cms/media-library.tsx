@@ -67,7 +67,7 @@ async function uploadOne(file: Blob, name: string, type: string): Promise<string
  * Supabase with a short-lived signed URL from /api/admin/media - never through
  * our own server, which caps a request at ~4.5 MB on Vercel.
  */
-export async function uploadMedia(file: File, onProgress: Progress = () => {}): Promise<{ url: string; note: string }> {
+export async function uploadMedia(file: File, onProgress: Progress = () => {}, opts: { jpeg?: boolean } = {}): Promise<{ url: string; note: string }> {
     const mb = (n: number) => `${(n / 1048576).toFixed(1)} MB`;
 
     if (file.type.startsWith('video/')) {
@@ -96,7 +96,7 @@ export async function uploadMedia(file: File, onProgress: Progress = () => {}): 
     }
 
     onProgress('Optimising');
-    const photo = await optimizePhoto(file);
+    const photo = await optimizePhoto(file, opts);
     onProgress('Uploading');
     const url = await uploadOne(photo, photo.name, photo.type);
     return {
@@ -119,11 +119,13 @@ const formatSize = (n: number | null) =>
 
 /** A button that opens the file picker, optimises and uploads what is
  *  chosen, and reports what it did. */
-export function UploadButton({ kind, onUploaded, label, className = 'cms-btn cms-btn--primary cms-btn--small' }: {
+export function UploadButton({ kind, onUploaded, label, className = 'cms-btn cms-btn--primary cms-btn--small', jpeg }: {
     kind: MediaKind;
     onUploaded: (url: string) => void;
     label?: string;
     className?: string;
+    /** Save photos as JPEG (see the `format` field option). */
+    jpeg?: boolean;
 }) {
     const input = useRef<HTMLInputElement>(null);
     const [progress, setProgress] = useState<{ stage: string; fraction?: number } | null>(null);
@@ -136,7 +138,7 @@ export function UploadButton({ kind, onUploaded, label, className = 'cms-btn cms
         setError(null);
         setNote(null);
         try {
-            const result = await uploadMedia(file, (stage, fraction) => setProgress({ stage, fraction }));
+            const result = await uploadMedia(file, (stage, fraction) => setProgress({ stage, fraction }), { jpeg });
             setNote(result.note);
             onUploaded(result.url);
         } catch (e) {

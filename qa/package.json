@@ -1,0 +1,12 @@
+{
+  "name": "khao-san-qa",
+  "private": true,
+  "description": "Regression suites for the Khao San site: security and dashboard workflows against a local mock of Supabase.",
+  "type": "module",
+  "scripts": {
+    "test": "bash run.sh"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

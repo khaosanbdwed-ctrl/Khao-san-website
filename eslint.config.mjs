@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     // buries the real signal on a codebase whose baseline is zero.
     ".claude/skills/**",
     ".agents/skills/**",
+    // Test harness (Node scripts with their own package.json), not app code.
+    "qa/**",
   ]),
 ]);
 

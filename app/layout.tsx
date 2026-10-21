@@ -26,8 +26,10 @@ const montserrat = Montserrat({
 //
 // ⚠ LAUNCH BLOCKER: CameraObscura.otf on disk is the vendor's DEMO /
 // PERSONAL-USE build, not a purchased commercial licence, and it is the
-// site's primary display face on every page. Replace it with the licensed
-// file before this goes public — same filename, no code change needed.
+// site's primary display face on every page. What loads is the woff2 subset
+// made from it (below), so the licensed file must be converted the same way
+// and saved over CameraObscura.woff2 - replacing only the .otf does nothing.
+// See README "Before launch".
 // Its demo build also ships deliberately sabotaged numerals, which is why
 // `declarations` below excludes U+0030-0039 so digits fall through to
 // Montserrat instead of rendering as watermark text. Delete that
@@ -91,7 +93,13 @@ export async function generateMetadata(): Promise<Metadata> {
     title: seo.title,
     description: seo.description,
     keywords: seo.keywords.split(',').map(k => k.trim()).filter(Boolean),
-    icons: seo.favicon ? { icon: encodePath(seo.favicon) } : undefined,
+    // The home-screen icon for iPhones is fixed (the brand mark on white);
+    // the tab icon is CMS content. /favicon.ico (app/favicon.ico) is the
+    // square mark too, for browsers and crawlers that ask for it by name.
+    icons: {
+      ...(seo.favicon ? { icon: encodePath(seo.favicon) } : {}),
+      apple: '/assets/share/apple-touch-icon.png',
+    },
     openGraph: {
         title: seo.shareTitle,
         description: seo.shareDescription,

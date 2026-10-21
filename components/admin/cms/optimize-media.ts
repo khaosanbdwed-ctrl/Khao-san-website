@@ -130,8 +130,9 @@ export async function optimizeVideo(file: File, onProgress: (fraction: number) =
  * the brush stroke), and JPEG has no transparency, so those are kept as they
  * are when WebP is unavailable.
  */
-export async function optimizePhoto(file: File): Promise<File> {
+export async function optimizePhoto(file: File, opts: { jpeg?: boolean } = {}): Promise<File> {
     if (file.type === 'image/gif' || typeof createImageBitmap === 'undefined') return file;
+    if (opts.jpeg) return toJpeg(file);
     let bitmap: ImageBitmap;
     try {
         bitmap = await createImageBitmap(file);
@@ -160,4 +161,30 @@ export async function optimizePhoto(file: File): Promise<File> {
     if (!resized && blob.size >= file.size) return file;
     const ext = blob.type === 'image/webp' ? '.webp' : '.jpg';
     return new File([blob], file.name.replace(/\.[^.]+$/, '') + ext, { type: blob.type });
+}
+
+/** For pictures other apps read (the link-preview image): JPEG, at most
+ *  1600 px wide, whatever the browser. */
+async function toJpeg(file: File): Promise<File> {
+    let bitmap: ImageBitmap;
+    try {
+        bitmap = await createImageBitmap(file);
+    } catch {
+        return file;
+    }
+    const { width, height } = fit(bitmap.width, bitmap.height, 1600);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) { bitmap.close(); return file; }
+    // JPEG has no transparency: a see-through PNG gets a white ground, not black.
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, width, height);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    const blob = await canvasToBlob(canvas, 'image/jpeg', 0.86).catch(() => null);
+    if (!blob || blob.type !== 'image/jpeg') return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' });
 }

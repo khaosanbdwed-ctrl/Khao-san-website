@@ -61,3 +61,10 @@ scratch-shots/
 
 # Stale stylesheet backups (superseded by git history)
 *.bak
+
+# QA run output (qa/run.sh)
+/qa/node_modules/
+/qa/mock-data/
+/qa/.fixtures/
+/qa/.shots/
+/qa/*.log

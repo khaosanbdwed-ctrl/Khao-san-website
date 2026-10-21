@@ -1,5 +1,25 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-21: QA, security and handover pass
+>
+> Read `PRODUCTION_AUDIT.md` first - it is the current state, scored, with
+> what was fixed, how it was verified, and what is still open (font licence;
+> settings to verify in the real Supabase project). `CLIENT_GUIDE.md` is the
+> manual for the restaurant team.
+>
+> What changed for developers:
+> - Next.js 16.4.2 / React 19.2.9 (16.2.10 was inside a critical proxy-bypass
+>   advisory). Every admin handler now also checks the session itself via
+>   `lib/auth/require-admin.ts` - add that call to any new admin route.
+> - Site URL lives in `lib/site.ts` (`NEXT_PUBLIC_SITE_URL`, default
+>   https://khaosan.bd).
+> - Dish photos: the client uploads a background-removed cut-out; the browser
+>   plates it (`components/admin/plate-dish.ts` = `scripts/plate-dishes.py`).
+> - Security headers incl. a Content-Security-Policy in `next.config.ts`: a
+>   new third-party script, font, embed or upload host must be added there or
+>   the browser will block it.
+> - Tablets 600-900px get the two-column menu.
+
 > ## Update 2026-10-20: website CMS added - read CMS.md
 >
 > Every word, photo, video, background, link, outlet, opening hour, show/hide
@@ -23,20 +43,11 @@
 >   shapes it. "Edit lib/locations.ts" in older notes means "edit Locations &
 >   hours in the dashboard" (or its defaults in lib/cms/docs/locations.ts).
 
-> ## ⛔ STOP. THE TREE IS MID-MIGRATION AND THE MENU PAGE IS BROKEN RIGHT NOW.
+> ## (Resolved) The 2026-09-04 "STOP - the menu page is broken" warning
 >
-> The session of **2026-09-04** replaced the desktop category index in
-> `app/styles/08-menu.css` with a new design (**the dial**) and ran out of
-> budget **before touching the markup**. The new CSS targets a DOM that
-> `components/menu-page-client.tsx` does not yet emit.
->
-> **Concretely: `/menu` on a >1024px viewport currently renders a category
-> index that is unstyled, mispositioned, or invisible.** This is not a
-> regression to diagnose — it is a half-applied change, and §1 below is the
-> exact recipe to finish it. Do that first, or revert (see §1.4).
->
-> Nothing else on the site is affected. The homepage and footer were only
-> *surveyed* this session; no file but `08-menu.css` was written.
+> No longer true. Round 10 took a different index design, the tree is
+> committed, and `/menu` renders correctly at every width (screenshot-verified
+> 2026-10-21 at 360-1920px). §1 and the dial rules in §6 below are history.
 
 This is a session-to-session handoff, not a design doc. Read it first, then:
 

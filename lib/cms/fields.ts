@@ -23,7 +23,12 @@ interface Base {
 
 export type Field =
     | (Base & { kind: 'text'; multiline?: boolean; rich?: boolean; maxLength?: number; placeholder?: string })
-    | (Base & { kind: 'image' })
+    | (Base & {
+        kind: 'image';
+        /** Upload as JPEG rather than WebP - for pictures read by other apps
+         *  (link previews), which do not all accept WebP. */
+        format?: 'jpeg';
+    })
     | (Base & { kind: 'video' })
     | (Base & { kind: 'color' })
     | (Base & { kind: 'toggle' })
