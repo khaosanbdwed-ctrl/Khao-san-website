@@ -61,20 +61,45 @@ function platedSrc(src: string): string {
     return src.startsWith(PLATED_FROM) ? src.replace(PLATED_FROM, PLATED_TO) : src;
 }
 
+/** A query, retried twice on failure (0.3 s, then 1 s later), so a momentary
+ *  network blip between the host and Supabase never reaches a visitor. */
+async function withRetry<T extends { error: { message: string } | null }>(run: () => PromiseLike<T>): Promise<T> {
+    let result = await run();
+    for (const wait of [300, 1000]) {
+        if (!result.error) break;
+        await new Promise(r => setTimeout(r, wait));
+        result = await run();
+    }
+    return result;
+}
+
 export default async function MenuPage() {
     const supabase = createPublicClient();
 
     const [
         site,
-        { data: categories },
-        { data: items },
-        { data: addOns },
+        { data: categories, error: categoriesError },
+        { data: items, error: itemsError },
+        { data: addOns, error: addOnsError },
     ] = await Promise.all([
         getSiteContent(),
-        supabase.from('menu_categories').select('*').order('sort_order'),
-        supabase.from('menu_items').select('*').order('sort_order'),
-        supabase.from('menu_category_addons').select('*'),
+        withRetry(() => supabase.from('menu_categories').select('*').order('sort_order')),
+        withRetry(() => supabase.from('menu_items').select('*').order('sort_order')),
+        withRetry(() => supabase.from('menu_category_addons').select('*')),
     ]);
+
+    /* ⚠ A FAILED QUERY MUST THROW, NOT RENDER AN EMPTY MENU. The errors used to
+       be ignored, so a brief Supabase outage during the hourly refresh cached
+       a menu with no dishes for the next hour. Throwing keeps the last good
+       page during the hourly refresh (stale-while-revalidate serves it until
+       a refresh succeeds), and at build time it stops the deploy - the
+       previous deployment stays live - rather than publishing an empty menu
+       (the same policy as lib/supabase/env.ts). Right after a dish is saved
+       the page is re-rendered on the next visit, so an outage at that exact
+       moment shows the error page until Supabase is back - then it recovers
+       by itself on the next visit. */
+    const failure = categoriesError || itemsError || addOnsError;
+    if (failure) throw new Error(`The menu could not be loaded from Supabase: ${failure.message}`);
 
     const menuData: MenuCategory[] = (categories || []).map(cat => ({
         id: cat.id,

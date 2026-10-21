@@ -62,8 +62,15 @@ export async function GET(request: Request) {
     const supabase = createAdminClient();
     const storage = supabase.storage.from(BUCKET);
     const lists = await Promise.all((['images', 'videos'] as const).map(async kind => {
-        const { data, error } = await storage.list(kind, { limit: 500, sortBy: { column: 'created_at', order: 'desc' } });
-        if (error) throw new Error(error.message);
+        // Paged, so the library still lists everything after years of uploads
+        // (a single list call returns at most 1000 entries).
+        const data: Awaited<ReturnType<typeof storage.list>>['data'] = [];
+        for (let offset = 0; offset < 20000; offset += 1000) {
+            const { data: page, error } = await storage.list(kind, { limit: 1000, offset, sortBy: { column: 'created_at', order: 'desc' } });
+            if (error) throw new Error(error.message);
+            data!.push(...(page ?? []));
+            if (!page || page.length < 1000) break;
+        }
         return (data ?? [])
             .filter(f => f.id && !f.name.startsWith('.') && !COMPANION.test(f.name))
             .map(f => {
