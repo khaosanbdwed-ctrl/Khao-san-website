@@ -5,7 +5,8 @@ concern so a round does not re-derive the whole project. It does **not**
 replace `PRD.md` (the decision log) — it is the table of contents for it.
 
 Last synced: 2026-08-21, end of Round 9. Lines touched 2026-10-21 (QA/security
-pass) are marked *(10-21)*; for the current state read `PRODUCTION_AUDIT.md`
+pass) are marked *(10-21)*, and 2026-10-22 (dashboard counts, hiding dishes,
+media cleanup) *(10-22)*; for the current state read `PRODUCTION_AUDIT.md`
 and `HANDOFF.md` first.
 
 ---
@@ -128,7 +129,9 @@ components/
     menu-row.tsx              one dish: photo + category + name (R8: nothing else)
     page-hero.tsx
 lib/supabase/  env.ts (requireEnv) · server.ts · admin.ts · public.ts
+lib/  menu-visibility.ts (hidden dishes) · dish-photo-sweep.ts (unused-photo cleanup) *(10-22)*
 scripts/  plate-dishes.py · setup-db.mjs · check-contrast.mjs · shoot.sh · shoot.mjs
+assets-source/  menu-cutouts/ - not deployed; source for plate-dishes.py *(10-22)*
 ```
 
 ## 7. Brand identity — exact, never approximate
@@ -190,7 +193,8 @@ Orange is never a background and never a texture. `--color-dish-field`
 8. **No floating cut-out dishes.** The transparent-PNG treatment is rejected.
    The menu uses baked, opaque plates from `public/assets/menu-plated/` (73
    files). `platedSrc()` in `app/menu/page.tsx` rewrites the Supabase path; the
-   database still stores the original.
+   database still stores the original's path, but the cut-outs themselves now
+   live outside `/public` in `assets-source/menu-cutouts/` *(10-22)*.
 9. **No cards as page structure**, no emoji standing in for icons. No
    eyebrows — with one sanctioned exception, the menu row's category caption
    (PRD §16.3).

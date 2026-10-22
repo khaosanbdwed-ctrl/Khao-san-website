@@ -1,5 +1,30 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-22: dashboard figures, hiding dishes, media cleanup
+>
+> - **Overview counts what visitors see.** It used to count every
+>   `menu_items` row (74) while the menu hid four dishes (70). Dishes, live
+>   categories and hidden dishes are now counted the way `/menu` builds the
+>   page, and the hidden ones are listed by name.
+> - **Hiding a dish is a dashboard action, not code.** Menu Control has
+>   Hide / Show per dish (`PATCH /api/admin/menu`). The list is
+>   `site-content/menu-visibility/hidden.json`, by dish id
+>   (`lib/menu-visibility.ts`); the old hardcoded `HIDDEN_TITLES` only seeds
+>   it until the first Hide/Show.
+> - **Unused dish photos are cleared automatically**
+>   (`lib/dish-photo-sweep.ts`): at most daily, after a menu save, files in
+>   `dish-images` that no dish and no Website Content draft, published page or
+>   saved version mentions are deleted after 14 days unused, with their
+>   cut-out. Built-in files under `/public` are never touched.
+> - **Deployed assets 47 MB -> 24 MB.** 17 unreferenced files removed (still
+>   in git history); the outlet photos re-encoded (8.4 MB -> 1.1 MB, same
+>   names and size); the 73 original cut-outs moved out of `/public` to
+>   `assets-source/menu-cutouts/` (see its README) - the database paths to
+>   them are rewritten to `menu-plated/` and were never served.
+> - **QA:** `qa/run.sh` now stops the whole server process group (a leftover
+>   `next-server` made the dashboard suite run against a stale server).
+>   Dashboard suite: 37 checks.
+
 > ## Update 2026-10-21: QA, security and handover pass
 >
 > Read `PRODUCTION_AUDIT.md` first - it is the current state, scored, with

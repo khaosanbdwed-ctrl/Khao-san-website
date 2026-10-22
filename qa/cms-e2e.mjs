@@ -34,7 +34,7 @@ const browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM 
     fs.writeFileSync(FX + 'camera-photo.jpg', await draw(3000, 2000, 'image/jpeg', false));
     fs.writeFileSync(FX + 'dish-with-background.png', await draw(1200, 1200, 'image/png', false));
     await p.goto('about:blank');
-    const cut = fs.readFileSync(new URL('../public/assets/Menu/KS Menu Webp/E. Noodles/Pad Thai.webp', import.meta.url));
+    const cut = fs.readFileSync(new URL('../assets-source/menu-cutouts/E. Noodles/Pad Thai.webp', import.meta.url));
     const png = await p.evaluate(async (bytes) => {
         const bmp = await createImageBitmap(new Blob([new Uint8Array(bytes)], { type: 'image/webp' }));
         const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;

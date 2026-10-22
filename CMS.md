@@ -68,9 +68,9 @@ makes a link and lines starting with `- ` make a bulleted list.
 same `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` the menu already
 uses. Buckets are created on first use (`lib/cms/bucket.ts`):
 
-- `site-content` (**private**): `<area>/published.json`, `<area>/draft.json`, `<area>/versions/*.json`, and the login rate-limit counters. Drafts are never readable with the public key.
+- `site-content` (**private**): `<area>/published.json`, `<area>/draft.json`, `<area>/versions/*.json`, the login rate-limit counters, `menu-visibility/hidden.json` (dishes hidden with Menu Control's Hide button - `lib/menu-visibility.ts`) and `dish-photos/sweep.json` (the unused-photo sweep's state). Drafts are never readable with the public key.
 - `site-media` (public): uploaded photos and videos. The browser optimises them first (`components/admin/cms/optimize-media.ts`, WebCodecs via `mediabunny`), then uploads straight to Supabase with signed URLs from `/api/admin/media`, so no file passes through Vercel's ~4.5 MB request limit. An optimised video is `videos/<stem>.web.mp4`, with `.web-sm.mp4` (phone) and `.web.webp` (still) beside it. Only the first is stored in content; `lib/media.ts` derives the others, and `BackgroundVideo` lists the phone file as a `<source media="(max-width: 768px)">`.
-- `dish-images` (public): Menu Control's dish photos - `dishes/*` the plated squares the menu shows, `originals/*` the transparent cut-outs they were made from. Plating happens in the browser (`components/admin/plate-dish.ts`, a port of `scripts/plate-dishes.py`); `/api/admin/upload` only signs the two paths.
+- `dish-images` (public): Menu Control's dish photos - `dishes/*` the plated squares the menu shows, `originals/*` the transparent cut-outs they were made from. Plating happens in the browser (`components/admin/plate-dish.ts`, a port of `scripts/plate-dishes.py`); `/api/admin/upload` only signs the two paths. Photos no dish or content uses any more are deleted after 14 days unused, with their cut-out (`lib/dish-photo-sweep.ts`, run after menu saves at most once a day).
 
 `ensureBucket` also corrects a bucket whose settings have drifted from `lib/cms/bucket.ts` (public flag, size limit, allowed types) - so `site-content` switched to public by hand is made private again on the next save.
 

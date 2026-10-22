@@ -1,7 +1,9 @@
 """Bake the cut-out dish PNGs back into photographs.
 
 The client rejected the floating-dish treatment. Every file under
-`Menu/KS Menu Webp/` is an RGBA cut-out on a transparent ground, so "use normal
+`assets-source/menu-cutouts/` (formerly `public/assets/Menu/KS Menu Webp/`,
+moved out of /public because the site never serves them) is an RGBA cut-out
+on a transparent ground, so "use normal
 pictures" cannot be done by CSS alone - a cut-out dropped on a coloured box is
 still a cut-out. This composites each dish onto a warm ground with a soft
 contact shadow and writes an opaque WebP, so the source asset itself is a
@@ -39,7 +41,7 @@ from PIL import Image, ImageFilter
 # developer's Downloads folder). Dishes added later are plated in the
 # dashboard instead - components/admin/plate-dish.ts is this script, ported.
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / 'public' / 'assets' / 'Menu' / 'KS Menu Webp'
+SRC = ROOT / 'assets-source' / 'menu-cutouts'  # not deployed; see assets-source/README.md
 OUT = ROOT / 'public' / 'assets' / 'menu-plated'
 
 W, H = 1000, 1000            # square, matching .menu-row-photo
