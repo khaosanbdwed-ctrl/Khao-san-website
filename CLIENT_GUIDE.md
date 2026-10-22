@@ -32,7 +32,7 @@ fonts, colours of the brand, animation).
 
 | Section | What you change there |
 |---|---|
-| **Overview** | The number of dishes and categories, and links to everything else. |
+| **Overview** | The number of dishes and categories visitors actually see on the menu, which dishes are hidden, and links to everything else. |
 | **Website Content** | Every word, photo, video, background and button on the site, the order of homepage sections, outlets and opening hours, the Privacy and Terms pages, and how the site looks on Google and when shared. |
 | **Menu Control** | The dishes: names, descriptions, badges, photos (and prices, which are kept but not shown on the site). |
 | **Media Library** | Every photo and video you have uploaded. Anything here can be reused anywhere. |
@@ -192,6 +192,17 @@ exactly like every other dish, so the menu always looks consistent.
 
 Use **Edit** / **Delete** on the dish's row. Search and the category filter
 help find a dish quickly. Deleting removes the dish from the website at once.
+
+### Hide or show a dish
+
+To take a dish off the website for a while (out of season, sold out, not
+photographed yet) without losing it, press **Hide** on its row. It disappears
+from the public menu at once, but stays in Menu Control marked **Hidden from
+website**, with its photo and details intact. Press **Show** to put it back.
+
+Hidden dishes are not counted in the Overview's "Dishes on the menu" figure -
+that number always matches what visitors see. The Overview lists them by name
+under "Hidden from the menu".
 
 > Categories (e.g. adding a new section like "Specials") and the "Add ons"
 > lines under Noodles, Rice and Rice Bowls are set up by your developer.

@@ -4,6 +4,7 @@ import MenuPageClient from '@/components/menu-page-client';
 import type { MenuCategory } from '@/components/menu-page-client';
 import { getSiteContent } from '@/lib/cms/content';
 import { encodePath } from '@/lib/site';
+import { getHiddenIds } from '@/lib/menu-visibility';
 
 /**
  * The menu was fully dynamic, so all three queries below ran on every single
@@ -80,17 +81,6 @@ async function withRetry<T extends { error: { message: string } | null }>(run: (
     return result;
 }
 
-/**
- * Dishes kept in the database but hidden from the public menu until the next
- * menu update. Remove a title from this list to show it again.
- */
-const HIDDEN_TITLES = new Set([
-    'Jumbo Dim Sum Assortment',
-    'Soft Drinks (Fountain)',
-    'Soft Drinks (Can/Bottle)',
-    'Water',
-]);
-
 export default async function MenuPage() {
     const supabase = createPublicClient();
 
@@ -119,6 +109,9 @@ export default async function MenuPage() {
     const failure = categoriesError || itemsError || addOnsError;
     if (failure) throw new Error(`The menu could not be loaded from Supabase: ${failure.message}`);
 
+    // Dishes hidden with Menu Control's Hide button (lib/menu-visibility.ts).
+    const hidden = await getHiddenIds(items || []);
+
     const menuData: MenuCategory[] = (categories || []).map(cat => ({
         id: cat.id,
         name: cat.name,
@@ -126,7 +119,7 @@ export default async function MenuPage() {
             .filter(a => a.category_id === cat.id)
             .map(a => ({ title: a.title, price: a.price })),
         items: (items || [])
-            .filter(item => item.category_id === cat.id && !HIDDEN_TITLES.has(item.title))
+            .filter(item => item.category_id === cat.id && !hidden.has(item.id))
             .map(item => ({
                 number: item.item_number,
                 title: item.title,

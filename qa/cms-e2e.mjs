@@ -77,7 +77,9 @@ await page.fill('#admin-password', PASS);
 await page.click('button[type=submit]');
 await page.waitForURL(base + '/admin', { timeout: 15000 });
 ok(await page.isVisible('text=Dashboard Overview'), 'overview loads');
-ok(await page.isVisible('text=75'), 'live dish count shown');
+// 75 seeded dishes, 4 of them hidden by default (lib/menu-visibility.ts): the
+// overview counts what the public menu shows, not raw database rows.
+ok(await page.isVisible('text=71'), 'live dish count shown');
 await page.screenshot({ path: SHOTS + 'admin-overview.png' });
 
 console.log('2. Edit, preview, publish, restore');
@@ -154,7 +156,7 @@ await page.screenshot({ path: SHOTS + 'admin-media.png' });
 
 console.log('5. Menu Control: transparent dish -> plated -> live');
 await page.goto(base + '/admin/menu');
-await page.waitForSelector('text=75 dishes');
+await page.waitForSelector('text=71 dishes on the public menu, 4 hidden');
 await page.screenshot({ path: SHOTS + 'admin-menu.png' });
 await page.fill('input[type=search]', 'pad thai');
 ok((await page.locator('tbody tr').count()) === 1, 'search filters the list');
@@ -183,7 +185,7 @@ ok(html.includes('QA Test Noodles'), 'new dish is on the public menu');
 const row = ap.locator('.menu-row:has-text("QA Test Noodles")');
 ok((await row.locator('.menu-tag').allTextContents()).join(',').includes('Spicy'), 'badges show on the menu');
 ok((await row.textContent()).includes('(2pcs)'), 'portion note shows');
-ok(((await ap.textContent('.menu-hero-count')) || '').replace(/\s+/g, ' ').includes('76 dishes'), 'dish count updated');
+ok(((await ap.textContent('.menu-hero-count')) || '').replace(/\s+/g, ' ').includes('72 dishes'), 'dish count updated');
 // Edit: remove a badge.
 await page.click('tr:has-text("QA Test Noodles") button:has-text("Edit")');
 await page.uncheck('label:has-text("Spicy") input');
@@ -191,6 +193,22 @@ await page.click('button:has-text("Save Changes")');
 await page.waitForSelector('text=Dish updated');
 await ap.goto(base + '/menu');
 ok(!(await ap.locator('.menu-row:has-text("QA Test Noodles") .menu-tag').allTextContents()).join(',').includes('Spicy'), 'edited badge removed on the menu');
+// Hide, then show again - the dashboard overview counts what the menu shows.
+const overview = await page.context().newPage(); // signed in, unlike ap
+const liveDishes = async () => { await overview.goto(base + '/admin'); return Number(await overview.locator('div:text-is("Dishes on the menu") + div').textContent()); };
+const before = await liveDishes();
+await page.click('tr:has-text("QA Test Noodles") button:has-text("Hide")');
+await page.waitForSelector('text=is hidden from the public menu');
+await ap.goto(base + '/menu');
+ok(!(await ap.content()).includes('QA Test Noodles'), 'hidden dish is off the public menu');
+ok((await liveDishes()) === before - 1, 'overview count drops when a dish is hidden');
+ok((await overview.content()).includes('QA Test Noodles'), 'overview lists the hidden dish');
+await page.click('tr:has-text("QA Test Noodles") button:has-text("Show")');
+await page.waitForSelector('text=is back on the public menu');
+await ap.goto(base + '/menu');
+ok((await ap.content()).includes('QA Test Noodles'), 'shown dish is back on the menu');
+ok((await liveDishes()) === before, 'overview count restored');
+await overview.close();
 // Delete.
 await page.click('tr:has-text("QA Test Noodles") button:has-text("Delete")');
 await page.waitForSelector('text=deleted');

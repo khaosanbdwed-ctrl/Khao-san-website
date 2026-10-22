@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isAdmin } from '@/lib/auth/require-admin';
+import { getHiddenIds } from '@/lib/menu-visibility';
 
 /** These are live counts, so the page must not be prerendered at build time —
  *  otherwise it reports whatever the totals were when the site was deployed. */
@@ -22,14 +23,28 @@ export default async function AdminOverview() {
     if (!(await isAdmin())) redirect('/admin/login');
     const supabase = createAdminClient();
 
-    const [{ count: dishCount }, { count: categoryCount }] = await Promise.all([
-        supabase.from('menu_items').select('*', { count: 'exact', head: true }),
-        supabase.from('menu_categories').select('*', { count: 'exact', head: true }),
+    // Counted the same way app/menu/page.tsx builds the public menu — dishes
+    // hidden in Menu Control are left out, and a category counts only when it has
+    // something on it — so the numbers here match what visitors see. Counting
+    // raw rows reported 74 dishes while the menu showed 70.
+    const [{ data: items, error: itemsError }, { data: categories, error: categoriesError }, { data: addOns, error: addOnsError }] = await Promise.all([
+        supabase.from('menu_items').select('id, title, category_id').order('sort_order'),
+        supabase.from('menu_categories').select('id'),
+        supabase.from('menu_category_addons').select('category_id'),
     ]);
+    const hidden = await getHiddenIds(items ?? []).catch(() => null);
+    const loaded = !itemsError && !categoriesError && !addOnsError && hidden !== null;
+
+    const liveItems = (items ?? []).filter(item => !hidden?.has(item.id));
+    const hiddenItems = (items ?? []).filter(item => hidden?.has(item.id));
+    const liveCategoryCount = (categories ?? []).filter(cat =>
+        liveItems.some(item => item.category_id === cat.id) || (addOns ?? []).some(a => a.category_id === cat.id),
+    ).length;
 
     const stats = [
-        { label: 'Dishes on the menu', value: dishCount ?? '—' },
-        { label: 'Menu categories', value: categoryCount ?? '—' },
+        { label: 'Dishes on the menu', value: loaded ? liveItems.length : '—' },
+        { label: 'Menu categories', value: loaded ? liveCategoryCount : '—' },
+        { label: 'Hidden from the menu', value: loaded ? hiddenItems.length : '—' },
     ];
 
     return (
@@ -47,6 +62,25 @@ export default async function AdminOverview() {
                     </div>
                 ))}
             </div>
+
+            {!loaded && (
+                <p role="alert" style={{ color: 'var(--color-primary)', marginTop: '-32px', marginBottom: '48px' }}>
+                    The menu could not be loaded from the database, so these figures are unavailable. Refresh the page to try again.
+                </p>
+            )}
+
+            {loaded && hiddenItems.length > 0 && (
+                <div style={{ backgroundColor: 'var(--color-surface-base)', padding: '32px 40px', borderRadius: '12px', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
+                    <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', marginBottom: '12px' }}>Kept in the database, hidden from the menu</h2>
+                    <p style={{ color: 'var(--color-text-secondary)', maxWidth: '62ch', lineHeight: 1.7, marginBottom: '12px' }}>
+                        These dishes are saved but not shown to visitors, so they are not counted above.
+                        Show any of them again with the <strong>Show</strong> button in Menu Control.
+                    </p>
+                    <ul style={{ margin: 0, paddingLeft: '20px', lineHeight: 1.8 }}>
+                        {hiddenItems.map(item => <li key={item.id}>{item.title}</li>)}
+                    </ul>
+                </div>
+            )}
 
             <div style={{ backgroundColor: 'var(--color-surface-base)', padding: '40px', borderRadius: '12px', border: '1px solid var(--color-border)', marginBottom: '24px' }}>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', marginBottom: '16px' }}>Managing the website</h2>

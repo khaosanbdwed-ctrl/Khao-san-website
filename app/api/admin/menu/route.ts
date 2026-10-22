@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { safeMediaUrl } from '@/lib/cms/fields';
 import { requireAdmin } from '@/lib/auth/require-admin';
+import { getHiddenIds, setHidden } from '@/lib/menu-visibility';
 
 /**
  * Columns a client is allowed to write. `PUT` previously spread the whole
@@ -106,7 +107,42 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ data: items, categories });
+    // Whether each dish is hidden from the public menu (lib/menu-visibility.ts).
+    try {
+        const hidden = await getHiddenIds(items ?? []);
+        return NextResponse.json({ data: (items ?? []).map(item => ({ ...item, hidden: hidden.has(item.id) })), categories });
+    } catch (e) {
+        return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    }
+}
+
+/** Hide a dish from the public menu, or show it again: `{ id, hidden }`.
+ *  The dish stays in the database either way. */
+export async function PATCH(request: Request) {
+    const denied = await requireAdmin(request);
+    if (denied) return denied;
+    try {
+        const body = await request.json();
+        const { id, hidden } = body ?? {};
+        if (typeof id !== 'string' || !UUID.test(id)) {
+            return NextResponse.json({ error: 'Missing item id.' }, { status: 400 });
+        }
+        if (typeof hidden !== 'boolean') {
+            return NextResponse.json({ error: '`hidden` must be true or false.' }, { status: 400 });
+        }
+
+        const { data: items, error } = await createAdminClient().from('menu_items').select('id, title');
+        if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+        if (!items.some(item => item.id === id)) {
+            return NextResponse.json({ error: 'That dish no longer exists.' }, { status: 404 });
+        }
+
+        await setHidden(id, hidden, items);
+        refreshPublicMenu();
+        return NextResponse.json({ success: true, hidden });
+    } catch {
+        return NextResponse.json({ error: 'Failed to change whether the dish is shown.' }, { status: 500 });
+    }
 }
 
 export async function POST(request: Request) {

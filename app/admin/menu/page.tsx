@@ -21,6 +21,8 @@ type MenuItem = {
     portion_note: string | null;
     add_on_note: string | null;
     badges: string[] | null;
+    /** Kept in the database but not shown on the public menu. */
+    hidden?: boolean;
 };
 
 type Category = { id: string; name: string };
@@ -171,7 +173,7 @@ export default function AdminMenu() {
             }), 'Save failed.');
 
             setItems(prev => editingId
-                ? prev.map(i => (i.id === editingId ? json.data : i))
+                ? prev.map(i => (i.id === editingId ? { ...json.data, hidden: i.hidden } : i))
                 : [...prev, json.data]);
             setIsModalOpen(false);
             setForm(EMPTY_FORM);
@@ -196,6 +198,25 @@ export default function AdminMenu() {
         }
     };
 
+    const handleToggleHidden = async (item: MenuItem) => {
+        const hidden = !item.hidden;
+        setError(null);
+        try {
+            await readApi(await fetch('/api/admin/menu', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: item.id, hidden }),
+            }), 'Could not change whether the dish is shown.');
+            setItems(prev => prev.map(i => (i.id === item.id ? { ...i, hidden } : i)));
+            setNotice(hidden
+                ? `"${item.title}" is hidden from the public menu. It is still saved here — press Show to bring it back.`
+                : `"${item.title}" is back on the public menu.`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Could not change whether the dish is shown.');
+        }
+    };
+
+    const hiddenCount = items.filter(i => i.hidden).length;
     const q = query.trim().toLowerCase();
     const shown = items.filter(i =>
         (!categoryFilter || i.category_id === categoryFilter) &&
@@ -208,7 +229,7 @@ export default function AdminMenu() {
                 <div>
                     <h1 className="display-2" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Menu Control</h1>
                     <p style={{ color: 'var(--color-text-secondary)' }}>
-                        {isLoading ? 'Loading…' : `${items.length} dishes across ${categories.length} categories.`}
+                        {isLoading ? 'Loading…' : `${items.length - hiddenCount} dishes on the public menu${hiddenCount ? `, ${hiddenCount} hidden` : ''}.`}
                     </p>
                 </div>
                 <button onClick={openCreate} className="btn btn-primary" disabled={isLoading}>+ Add New Dish</button>
@@ -274,6 +295,9 @@ export default function AdminMenu() {
                                                 {item.portion_note && (
                                                     <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400, marginLeft: '6px' }}>{item.portion_note}</span>
                                                 )}
+                                                {item.hidden && (
+                                                    <span title="Saved here but not shown on the public menu" style={{ marginLeft: '8px', padding: '2px 8px', borderRadius: '10px', border: '1px solid var(--color-border)', fontSize: '0.75rem', fontWeight: 400, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Hidden from website</span>
+                                                )}
                                             </div>
                                             <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', maxWidth: '420px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {(item.badges ?? []).filter(b => BADGE_VALUES.includes(b)).map(b => BADGES.find(x => x.value === b)!.label).join(' · ')}
@@ -291,6 +315,7 @@ export default function AdminMenu() {
                                 <td style={{ padding: '16px 24px', color: 'var(--color-primary)', whiteSpace: 'nowrap' }}>{item.price}</td>
                                 <td style={{ padding: '16px 24px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                                     <button onClick={() => openEdit(item)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', textDecoration: 'underline', marginRight: '14px', font: 'inherit', minHeight: 32 }}>Edit</button>
+                                    <button onClick={() => handleToggleHidden(item)} aria-label={`${item.hidden ? 'Show' : 'Hide'} ${item.title}`} title={item.hidden ? 'Put this dish back on the public menu' : 'Take this dish off the public menu without deleting it'} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', textDecoration: 'underline', marginRight: '14px', font: 'inherit', minHeight: 32 }}>{item.hidden ? 'Show' : 'Hide'}</button>
                                     <button onClick={() => handleDelete(item)} style={{ background: 'transparent', border: 'none', color: '#8D361F', cursor: 'pointer', textDecoration: 'underline', font: 'inherit', minHeight: 32 }}>Delete</button>
                                 </td>
                             </tr>
