@@ -204,6 +204,15 @@ Hidden dishes are not counted in the Overview's "Dishes on the menu" figure -
 that number always matches what visitors see. The Overview lists them by name
 under "Hidden from the menu".
 
+### Old photos are cleared away automatically
+
+When you give a dish a new photo, or delete a dish, the old photo is not
+deleted straight away. The site checks once a day for dish photos that no dish
+and no page of the website uses, and removes a photo only after it has gone
+unused for **14 days**. If you change your mind within those two weeks, ask
+your developer to put the old photo back. A photo you paste into a homepage
+section is counted as in use, so it is never removed from under the site.
+
 > Categories (e.g. adding a new section like "Specials") and the "Add ons"
 > lines under Noodles, Rice and Rice Bowls are set up by your developer.
 

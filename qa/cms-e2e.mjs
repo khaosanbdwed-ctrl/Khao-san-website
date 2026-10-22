@@ -179,6 +179,16 @@ ok(/dish-images\/dishes\/.+\.(webp|jpg)$/.test(src), `plated photo uploaded (${s
 await page.screenshot({ path: SHOTS + 'admin-dish-form.png' });
 await page.click('button:has-text("Save Dish")');
 await page.waitForSelector('text=Dish added');
+// The photo sweep runs after every save in QA (no grace period): a photo a
+// dish uses must survive it.
+const photoStatus = async () => (await fetch(src)).status;
+const cutouts = async () => {
+    const stem = src.split('/').pop().replace(/\.[^.]*$/, '');
+    const r = await fetch(new URL('/storage/v1/object/list/dish-images', src), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ prefix: 'originals' }) });
+    return (await r.json()).filter(f => f.name.startsWith(stem)).length;
+};
+await new Promise(r => setTimeout(r, 1500));
+ok((await photoStatus()) === 200 && (await cutouts()) === 1, 'sweep keeps the photo and cut-out of a dish in use');
 await ap.goto(base + '/menu');
 const html = await ap.content();
 ok(html.includes('QA Test Noodles'), 'new dish is on the public menu');
@@ -214,6 +224,9 @@ await page.click('tr:has-text("QA Test Noodles") button:has-text("Delete")');
 await page.waitForSelector('text=deleted');
 await ap.goto(base + '/menu');
 ok(!(await ap.content()).includes('QA Test Noodles'), 'deleted dish is gone from the menu');
+let gone = false;
+for (let i = 0; i < 20 && !gone; i++) { await new Promise(r => setTimeout(r, 500)); gone = (await photoStatus()) === 404 && (await cutouts()) === 0; }
+ok(gone, 'sweep removes the deleted dish\'s photo and cut-out');
 
 console.log('6. Sign out');
 await page.click('button:has-text("Sign Out")');

@@ -1,9 +1,10 @@
-import { NextResponse } from 'next/server';
+import { after, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { safeMediaUrl } from '@/lib/cms/fields';
 import { requireAdmin } from '@/lib/auth/require-admin';
 import { getHiddenIds, setHidden } from '@/lib/menu-visibility';
+import { sweepDishPhotos } from '@/lib/dish-photo-sweep';
 
 /**
  * Columns a client is allowed to write. `PUT` previously spread the whole
@@ -35,6 +36,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function refreshPublicMenu() {
     revalidatePath('/menu');
     revalidatePath('/');
+    // Clear out dish photos nobody uses any more - after the response, at
+    // most once a day, with a grace period (see lib/dish-photo-sweep.ts).
+    after(() => sweepDishPhotos());
 }
 
 function pickWritable(body: Record<string, unknown>): Partial<Record<Writable, unknown>> {

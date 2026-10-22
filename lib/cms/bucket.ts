@@ -14,6 +14,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
  *                           <area>/draft.json       unpublished edits
  *                           <area>/versions/*.json  every past publish
  *                           security/login/*.json   failed sign-in counters
+ *                           menu-visibility/hidden.json  dishes hidden from /menu
+ *                           dish-photos/sweep.json  unused-photo sweep (lib/dish-photo-sweep.ts)
  *   site-media   (public)   images/*, videos/*      uploaded photos and films
  *   dish-images  (public)   dishes/*     plated dish photos the menu shows
  *                           originals/*  the background-removed cut-outs
