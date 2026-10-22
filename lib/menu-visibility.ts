@@ -31,6 +31,19 @@ const LEGACY_HIDDEN_TITLES = new Set([
 type Stored = { ids: string[]; savedAt: string };
 type Dish = { id: string; title: string };
 
+/** Read the list, retried twice (0.3 s, then 1 s) like the menu's own
+ *  queries, so a momentary blip does not fail the menu render. */
+async function readStored(): Promise<Stored | null> {
+    for (const wait of [300, 1000]) {
+        try {
+            return await readJson<Stored>(FILE);
+        } catch {
+            await new Promise(r => setTimeout(r, wait));
+        }
+    }
+    return readJson<Stored>(FILE);
+}
+
 /**
  * The ids of the hidden dishes among `items`.
  *
@@ -42,7 +55,7 @@ type Dish = { id: string; title: string };
 export async function getHiddenIds(items: Dish[]): Promise<Set<string>> {
     let stored: Stored | null;
     try {
-        stored = await readJson<Stored>(FILE);
+        stored = await readStored();
     } catch (e) {
         if (process.env.NEXT_PHASE !== 'phase-production-build') throw e;
         console.warn(`[menu] ${(e as Error).message}; building with the default hidden dishes.`);

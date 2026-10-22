@@ -87,7 +87,13 @@ async function collectReferences(): Promise<string> {
         `${key}/published.json`,
         ...(await listNames(`${key}/versions`)).map(name => `${key}/versions/${name}`),
     ]))).flat();
-    const docs = await Promise.all(docPaths.map(path => readJson(path)));
+    // Ten at a time: every saved version of every area is a few hundred
+    // files, and a burst that size invites throttling - which would abort
+    // the run (any failed read does) every time.
+    const docs: unknown[] = [];
+    for (let i = 0; i < docPaths.length; i += 10) {
+        docs.push(...await Promise.all(docPaths.slice(i, i + 10).map(path => readJson(path))));
+    }
 
     return [...items.map(i => i.image_src ?? ''), ...docs.map(d => (d ? JSON.stringify(d) : ''))].join('\n');
 }
