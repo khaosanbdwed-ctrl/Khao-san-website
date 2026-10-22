@@ -57,6 +57,13 @@ export async function generateMetadata(): Promise<Metadata> {
 const PLATED_FROM = '/assets/Menu/KS Menu Webp/';
 const PLATED_TO = '/assets/menu-plated/';
 
+/* Dishes whose database row still points at an old uploaded image (with the
+ * dish name baked into it). Matched by title and pointed at the updated photo. */
+const IMAGE_OVERRIDES: Record<string, string> = {
+    'Grilled Chicken Satay with Peanut Sauce':
+        '/assets/menu-plated/A. Appetizers/Grilled Chicken Satay with Peanut Sauce (6pcs).webp',
+};
+
 function platedSrc(src: string): string {
     return src.startsWith(PLATED_FROM) ? src.replace(PLATED_FROM, PLATED_TO) : src;
 }
@@ -72,6 +79,17 @@ async function withRetry<T extends { error: { message: string } | null }>(run: (
     }
     return result;
 }
+
+/**
+ * Dishes kept in the database but hidden from the public menu until the next
+ * menu update. Remove a title from this list to show it again.
+ */
+const HIDDEN_TITLES = new Set([
+    'Jumbo Dim Sum Assortment',
+    'Soft Drinks (Fountain)',
+    'Soft Drinks (Can/Bottle)',
+    'Water',
+]);
 
 export default async function MenuPage() {
     const supabase = createPublicClient();
@@ -108,11 +126,11 @@ export default async function MenuPage() {
             .filter(a => a.category_id === cat.id)
             .map(a => ({ title: a.title, price: a.price })),
         items: (items || [])
-            .filter(item => item.category_id === cat.id)
+            .filter(item => item.category_id === cat.id && !HIDDEN_TITLES.has(item.title))
             .map(item => ({
                 number: item.item_number,
                 title: item.title,
-                imageSrc: platedSrc(item.image_src || ''),
+                imageSrc: IMAGE_OVERRIDES[item.title] ?? platedSrc(item.image_src || ''),
                 price: item.price,
                 groupPrice: item.group_price || undefined,
                 portionNote: item.portion_note || undefined,

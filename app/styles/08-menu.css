@@ -651,7 +651,7 @@
     --side-w: 23vw;
     --gap: 12px;
     position: relative;
-    height: calc(100svh - var(--header-h) - 32px);
+    height: calc(var(--center-w) + 24px);
     overflow: hidden;
     touch-action: pan-y pinch-zoom;
     cursor: grab;
@@ -665,7 +665,7 @@
     left: 50%;
     top: 50%;
     width: calc(var(--center-w) + (var(--side-w) - var(--center-w)) * var(--depth));
-    height: calc(100% - 17% * var(--depth));
+    aspect-ratio: 1 / 1;
     transform: translate(calc(-50% + var(--first) * ((var(--center-w) + var(--side-w)) / 2 + var(--gap)) + var(--rest) * (var(--side-w) + var(--gap))), -50%);
     overflow: hidden;
     border-radius: 12px;
@@ -1350,12 +1350,6 @@
     overflow: hidden;
     border-radius: clamp(14px, 1.35vw, 22px);
     margin-bottom: clamp(12px, 1.1vw, 16px);
-}
-.menu-row-photo img {
-    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.menu-row:hover .menu-row-photo img {
-    transform: scale(1.04);
 }
 /* ROUND 9: back, with the description. Marks sit ABOVE the name rather than
    below it - they are how you decide whether to read the name at all, and a
