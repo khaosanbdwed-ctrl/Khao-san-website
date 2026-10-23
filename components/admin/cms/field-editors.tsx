@@ -59,7 +59,10 @@ function contrastWarning(field: Field, siblings: Record<string, unknown>): strin
     const ground = typeof groundSet === 'string' && groundSet ? groundSet : c.groundDefault;
     const tone = c.toneKey ? pathValue(siblings, c.toneKey) : 'auto';
     const ink = (siblings[field.key] as string) || (tone === 'light' || tone === 'dark' ? c.inkDefault[tone] : undefined) || c.inkDefault.auto;
-    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})/i.test(ground) || !/^#([0-9a-f]{3}|[0-9a-f]{6})/i.test(ink)) return null;
+    // Opaque #rgb / #rrggbb only: a colour with transparency (#rrggbbaa)
+    // depends on what is under it, so it is not judged rather than misjudged.
+    const opaque = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+    if (!opaque.test(ground) || !opaque.test(ink)) return null;
     const ratio = contrastRatio(ink, ground);
     if (ratio >= 4.5) return null;
     // A light ground needs darker text, and the other way round.
