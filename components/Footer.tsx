@@ -213,6 +213,24 @@ export default function Footer({ content, locations, whatsapp }: Props) {
     const activeLocation = activeLocationIndex === null ? null : locations[activeLocationIndex];
     const { brand } = content;
     const bgProps = sectionBackground(content.style.background, undefined, 'site-footer');
+    // Colours chosen in the dashboard. They re-point the footer's own tokens
+    // (12-footer.css), so every line follows - the secondary text, dividers
+    // and underlines are mixed from them there. Inline, so they also win over
+    // the background's light/dark text tone.
+    const { textColor, accentColor } = content.style;
+    bgProps.style = {
+        ...bgProps.style,
+        ...(textColor ? {
+            '--color-text-primary': textColor,
+            '--color-text-secondary': `color-mix(in srgb, ${textColor} 82%, transparent)`,
+            '--color-primary': textColor,
+        } : {}),
+        ...(accentColor ? {
+            '--color-accent': accentColor,
+            '--color-brand-butter': accentColor,
+            '--color-brand-butter-deep': `color-mix(in srgb, ${accentColor} 75%, ${textColor || 'var(--color-text-primary)'})`,
+        } : {}),
+    } as React.CSSProperties;
 
     return (
         <footer {...bgProps}>

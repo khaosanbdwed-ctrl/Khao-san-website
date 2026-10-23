@@ -32,7 +32,8 @@ export interface FooterContent {
     links: { items: NavLink[] };
     social: { items: { platform: string; url: string }[] };
     bottom: { copyright: string; legal: NavLink[] };
-    style: { background: Background };
+    /** Empty = the footer's designed colours (or the background's text tone). */
+    style: { background: Background; textColor: string; accentColor: string };
 }
 
 const NAV: NavLink[] = [
@@ -78,7 +79,7 @@ export const footerDefaults: FooterContent = {
             { label: 'Terms', href: '/legal/terms' },
         ],
     },
-    style: { background: { ...EMPTY_BACKGROUND } },
+    style: { background: { ...EMPTY_BACKGROUND }, textColor: '', accentColor: '' },
 };
 
 const navFields: Field[] = [
@@ -185,8 +186,12 @@ export const footerDoc: DocDef = {
         },
         {
             key: 'style',
-            title: 'Background',
-            fields: [bg()],
+            title: 'Background & colours',
+            fields: [
+                bg(),
+                { kind: 'color', key: 'textColor', label: 'Footer text colour', help: 'Every word in the footer - headings, addresses, hours, links and the copyright line. The softer lines and the dividers follow it automatically. Leave empty for the design\'s own colour. If you pick a dark colour, also turn off "Show the logo in white".' },
+                { kind: 'color', key: 'accentColor', label: 'Footer accent colour', help: 'The outlet names, "Directions" and the colour links turn when pointed at. Leave empty for butter yellow.' },
+            ],
         },
     ],
 };

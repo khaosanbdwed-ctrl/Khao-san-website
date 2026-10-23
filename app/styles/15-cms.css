@@ -35,7 +35,8 @@
     --color-brand-butter-deep: var(--color-brand-blue-deep);
     color: var(--color-brand-black);
 }
-.site-footer.cms-tone-dark .footer-bottom { color: #55606E; }
+/* (The footer's bottom line, dividers and underlines are mixed from these
+   tokens in 12-footer.css, so the tones reach them without an override.) */
 
 /* The footer mark is knocked out to white for the dark footer. The toggle in
    the dashboard ("Show the logo in white") drives this class. */

@@ -12,10 +12,14 @@ import {
  * recording would be downloaded in full by every visitor on mobile data. So:
  *
  *  VIDEO -> two H.264 MP4s and a still, all from one upload:
- *           computers  longest side 1280 px (720p), ~1.2 Mbit/s
- *           phones     longest side 854 px (480p), ~0.6 Mbit/s
- *           (the bitrates of the site's own hand-compressed clips, so an
- *           upload weighs about what they do: ~3 MB / ~1.5 MB at 20 s)
+ *           computers  longest side 1920 px (1080p), ~4 Mbit/s
+ *           phones     longest side 1280 px (720p), ~1.8 Mbit/s
+ *           (~10 MB / ~4.5 MB at 20 s). Was 720p at 1.2 Mbit/s and 480p at
+ *           0.6 - the weight of the site's own hand-compressed clips, but
+ *           visibly soft as a full-screen background on a laptop or a
+ *           high-density phone; the client's note was that uploads lost
+ *           too much quality. A browser that cannot encode the larger size
+ *           falls back to the next one down rather than giving up.
  *           still      a frame from the start, shown while the film loads
  *           Sound is removed (background videos always play muted) and the
  *           clip is trimmed to MAX_SECONDS - it loops, so a long file only
@@ -23,8 +27,14 @@ import {
  *           screens (lib/media.ts, components/ui/background-video.tsx).
  *
  *  PHOTO -> scaled down to at most MAX_PHOTO_EDGE on the longest side and
- *           re-saved as WebP. That is the master; the site's image pipeline
- *           (next/image) then serves each screen its own smaller size.
+ *           re-saved as WebP at PHOTO_QUALITY. That is the master, stored
+ *           once; the site's image pipeline (next/image, `qualities` in
+ *           next.config.ts) then serves each screen its own smaller size.
+ *           ⚠ Every photo is compressed twice - here, and again per screen
+ *           size when it is served - so this pass is kept near-lossless.
+ *           Measured on a 5 MP photo, as visitors see it at 1920 px: the old
+ *           0.86 here + 75 there scored 33.1 dB PSNR (soft, the client's
+ *           complaint); 0.92 + 85 scores 36.1 dB for ~480 KB served.
  *
  * Shape is never changed: footage and photos keep their aspect ratio, and the
  * site crops them to fill whatever frame they are placed in (object-fit:
@@ -36,11 +46,14 @@ import {
  */
 
 export const MAX_SECONDS = 20;
-const MAX_PHOTO_EDGE = 2560;
+/** Covers a full-width photo on a 1440px-wide retina screen (2880px). */
+const MAX_PHOTO_EDGE = 3200;
+const PHOTO_QUALITY = 0.92;
 
+/** Each rendition is tried at its sizes in order, largest first. */
 const RENDITIONS = [
-    { key: 'large', longEdge: 1280, bitrate: 1_200_000 },
-    { key: 'small', longEdge: 854, bitrate: 600_000 },
+    { key: 'large', sizes: [{ longEdge: 1920, bitrate: 4_000_000 }, { longEdge: 1280, bitrate: 2_500_000 }] },
+    { key: 'small', sizes: [{ longEdge: 1280, bitrate: 1_800_000 }, { longEdge: 854, bitrate: 900_000 }] },
 ] as const;
 
 export class OptimizeUnsupported extends Error {}
@@ -79,11 +92,12 @@ export async function optimizeVideo(file: File, onProgress: (fraction: number) =
 
     const outputs: Blob[] = [];
     for (let i = 0; i < RENDITIONS.length; i++) {
-        const r = RENDITIONS[i];
-        const size = fit(w, h, r.longEdge);
-        if (!(await canEncodeVideo('avc', { ...size, bitrate: r.bitrate }))) {
-            throw new OptimizeUnsupported('This browser cannot encode H.264 video.');
+        let r: { longEdge: number; bitrate: number } | null = null;
+        for (const candidate of RENDITIONS[i].sizes) {
+            if (await canEncodeVideo('avc', { ...fit(w, h, candidate.longEdge), bitrate: candidate.bitrate })) { r = candidate; break; }
         }
+        if (!r) throw new OptimizeUnsupported('This browser cannot encode H.264 video.');
+        const size = fit(w, h, r.longEdge);
         const target = new BufferTarget();
         const conversion = await Conversion.init({
             input: new Input({ source: new BlobSource(file), formats: ALL_FORMATS }),
@@ -103,19 +117,19 @@ export async function optimizeVideo(file: File, onProgress: (fraction: number) =
         outputs.push(new Blob([target.buffer], { type: 'video/mp4' }));
     }
 
-    const stillSize = fit(w, h, 1280);
+    const stillSize = fit(w, h, 1920);
     const sink = new CanvasSink(track, { ...stillSize, fit: 'contain' });
     const frame = await sink.getCanvas(Math.min(0.5, end / 2));
     if (!frame) throw new Error('Could not capture a still from the video.');
-    const poster = await canvasToBlob(frame.canvas, 'image/webp', 0.8);
+    const poster = await canvasToBlob(frame.canvas, 'image/webp', 0.88);
     onProgress(1);
 
     return {
         large: outputs[0],
         small: outputs[1],
-        poster: poster.type === 'image/webp' ? poster : await canvasToBlob(frame.canvas, 'image/jpeg', 0.82),
+        poster: poster.type === 'image/webp' ? poster : await canvasToBlob(frame.canvas, 'image/jpeg', 0.88),
         trimmed: duration > MAX_SECONDS + 0.05,
-        ...fit(w, h, 1280),
+        ...stillSize,
     };
 }
 
@@ -150,11 +164,11 @@ export async function optimizePhoto(file: File, opts: { jpeg?: boolean } = {}): 
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close();
 
-    let blob = await canvasToBlob(canvas, 'image/webp', 0.86).catch(() => null);
+    let blob = await canvasToBlob(canvas, 'image/webp', PHOTO_QUALITY).catch(() => null);
     // A browser without WebP encoding hands back a PNG instead.
     if (!blob || blob.type !== 'image/webp') {
         if (file.type !== 'image/jpeg') return file;
-        blob = await canvasToBlob(canvas, 'image/jpeg', 0.86).catch(() => null);
+        blob = await canvasToBlob(canvas, 'image/jpeg', PHOTO_QUALITY).catch(() => null);
         if (!blob || blob.type !== 'image/jpeg') return file;
     }
     const resized = width !== original.width || height !== original.height;

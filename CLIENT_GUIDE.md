@@ -111,9 +111,14 @@ background. Otherwise you can set:
 ## 4. Photos and videos — sizes and shapes
 
 **The short version:** upload straight from a phone or camera. Photos are
-resized and compressed for you; videos get a computer version, a lighter
-phone version and a still image, are trimmed to 20 seconds and have their
-sound removed (background videos always play silently on a loop).
+resized and compressed for you; videos get a computer version (1080p), a
+lighter phone version (720p) and a still image, are trimmed to 20 seconds and
+have their sound removed (background videos always play silently on a loop).
+
+Compression is set to keep photos looking sharp: a 5-megapixel phone photo
+is stored at full size (about 1 MB) and each visitor's screen is sent a copy
+sized for it. A much smaller number after "Optimised" (for example 4 MB to
+1 MB) is normal - it is the format, not lost detail.
 
 **Any shape fits any screen.** A photo or video always *fills* its frame and
 the parts that do not fit are cropped — nothing is stretched or squashed.
@@ -140,7 +145,7 @@ slower for visitors).
 | **Gift card images** | About 7:4 | **1524×871** PNG/WebP | The card artwork as designed. |
 | **Brush stroke behind the gift cards** | — | Transparent PNG | Remove it to show the cards on their own. |
 | **Section backgrounds** (photo) | Very tall on phones, wide on computers | **At least 2560 px wide** | Busy photos make text hard to read: add a Darken wash. Textures and soft patterns work better than detailed pictures. |
-| **Footer background** | Very wide on computers (about 3.5:1) | **At least 2560 px wide**, texture | Keep it dark so the white logo and text stay readable (or turn off *Show the logo in white* and choose *Dark text*). |
+| **Footer background** | Very wide on computers (about 3.5:1) | **At least 2560 px wide**, texture | Keep it dark so the white logo and text stay readable. For a light footer, pick a dark **Footer text colour** under *Background & colours* (the softer lines and dividers follow it) and turn off *Show the logo in white*. |
 | **Logo** (header, hero, footer) | — | **Transparent PNG/WebP, square-ish, at least 500 px** | Must have a see-through background. The opening (hero) and the footer show it as an all-white silhouette; the header shows it in its own colours. |
 | **Picture when shared** (Google & sharing) | 1.91:1 | **1200×630** photo | What WhatsApp, Facebook and others show with a link. Saved as JPEG automatically (WhatsApp does not reliably show other formats). Keep important content in the centre; consider including the logo. |
 | **Browser tab icon** | Square | **512×512 PNG** | A simple mark; detail disappears at small size. |

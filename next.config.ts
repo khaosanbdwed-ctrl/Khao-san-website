@@ -63,6 +63,14 @@ const nextConfig: NextConfig = {
     // A local Supabase (127.0.0.1) is a private address, which the optimiser
     // refuses unless told otherwise. Development only.
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
+    // The quality every served image is re-encoded at. Next's default is 75,
+    // and every photo has already been compressed once on upload
+    // (components/admin/cms/optimize-media.ts), so 75 was a second lossy pass
+    // that visibly softened them. With a single allowed value, every <Image>
+    // is served at it without a per-component `quality` prop. Measured on a
+    // 5 MP photo at 1920px: 75 -> 33.1 dB PSNR / ~290 KB, 85 -> 36.1 dB /
+    // ~480 KB.
+    qualities: [85],
   },
 
   async headers() {

@@ -1,5 +1,27 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-23: homepage alignment, upload quality, footer colours
+>
+> - **Room gallery is centred on the dish grid's column.** It used to bleed
+>   into the right gutter only (195px left vs 80px right at 1440), so it sat
+>   off-centre and out of line with the dish rows. Phones keep their
+>   edge-to-edge strip.
+> - **The dish rows' middle rule is one straight line.** It was a border on
+>   whichever box came second, so it jogged 1px at every reversed row (and the
+>   photo/copy columns with it). It is now `.feature-row::after` at 50%.
+> - **Uploads keep their quality.** Photos were compressed twice (0.86 on
+>   upload, then next/image's default 75 on every view: 33 dB PSNR, visibly
+>   soft). Now 0.92 / 3200px on upload and `images.qualities: [85]` in
+>   next.config.ts (36 dB, ~480 KB at 1920px). Videos: 1080p @ 4 Mbit/s for
+>   computers, 720p @ 1.8 for phones (were 720p / 480p), falling back a size
+>   if the browser cannot encode it. Plated dish photos 0.8 -> 0.9.
+> - **Footer colours are editable.** Footer -> Background & colours has
+>   "Footer text colour" and "Footer accent colour"; the softer text,
+>   dividers, underlines and hover wash are `color-mix`ed from them in
+>   12-footer.css instead of hardcoded white, so the light/dark text tone
+>   reaches them too.
+> - Dashboard suite: 43 checks (+ footer colours set through the editor).
+
 > ## Update 2026-10-22: dashboard figures, hiding dishes, media cleanup
 >
 > - **Overview counts what visitors see.** It used to count every

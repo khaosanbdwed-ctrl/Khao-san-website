@@ -201,7 +201,9 @@
     min-height: 44px;
     margin-top: -6px;
     line-height: 1;
-    border-bottom: 1.5px solid rgba(249, 235, 155, 0.4);
+    /* Mixed from the accent, so a colour picked in the dashboard carries its
+       own underline (was butter at 40%, fixed). */
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-brand-butter) 40%, transparent);
     padding-bottom: 3px;
     transition: color 0.3s ease, border-color 0.3s ease;
 }
@@ -231,7 +233,7 @@
        Padding here rather than margins because it sits INSIDE the border, so
        the rule gets air on both sides from one declaration. */
     padding: 12px 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border-top: 1px solid color-mix(in srgb, var(--color-text-primary) 14%, transparent);
 }
 .footer-nav-list {
     list-style: none;
@@ -259,7 +261,7 @@
 .footer-social:hover,
 .footer-social:focus-visible {
     color: var(--color-brand-butter);
-    background: rgba(255, 255, 255, 0.09);
+    background: color-mix(in srgb, var(--color-text-primary) 9%, transparent);
 }
 .footer-social:focus-visible {
     outline: 2px solid var(--color-brand-butter);
@@ -291,7 +293,9 @@
     /* No hairline. Two rules in a footer this short would put a line every
        ~60px down its lower half; the change of type size and colour is enough
        of a break, and zone 2's rule already marks where the substance ends. */
-    color: rgba(255, 255, 255, 0.62);
+    /* From the text colour (was white at 62%, fixed), so it follows the
+       dashboard's text colour and the light/dark tone. */
+    color: color-mix(in srgb, var(--color-text-primary) 62%, transparent);
     font-size: 0.78rem;
 }
 .footer-bottom p { margin: 0; }
@@ -407,7 +411,7 @@
         column-gap: 18px;
         align-items: start;
         padding: 16px 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        border-top: 1px solid color-mix(in srgb, var(--color-text-primary) 14%, transparent);
     }
     .footer-outlet-name {
         grid-area: name;

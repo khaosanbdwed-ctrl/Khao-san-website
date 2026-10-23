@@ -205,7 +205,8 @@ export async function prepareDishPhoto(file: File): Promise<PreparedDish> {
         throw new DishPhotoError('That file could not be opened as an image.');
     }
     try {
-        const plated = await encode(plateBitmap(bitmap), 0.8, 'image/jpeg');
+        // 0.9, not 0.8: next/image re-compresses it once more when it is served.
+        const plated = await encode(plateBitmap(bitmap), 0.9, 'image/jpeg');
 
         const k = Math.min(1, ORIGINAL_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
         const { c, ctx } = canvas(Math.round(bitmap.width * k), Math.round(bitmap.height * k));

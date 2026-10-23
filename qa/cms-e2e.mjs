@@ -228,6 +228,35 @@ let gone = false;
 for (let i = 0; i < 20 && !gone; i++) { await new Promise(r => setTimeout(r, 500)); gone = (await photoStatus()) === 404 && (await cutouts()) === 0; }
 ok(gone, 'sweep removes the deleted dish\'s photo and cut-out');
 
+console.log('5b. Footer colours follow the dashboard');
+await page.goto(base + '/admin/content/footer');
+await page.click('button:has-text("Background & colours")');
+const colourField = label => page.locator(`.cms-field:has(> .cms-field__label :text-is("${label}"))`).first();
+const setColour = async (label, hex) => {
+    const f = colourField(label);
+    await f.locator('button:has-text("Choose colour")').click();
+    await f.locator('input.cms-input').fill(hex);
+};
+await setColour('Colour', '#f9eb9b');               // the background
+await setColour('Footer text colour', '#16233d');
+await setColour('Footer accent colour', '#8d361f');
+await publish();
+await ap.goto(base + '/menu');
+const footerColours = await ap.evaluate(() => {
+    const c = s => getComputedStyle(document.querySelector(s));
+    return { tagline: c('.footer-tagline').color, bottom: c('.footer-bottom').color, rule: c('.footer-nav').borderTopColor, outlet: c('.footer-outlet-name').color, bg: c('.site-footer').backgroundColor };
+});
+ok(footerColours.bg === 'rgb(249, 235, 155)', 'footer background colour applies', footerColours.bg);
+ok(footerColours.tagline === 'rgb(22, 35, 61)', 'footer text colour applies', footerColours.tagline);
+ok(/22, 35, 61|0\.086|0\.137/.test(footerColours.bottom) && footerColours.bottom !== 'rgba(255, 255, 255, 0.62)', 'copyright line follows the text colour', footerColours.bottom);
+ok(!/255, 255, 255/.test(footerColours.rule), 'divider follows the text colour', footerColours.rule);
+ok(footerColours.outlet === 'rgb(141, 54, 31)', 'footer accent colour applies', footerColours.outlet);
+await ap.locator('.site-footer').screenshot({ path: SHOTS + 'footer-custom-colours.png' });
+await page.click('button:has-text("Reset all to original")');
+await publish();
+await ap.goto(base + '/menu');
+ok((await ap.evaluate(() => getComputedStyle(document.querySelector('.footer-tagline')).color)) === 'rgb(255, 255, 255)', 'footer colours reset to the design');
+
 console.log('6. Sign out');
 await page.click('button:has-text("Sign Out")');
 await page.waitForURL(/\/admin\/login/);

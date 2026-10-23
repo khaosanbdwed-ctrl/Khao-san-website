@@ -267,9 +267,16 @@
    trackpad, shift+wheel and keyboard scrolling are the browser's, not ours.
    ============================================================ */
 .room-gallery {
-    /* Full-bleed to the right: the strip must look like it continues past the
-       viewport, which is the whole affordance for scrolling it. */
-    margin-right: calc(-1 * max(8vw, 24px));
+    /* ⚠ IN THE PAGE COLUMN, NOT BLEEDING RIGHT. It used to run into the right
+       gutter (`margin-right: -max(8vw, 24px)`) so the strip would look like it
+       continued past the viewport - but that only reached the end of the
+       1280px column, not the screen, so on any desktop it just sat off-centre:
+       195px of margin on the left against 80px on the right at 1440, 474 vs
+       320 at 1920, and its right edge out of line with the dish rows below
+       (client: "not middle aligned, doesn't align with the dish section").
+       It now shares the dish grid's exact column. The photograph cut off at
+       the right edge still says "there is more", and the drift shows it.
+       Phones keep their edge-to-edge strip (14-phone.css). */
     overflow-x: auto;
     overscroll-behavior-x: contain;
     /* ⚠ NO SCROLL SNAP, AND IT WAS REMOVED ON PURPOSE WHEN THE DRIFT LANDED.
@@ -557,6 +564,7 @@
     padding: 0 max(8vw, 24px);
 }
 .feature-row {
+    position: relative;
     display: flex;
     align-items: stretch;
     border-left: 1px solid var(--rule);
@@ -589,14 +597,22 @@
 /* The photo box keeps its centring - a photograph centred in its half is
    correct; a paragraph centred in its half is not. */
 .feature-box:has(.feature-photo) { justify-content: center; }
-.feature-box + .feature-box {
-    border-left: 1px solid var(--rule);
-}
-/* row-reverse puts the copy box first in visual order, so the middle rule has
-   to move to its other edge or it lands on the outside of the row. */
-.is-inverse .feature-box + .feature-box {
-    border-left: none;
-    border-right: 1px solid var(--rule);
+/* The middle rule belongs to the row, at exactly its centre - not to a box.
+   It used to be a border on the second box, which in a reversed row is the
+   LEFT one, so the rule sat on the right of the centre line in plain rows and
+   on the left of it in reversed rows: a 1px jog at every row, with the photo
+   and copy columns shifted by the same pixel (client: "the line should be
+   straight"). Drawn once per row at 50%, the boxes stay exactly equal and the
+   rule runs as one straight line down the chapter. */
+.feature-row::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: var(--rule);
+    pointer-events: none;
 }
 /* Bigger. It was capped at 500px inside a ~520px box and rendered around
    360px, so the photograph - the entire subject of the chapter - was the
@@ -728,11 +744,7 @@
         border-left: none;
         border-right: none;
     }
-    .feature-box + .feature-box,
-    .is-inverse .feature-box + .feature-box {
-        border-left: none;
-        border-right: none;
-    }
+    .feature-row::after { display: none; }
     .feature-box {
         padding: clamp(24px, 6vw, 40px) 0;
     }
