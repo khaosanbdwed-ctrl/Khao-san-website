@@ -34,6 +34,40 @@ function Label({ text, onReset, children }: { text: string; onReset?: () => void
 
 const Help = ({ text }: { text?: string }) => (text ? <p className="cms-field__help">{text}</p> : null);
 
+/** WCAG contrast ratio of two #rgb / #rrggbb colours. */
+function contrastRatio(a: string, b: string): number {
+    const lum = (hex: string) => {
+        const h = hex.length === 4 ? hex.slice(1).split('').map(c => c + c).join('') : hex.slice(1, 7);
+        const [r, g, bl] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+            .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+        return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+    };
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+}
+
+const pathValue = (obj: Record<string, unknown>, path: string): unknown =>
+    path.split('.').reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), obj);
+
+/** The warning a colour field shows when its text would be hard to read on
+ *  the ground it names (see ContrastCheck in lib/cms/fields.ts). */
+function contrastWarning(field: Field, siblings: Record<string, unknown>): string | null {
+    if (field.kind !== 'color' || !field.contrast) return null;
+    const c = field.contrast;
+    if (c.mediaKeys?.some(k => pathValue(siblings, k))) return null;
+    const groundSet = pathValue(siblings, c.groundKey);
+    const ground = typeof groundSet === 'string' && groundSet ? groundSet : c.groundDefault;
+    const tone = c.toneKey ? pathValue(siblings, c.toneKey) : 'auto';
+    const ink = (siblings[field.key] as string) || (tone === 'light' || tone === 'dark' ? c.inkDefault[tone] : undefined) || c.inkDefault.auto;
+    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})/i.test(ground) || !/^#([0-9a-f]{3}|[0-9a-f]{6})/i.test(ink)) return null;
+    const ratio = contrastRatio(ink, ground);
+    if (ratio >= 4.5) return null;
+    // A light ground needs darker text, and the other way round.
+    const needDarker = contrastRatio(ground, '#000000') > contrastRatio(ground, '#ffffff');
+    const which = siblings[field.key] ? 'this colour' : 'the default colour';
+    return `Hard to read: ${which} on this background measures ${ratio.toFixed(1)}:1, and text needs at least 4.5:1. Choose a ${needDarker ? 'darker' : 'lighter'} colour here, or change the background.`;
+}
+
 /* ------------------------------------------------------------------ */
 
 function MediaInput({ kind, value, onChange, jpeg }: { kind: MediaKind; value: string; onChange: (v: string) => void; jpeg?: boolean }) {
@@ -371,21 +405,26 @@ export function Fields({ fields, value, defaults, onChange }: {
 }) {
     return (
         <>
-            {fields.map(f => (
-                <FieldEditor
-                    key={f.key}
-                    field={f}
-                    value={value[f.key]}
-                    defaultValue={defaults?.[f.key]}
-                    onChange={v => onChange(
-                        // A new video makes the old still wrong; clear a sibling
-                        // poster so the new video's own still is used instead.
-                        f.kind === 'video' && v !== value[f.key] && fields.some(x => x.key === 'poster')
-                            ? { ...value, [f.key]: v, poster: '' }
-                            : { ...value, [f.key]: v },
-                    )}
-                />
-            ))}
+            {fields.map(f => {
+                const warning = contrastWarning(f, value);
+                return (
+                    <React.Fragment key={f.key}>
+                        <FieldEditor
+                            field={f}
+                            value={value[f.key]}
+                            defaultValue={defaults?.[f.key]}
+                            onChange={v => onChange(
+                                // A new video makes the old still wrong; clear a sibling
+                                // poster so the new video's own still is used instead.
+                                f.kind === 'video' && v !== value[f.key] && fields.some(x => x.key === 'poster')
+                                    ? { ...value, [f.key]: v, poster: '' }
+                                    : { ...value, [f.key]: v },
+                            )}
+                        />
+                        {warning && <p className="cms-contrast-warning" role="status">{warning}</p>}
+                    </React.Fragment>
+                );
+            })}
         </>
     );
 }

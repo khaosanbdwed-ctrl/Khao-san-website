@@ -224,7 +224,7 @@
    deeper #16233d would measure better, but it is so close to the near-black
    headline beside it that the emphasis would read as no emphasis at all. */
 .heritage-quote em {
-    color: var(--color-brand-blue);   /* 3.41:1 measured - large text only */
+    color: var(--section-ink-accent, var(--color-brand-blue));   /* 3.41:1 measured - large text only */
     font-style: italic;
 }
 
@@ -665,7 +665,7 @@
        more than half - the numeral failed the same way and simply had not been
        caught. #8D361F is the token set's own deep terracotta, measures 7.8:1,
        and is unambiguously the warm accent rather than a second navy. */
-    color: var(--color-deep-terracotta);
+    color: var(--section-ink-mark, var(--color-deep-terracotta));
 }
 .feature-tags .menu-tag { color: inherit; }
 .feature-name {
@@ -673,7 +673,7 @@
     font-size: clamp(1.9rem, 3.2vw, 3rem);
     line-height: 1.1;
     letter-spacing: 0.012em;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     margin: 0 0 clamp(16px, 1.6vw, 24px);
     font-weight: 600;
     text-wrap: balance;
@@ -686,7 +686,7 @@
     align-items: center;
     justify-content: center;
     gap: 16px;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     opacity: 0.55;
     margin: clamp(20px, 2.4vw, 32px) 0;
 }
@@ -718,7 +718,7 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     text-decoration: none;
     padding-bottom: 4px;
     border-bottom: 1px solid transparent;
@@ -726,7 +726,7 @@
 }
 .feature-link:hover,
 .feature-link:focus-visible {
-    border-bottom-color: var(--color-brand-blue);
+    border-bottom-color: var(--section-ink-accent, var(--color-brand-blue));
     gap: 15px;
 }
 .feature-link svg {

@@ -26,8 +26,19 @@
 >   dividers, underlines and hover wash are `color-mix`ed from them in
 >   12-footer.css instead of hardcoded white, so the light/dark text tone
 >   reaches them too.
-> - Dashboard suite: 44 checks (+ footer colours set through the editor,
->   + an uploaded dish photo is stored at 1600px).
+> - **Every section's text follows its background's text tone.** An audit
+>   (each section given a white ground + dark text, then navy + light text,
+>   contrast measured per element) found lines set in a fixed brand colour -
+>   the story quote's accent, dish names, "View Menu", dish marks, the menu
+>   carousel and add-on lines - left navy on a dark ground (1.6:1). They read
+>   `--section-ink-accent` / `--section-ink-mark` (15-cms.css), falling back
+>   to the brand colours, so the default render is unchanged.
+> - **The editor warns about unreadable colours.** A colour field can declare
+>   `contrast` (lib/cms/fields.ts); the footer's text/accent pickers and the
+>   header's link colour do, and show a warning under 4.5:1 - including when
+>   only the background was changed and the default text would vanish.
+> - Dashboard suite: 46 checks (+ footer colours set through the editor and
+>   the contrast warning, + an uploaded dish photo is stored at 1600px).
 
 > ## Update 2026-10-22: dashboard figures, hiding dishes, media cleanup
 >

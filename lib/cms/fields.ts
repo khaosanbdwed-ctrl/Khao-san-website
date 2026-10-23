@@ -21,6 +21,27 @@ interface Base {
     help?: string;
 }
 
+/**
+ * A colour field that sets TEXT can name the ground it sits on, and the
+ * editor then warns under it when the pair is hard to read (below WCAG's
+ * 4.5:1 for body text). Paths are dotted keys within the same section, e.g.
+ * 'background.color'. Empty values fall back to the design's own colours,
+ * so the warning also fires when only the background was changed.
+ */
+export interface ContrastCheck {
+    /** The background colour the text sits on. */
+    groundKey: string;
+    /** That background when it is left empty. */
+    groundDefault: string;
+    /** A light/dark/auto text tone that changes the default ink, if any. */
+    toneKey?: string;
+    /** This text colour when it is left empty, per tone. */
+    inkDefault: { auto: string; light?: string; dark?: string };
+    /** When set and non-empty, the ground is a photo or video, so it cannot
+     *  be measured - the check is skipped and the help text applies. */
+    mediaKeys?: string[];
+}
+
 export type Field =
     | (Base & { kind: 'text'; multiline?: boolean; rich?: boolean; maxLength?: number; placeholder?: string })
     | (Base & {
@@ -30,7 +51,7 @@ export type Field =
         format?: 'jpeg';
     })
     | (Base & { kind: 'video' })
-    | (Base & { kind: 'color' })
+    | (Base & { kind: 'color'; contrast?: ContrastCheck })
     | (Base & { kind: 'toggle' })
     | (Base & { kind: 'select'; options: Option[]; optionsFrom?: 'menuCategories' })
     | (Base & { kind: 'checks'; options: Option[] })

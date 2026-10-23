@@ -13,6 +13,13 @@
    ============================================================ */
 
 .cms-tone-light {
+    /* Section text that is set in a fixed brand colour rather than the ink
+       scale - the dish names, "View Menu", the quote's accent, the dish
+       marks, the menu carousel's captions - reads these two, with the brand
+       colour as the fallback. Without them those lines stayed navy and
+       terracotta on a dark background the client had chosen (1.6:1). */
+    --section-ink-accent: var(--color-brand-butter);
+    --section-ink-mark: var(--color-brand-butter);
     --cms-text-strong: #ffffff;
     --cms-text-soft: rgba(255, 255, 255, 0.8);
     --color-text-primary: #ffffff;
@@ -23,6 +30,8 @@
 }
 
 .cms-tone-dark {
+    --section-ink-accent: var(--color-brand-blue);
+    --section-ink-mark: var(--color-deep-terracotta);
     --cms-text-strong: var(--color-brand-black);
     --cms-text-soft: #55606E;
     --color-text-primary: var(--color-brand-black);

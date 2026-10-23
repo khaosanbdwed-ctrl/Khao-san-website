@@ -102,6 +102,17 @@
 .cms-field:last-child { border-bottom: 0; }
 .cms-field__label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-weight: 600; margin-bottom: 6px; }
 .cms-field__help { color: var(--cms-muted); font-size: 0.8rem; margin-top: 6px; line-height: 1.45; }
+/* Shown under a text-colour picker when the colour is hard to read on its
+   background (field-editors.tsx, contrastWarning). */
+.cms-contrast-warning {
+    margin: -6px 0 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: rgba(141, 54, 31, 0.08);
+    color: #8d361f;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
 .cms-input, .cms-select, .cms-textarea {
     width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid rgba(22, 35, 61, .2);
     background: #fff; color: var(--cms-ink); font: inherit;

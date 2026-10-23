@@ -240,8 +240,11 @@ const setColour = async (label, hex) => {
     await f.locator('input.cms-input').fill(hex);
 };
 await setColour('Colour', '#f9eb9b');               // the background
+// The footer's default white text on a light background: the editor says so.
+ok(await page.locator('.cms-contrast-warning').first().isVisible(), 'editor warns that the footer text would be hard to read');
 await setColour('Footer text colour', '#16233d');
 await setColour('Footer accent colour', '#8d361f');
+ok((await page.locator('.cms-contrast-warning').count()) === 0, 'warning clears once readable colours are chosen');
 await publish();
 await ap.goto(base + '/menu');
 const footerColours = await ap.evaluate(() => {

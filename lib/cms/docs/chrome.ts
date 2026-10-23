@@ -126,7 +126,10 @@ export const headerDoc: DocDef = {
             title: 'Colours',
             fields: [
                 { kind: 'color', key: 'barColor', label: 'Bar colour', help: 'Leave empty for the frosted cream bar.' },
-                { kind: 'color', key: 'textColor', label: 'Link colour' },
+                {
+                    kind: 'color', key: 'textColor', label: 'Link colour',
+                    contrast: { groundKey: 'barColor', groundDefault: '#fff8ec', inkDefault: { auto: '#161616' } },
+                },
             ],
         },
     ],
@@ -189,8 +192,12 @@ export const footerDoc: DocDef = {
             title: 'Background & colours',
             fields: [
                 bg(),
-                { kind: 'color', key: 'textColor', label: 'Footer text colour', help: 'Every word in the footer - headings, addresses, hours, links and the copyright line. The softer lines and the dividers follow it automatically. Leave empty for the design\'s own colour. If you pick a dark colour, also turn off "Show the logo in white".' },
-                { kind: 'color', key: 'accentColor', label: 'Footer accent colour', help: 'The outlet names, "Directions" and the colour links turn when pointed at. Leave empty for butter yellow.' },
+                { kind: 'color', key: 'textColor', label: 'Footer text colour', help: 'Every word in the footer - headings, addresses, hours, links and the copyright line. The softer lines and the dividers follow it automatically. Leave empty for the design\'s own colour. If you pick a dark colour, also turn off "Show the logo in white".',
+                    contrast: { groundKey: 'background.color', groundDefault: '#0c1424', toneKey: 'background.textTone', inkDefault: { auto: '#ffffff', light: '#ffffff', dark: '#161616' }, mediaKeys: ['background.image', 'background.video'] },
+                },
+                { kind: 'color', key: 'accentColor', label: 'Footer accent colour', help: 'The outlet names, "Directions" and the colour links turn when pointed at. Leave empty for butter yellow.',
+                    contrast: { groundKey: 'background.color', groundDefault: '#0c1424', toneKey: 'background.textTone', inkDefault: { auto: '#f9eb9b', light: '#f9eb9b', dark: '#1e417b' }, mediaKeys: ['background.image', 'background.video'] },
+                },
             ],
         },
     ],

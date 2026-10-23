@@ -425,14 +425,14 @@
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     text-decoration: none;
     border-bottom: 1px solid transparent;
     transition: border-color 0.3s ease, gap 0.3s ease;
 }
 .menu-stage-link:hover,
 .menu-stage-link:focus-visible {
-    border-bottom-color: var(--color-brand-blue);
+    border-bottom-color: var(--section-ink-accent, var(--color-brand-blue));
     gap: 15px;
 }
 
@@ -517,7 +517,7 @@
 .menu-offerings__eyebrow,
 .menu-offerings__gallery-label {
     margin: 0 0 10px;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     font-family: var(--font-sans);
     font-size: 0.7rem;
     font-weight: 700;
@@ -554,7 +554,7 @@
     border: 1px solid color-mix(in srgb, var(--color-brand-blue) 58%, transparent);
     border-radius: 999px;
     background: transparent;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     cursor: pointer;
     font-family: var(--font-sans);
     font-size: 0.76rem;
@@ -705,7 +705,7 @@
 .menu-carousel__caption {
     position: relative;
     padding: 24px 24px 0;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     text-align: center;
 }
 .menu-carousel__title {
@@ -717,7 +717,7 @@
     font-weight: 700;
     line-height: 0.98;
     letter-spacing: -0.035em;
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     text-align: center;
     text-wrap: balance;
 }
@@ -1405,7 +1405,7 @@
     text-wrap: pretty;
 }
 .menu-row-addon {
-    color: var(--color-brand-blue);
+    color: var(--section-ink-accent, var(--color-brand-blue));
     font-size: 0.8rem;
     line-height: 1.5;
     margin: 6px 0 0;
