@@ -176,6 +176,8 @@ await page.setInputFiles('#dish-photo', FX + 'cutout-pad-thai.png');
 await page.waitForSelector('img[alt="How the dish will look on the menu"]', { timeout: 60000 });
 const src = await page.getAttribute('img[alt="How the dish will look on the menu"]', 'src');
 ok(/dish-images\/dishes\/.+\.(webp|jpg)$/.test(src), `plated photo uploaded (${src.split('/').slice(-2).join('/')})`);
+const platedWidth = await page.evaluate(u => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth); i.onerror = () => r(0); i.src = u; }), src);
+ok(platedWidth === 1600, `plated photo is stored at 1600 px (${platedWidth})`);
 await page.screenshot({ path: SHOTS + 'admin-dish-form.png' });
 await page.click('button:has-text("Save Dish")');
 await page.waitForSelector('text=Dish added');

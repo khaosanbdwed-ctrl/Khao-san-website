@@ -13,19 +13,32 @@
  * ever changed, change both together (or retire the script).
  */
 
+/* ⚠ 1600, not 1000. The script plated the original dishes at 1000, which is
+   short of what the menu asks for on high-density screens: the menu carousel
+   needs ~1270px on a 2x laptop and ~1690px on a 2x 1920px monitor, the menu
+   rows ~1030px on a 3x phone - so a 1000px plate was being stretched there
+   (client: uploaded photos "lose the resolution"). next/image still sends
+   each screen a smaller copy; this only raises the ceiling. */
+const SIZE = 1600;
+
 export const PLATE = {
-    size: 1000,                       // square, matching .menu-row-photo
+    size: SIZE,                       // square, matching .menu-row-photo
     fill: 0.82,                       // share of the frame the dish may occupy
     groundCentre: [232, 226, 216],
     groundEdge: [203, 194, 180],
     shadow: [74, 66, 58],             // warm charcoal, never black
     shadowDrop: 0.022,                // contact shadow offset, share of height
-    shadowSigma: 1000 / 40,           // Gaussian blur, px (PIL radius = sigma)
+    shadowSigma: SIZE / 40,           // Gaussian blur, px (PIL radius = sigma); scales with the plate
     shadowStrength: 0.5,
 } as const;
 
-/** Longest side kept for the transparent original. */
-const ORIGINAL_MAX_EDGE = 1600;
+/** Longest side kept for the transparent original - enough to re-plate at
+ *  a larger size later without going back to the client. */
+const ORIGINAL_MAX_EDGE = 2400;
+
+/** The dish is enlarged by more than this to fill its frame -> it will look
+ *  soft, and the dashboard says so. */
+const SOFT_UPSCALE = 1.25;
 
 /** Below this share of see-through pixels the photo still has its background. */
 const MIN_TRANSPARENT_SHARE = 0.01;
@@ -37,6 +50,9 @@ export interface PreparedDish {
     plated: Blob;
     /** The cut-out as supplied (scaled down if huge), kept for re-plating. */
     original: Blob;
+    /** Set when the cut-out was too small to fill the frame sharply: the
+     *  dish's width in the upload, and the width the frame needs. */
+    tooSmall?: { have: number; need: number };
 }
 
 function canvas(w: number, h: number) {
@@ -124,7 +140,7 @@ function paintGround(data: Uint8ClampedArray, w: number, h: number) {
 }
 
 /** Plate a decoded cut-out. Exported for testing against the script's output. */
-export function plateBitmap(bitmap: ImageBitmap | HTMLImageElement): HTMLCanvasElement {
+export function plateBitmap(bitmap: ImageBitmap | HTMLImageElement, report?: { scale: number; dishWidth: number }): HTMLCanvasElement {
     const sw = bitmap.width, sh = bitmap.height;
     const { c: srcC, ctx: srcX } = canvas(sw, sh);
     srcX.drawImage(bitmap, 0, 0);
@@ -154,6 +170,7 @@ export function plateBitmap(bitmap: ImageBitmap | HTMLImageElement): HTMLCanvasE
     const bw = maxX - minX + 1, bh = maxY - minY + 1;
     const S = PLATE.size;
     const scale = Math.min((S * PLATE.fill) / bw, (S * PLATE.fill) / bh);
+    if (report) { report.scale = scale; report.dishWidth = bw; }
     const dw = Math.max(1, Math.floor(bw * scale)), dh = Math.max(1, Math.floor(bh * scale));
     const x0 = Math.floor((S - dw) / 2), y0 = Math.floor((S - dh) / 2);
 
@@ -206,14 +223,18 @@ export async function prepareDishPhoto(file: File): Promise<PreparedDish> {
     }
     try {
         // 0.9, not 0.8: next/image re-compresses it once more when it is served.
-        const plated = await encode(plateBitmap(bitmap), 0.9, 'image/jpeg');
+        const report = { scale: 1, dishWidth: 0 };
+        const plated = await encode(plateBitmap(bitmap, report), 0.9, 'image/jpeg');
+        const tooSmall = report.scale > SOFT_UPSCALE
+            ? { have: report.dishWidth, need: Math.round(report.dishWidth * report.scale) }
+            : undefined;
 
         const k = Math.min(1, ORIGINAL_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
         const { c, ctx } = canvas(Math.round(bitmap.width * k), Math.round(bitmap.height * k));
         ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(bitmap, 0, 0, c.width, c.height);
         const original = await encode(c, 0.9, 'image/png');
-        return { plated, original };
+        return { plated, original, tooSmall };
     } finally {
         bitmap.close();
     }

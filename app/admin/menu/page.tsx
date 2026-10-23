@@ -68,6 +68,8 @@ export default function AdminMenu() {
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadStage, setUploadStage] = useState<string | null>(null);
+    /** Shown in the form when an uploaded cut-out is too small to look sharp. */
+    const [photoWarning, setPhotoWarning] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [query, setQuery] = useState('');
@@ -108,11 +110,13 @@ export default function AdminMenu() {
         setEditingId(null);
         setForm({ ...EMPTY_FORM, category_id: categoryFilter || categories[0]?.id || '' });
         setError(null);
+        setPhotoWarning(null);
         setIsModalOpen(true);
     };
 
     const openEdit = (item: MenuItem) => {
         setEditingId(item.id);
+        setPhotoWarning(null);
         setForm({
             title: item.title,
             category_id: item.category_id,
@@ -127,16 +131,17 @@ export default function AdminMenu() {
         setIsModalOpen(true);
     };
 
-    const closeModal = () => { setIsModalOpen(false); setError(null); };
+    const closeModal = () => { setIsModalOpen(false); setError(null); setPhotoWarning(null); };
 
     /** The client supplies each dish background-removed. The browser plates
      *  it (studio ground, contact shadow, consistent framing) so it matches
      *  every other dish on the menu, then uploads it straight to storage. */
     const handleFile = async (file: File) => {
         setError(null);
+        setPhotoWarning(null);
         setUploadStage('Preparing photo…');
         try {
-            const { plated, original } = await prepareDishPhoto(file);
+            const { plated, original, tooSmall } = await prepareDishPhoto(file);
             setUploadStage('Uploading…');
             const target = await readApi<{ plated: Signed; original: Signed; url: string }>(await fetch('/api/admin/upload', {
                 method: 'POST',
@@ -152,6 +157,9 @@ export default function AdminMenu() {
                 putSigned('dish-images', target.original, original, original.type),
             ]);
             setForm(f => ({ ...f, image_src: target.url }));
+            setPhotoWarning(tooSmall
+                ? `This photo is small: the dish is ${tooSmall.have} px wide, and the menu shows it at up to ${tooSmall.need} px, so it will look soft on sharp screens. A larger photo (at least 2000 px wide) will look better. You can still save it.`
+                : null);
             setNotice('Photo ready. Press Save to put it on the menu.');
         } catch (err) {
             setError(err instanceof DishPhotoError || err instanceof Error ? err.message : 'Upload failed.');
@@ -407,7 +415,7 @@ export default function AdminMenu() {
                                 <p style={hintStyle}>
                                     Upload the dish cut out on a see-through background. It is placed on the menu&apos;s
                                     studio backdrop automatically, at the same size as every other dish. Best results:
-                                    at least 1500&nbsp;px wide, the whole plate in view, up to 15&nbsp;MB.
+                                    at least 2000&nbsp;px wide, the whole plate in view, up to 15&nbsp;MB.
                                 </p>
 
                                 {isUploading && <p role="status" style={{ fontSize: '0.85rem', margin: 0 }}>{uploadStage}</p>}
@@ -420,13 +428,17 @@ export default function AdminMenu() {
                                         <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                                             {decodeURIComponent(form.image_src.split('/').pop() || '')}
                                         </span>
-                                        <button type="button" onClick={() => setForm({ ...form, image_src: '' })}
+                                        <button type="button" onClick={() => { setForm({ ...form, image_src: '' }); setPhotoWarning(null); }}
                                             style={{ background: 'transparent', border: 'none', color: '#8D361F', cursor: 'pointer', textDecoration: 'underline', font: 'inherit', fontSize: '0.8rem', minHeight: 32 }}>
                                             Remove
                                         </button>
                                     </div>
                                 )}
                             </div>
+
+                            {photoWarning && form.image_src && !isUploading && (
+                                <p role="status" style={{ margin: 0, padding: '10px 14px', borderRadius: '8px', backgroundColor: 'rgba(141,54,31,0.08)', color: '#8D361F', fontSize: '0.85rem', lineHeight: 1.5 }}>{photoWarning}</p>
+                            )}
 
                             {error && (
                                 <p role="alert" style={{ margin: 0, color: '#8D361F', fontSize: '0.9rem' }}>{error}</p>

@@ -302,7 +302,7 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
                                 keep the cards in the middle of the paint. */}
                             {gift.brush && (
                                 <div aria-hidden="true" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(calc(-50% + 13%), calc(-50% - 6.3%)) rotate(-38deg) scale(1.42)', width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
-                                    <Image src={gift.brush} alt="" fill unoptimized={!isOptimizable(gift.brush)} style={{ objectFit: 'contain', opacity: 0.95 }} sizes="(max-width: 768px) 100vw, 800px" />
+                                    <Image src={gift.brush} alt="" fill unoptimized={!isOptimizable(gift.brush)} style={{ objectFit: 'contain', opacity: 0.95 }} sizes="(max-width: 768px) 190vw, 1000px" />
                                 </div>
                             )}
 

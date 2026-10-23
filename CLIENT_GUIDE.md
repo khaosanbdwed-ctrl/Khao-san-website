@@ -184,7 +184,7 @@ see-through background**, the whole plate in view. The dashboard then places
 it on the menu's warm studio backdrop with a soft shadow, sized and centred
 exactly like every other dish, so the menu always looks consistent.
 
-- At least **1500 px** wide; up to 15 MB.
+- At least **2000 px** wide (the dashboard warns you if a photo is too small to look sharp); up to 15 MB.
 - The whole plate in the picture, nothing cut off at the edges.
 - Shoot every dish from the **same angle** (all top-down, or all at about
   45°) and in similar light.

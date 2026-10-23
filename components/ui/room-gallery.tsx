@@ -235,7 +235,11 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
                                 alt={group[0].alt}
                                 fill
                                 style={{ objectFit: 'cover' }}
-                                sizes="(max-width: 900px) 78vw, 42vw"
+                                /* Measured, not estimated: each photo is cropped to fill
+                                   its frame, so a tall frame needs a wider file than
+                                   its width. The old hints (42vw / 22vw) were short
+                                   by up to 3x on phones and 2x on desktops. */
+                                sizes="(max-width: 767px) 90vw, (max-width: 1100px) 60vw, 700px"
                                 loading={gi === 0 ? 'eager' : 'lazy'}
                                 unoptimized={!isOptimizable(group[0].src)}
                             />
@@ -249,7 +253,7 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
                                             alt={shot.alt}
                                             fill
                                             style={{ objectFit: 'cover' }}
-                                            sizes="(max-width: 900px) 46vw, 22vw"
+                                            sizes="(max-width: 767px) 160vw, (max-width: 1100px) 60vw, 460px"
                                             loading="lazy"
                                             unoptimized={!isOptimizable(shot.src)}
                                         />

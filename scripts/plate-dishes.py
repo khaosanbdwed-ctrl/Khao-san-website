@@ -45,6 +45,11 @@ SRC = ROOT / 'assets-source' / 'menu-cutouts'  # not deployed; see assets-source
 OUT = ROOT / 'public' / 'assets' / 'menu-plated'
 
 W, H = 1000, 1000            # square, matching .menu-row-photo
+# NOTE (2026-10-23): the dashboard (components/admin/plate-dish.ts) now plates
+# at 1600 so uploads stay sharp on high-density screens; the 73 built-in
+# plates were made here at 1000 from 1512px cut-outs. Re-running at 1600 adds
+# little, since the cut-outs themselves cap the detail - replace them with
+# real photography instead.
 FILL_W, FILL_H = 0.82, 0.82  # share of the frame the dish may occupy
 
 # ⚠ A FLAT ground was the mistake. Three rounds ran a flat fill (warm sand,

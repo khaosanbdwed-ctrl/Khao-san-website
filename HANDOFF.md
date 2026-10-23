@@ -14,13 +14,20 @@
 >   soft). Now 0.92 / 3200px on upload and `images.qualities: [85]` in
 >   next.config.ts (36 dB, ~480 KB at 1920px). Videos: 1080p @ 4 Mbit/s for
 >   computers, 720p @ 1.8 for phones (were 720p / 480p), falling back a size
->   if the browser cannot encode it. Plated dish photos 0.8 -> 0.9.
+>   if the browser cannot encode it. Plated dish photos 0.8 -> 0.9, and plated
+  at 1600px instead of 1000 (the menu carousel needs ~1270-1690px on 2x
+  screens); the dashboard warns when a cut-out is too small to fill that.
+  The room gallery's and gift brush's `sizes` hints were measured and fixed
+  (they asked for files 2-3x too small on phones and 2x screens). What is
+  still soft is the built-in source art itself, e.g. `Heritage/rocco-street`
+  is 315x420 - replace those photos in the dashboard.
 > - **Footer colours are editable.** Footer -> Background & colours has
 >   "Footer text colour" and "Footer accent colour"; the softer text,
 >   dividers, underlines and hover wash are `color-mix`ed from them in
 >   12-footer.css instead of hardcoded white, so the light/dark text tone
 >   reaches them too.
-> - Dashboard suite: 43 checks (+ footer colours set through the editor).
+> - Dashboard suite: 44 checks (+ footer colours set through the editor,
+>   + an uploaded dish photo is stored at 1600px).
 
 > ## Update 2026-10-22: dashboard figures, hiding dishes, media cleanup
 >
