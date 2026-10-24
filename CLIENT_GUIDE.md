@@ -110,15 +110,25 @@ background. Otherwise you can set:
 
 ## 4. Photos and videos — sizes and shapes
 
-**The short version:** upload straight from a phone or camera. Photos are
-resized and compressed for you; videos get a computer version (1080p), a
-lighter phone version (720p) and a still image, are trimmed to 20 seconds and
-have their sound removed (background videos always play silently on a loop).
+**The short version:** what you upload is exactly what visitors see. The
+dashboard does not resize, compress or trim photos or videos - so prepare
+each file for the web before uploading it (your designer exports it at the
+right size). Every visitor, on a phone too, downloads the file as it is, so
+a lighter file means a faster site.
 
-Compression is set to keep photos looking sharp: a 5-megapixel phone photo
-is stored at full size (about 1 MB) and each visitor's screen is sent a copy
-sized for it. A much smaller number after "Optimised" (for example 4 MB to
-1 MB) is normal - it is the format, not lost detail.
+**Recommended exports**
+
+| What | Size | Aim for |
+|---|---|---|
+| Full-width photos and section backgrounds | 2560 px wide | JPG or WebP, under ~800 KB |
+| Other photos (gallery, outlets, gift cards) | 1600-2000 px on the longest side | under ~500 KB |
+| Background videos | MP4 (H.264), 1920 x 1080, up to 20 seconds | under ~10 MB |
+| Dish photos (Menu Control) | see section 5 | - |
+
+Background videos always play silently on a loop, so sound and length beyond
+a few seconds only add weight. The link-preview picture (Site settings) is the
+one file still converted: if it is not already a JPG or PNG, it becomes a JPG,
+because WhatsApp and some other apps cannot show other formats.
 
 **Any shape fits any screen.** A photo or video always *fills* its frame and
 the parts that do not fit are cropped — nothing is stretched or squashed.
@@ -128,9 +138,6 @@ being shown.
 
 **Limits:** photos up to 10 MB, videos up to 50 MB, dish photos up to 15 MB.
 Photo types: JPG, PNG, WebP, AVIF, GIF. Video types: MP4, WebM.
-For video, upload from a current **Chrome, Edge or Safari** so it can be
-compressed; older browsers upload the original file (it works, but loads
-slower for visitors).
 
 ### Recommended size for each place
 

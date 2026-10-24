@@ -23,7 +23,9 @@ import { requireAdmin } from '@/lib/auth/require-admin';
  * same rules on Supabase's side.
  */
 
-const PLATED_TYPES: Record<string, string> = { 'image/webp': 'webp', 'image/jpeg': 'jpg' };
+// Plated photos are lossless WebP, or PNG where the browser has no WebP
+// encoder (Safari); JPEG is still accepted from older dashboards.
+const PLATED_TYPES: Record<string, string> = { 'image/webp': 'webp', 'image/png': 'png', 'image/jpeg': 'jpg' };
 const ORIGINAL_TYPES: Record<string, string> = { 'image/webp': 'webp', 'image/png': 'png' };
 const MAX_BYTES = 15 * 1024 * 1024;
 

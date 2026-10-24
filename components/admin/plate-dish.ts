@@ -32,10 +32,6 @@ export const PLATE = {
     shadowStrength: 0.5,
 } as const;
 
-/** Longest side kept for the transparent original - enough to re-plate at
- *  a larger size later without going back to the client. */
-const ORIGINAL_MAX_EDGE = 2400;
-
 /** The dish is enlarged by more than this to fill its frame -> it will look
  *  soft, and the dashboard says so. */
 const SOFT_UPSCALE = 1.25;
@@ -48,7 +44,7 @@ export class DishPhotoError extends Error {}
 export interface PreparedDish {
     /** What the menu shows: opaque, square, plated. */
     plated: Blob;
-    /** The cut-out as supplied (scaled down if huge), kept for re-plating. */
+    /** The cut-out exactly as supplied, kept for re-plating. */
     original: Blob;
     /** Set when the cut-out was too small to fill the frame sharply: the
      *  dish's width in the upload, and the width the frame needs. */
@@ -222,18 +218,20 @@ export async function prepareDishPhoto(file: File): Promise<PreparedDish> {
         throw new DishPhotoError('That file could not be opened as an image.');
     }
     try {
-        // 0.9, not 0.8: next/image re-compresses it once more when it is served.
+        // Lossless: WebP at quality 1.0 is lossless in Chrome, Edge and Firefox
+        // (verified: zero changed pixel values); PNG where WebP cannot be
+        // encoded (Safari). Nothing the client uploads is compressed.
         const report = { scale: 1, dishWidth: 0 };
-        const plated = await encode(plateBitmap(bitmap, report), 0.9, 'image/jpeg');
+        const plated = await encode(plateBitmap(bitmap, report), 1, 'image/png');
         const tooSmall = report.scale > SOFT_UPSCALE
             ? { have: report.dishWidth, need: Math.round(report.dishWidth * report.scale) }
             : undefined;
 
-        const k = Math.min(1, ORIGINAL_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-        const { c, ctx } = canvas(Math.round(bitmap.width * k), Math.round(bitmap.height * k));
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(bitmap, 0, 0, c.width, c.height);
-        const original = await encode(c, 0.9, 'image/png');
+        // The cut-out is stored exactly as uploaded - the source for any
+        // future re-plating, so it is never re-encoded.
+        // (A browser that reports no type gets one from the extension, which
+        // was already checked above - the upload endpoint requires it.)
+        const original = file.type ? file : new File([file], file.name, { type: /\.webp$/i.test(file.name) ? 'image/webp' : 'image/png' });
         return { plated, original, tooSmall };
     } finally {
         bitmap.close();

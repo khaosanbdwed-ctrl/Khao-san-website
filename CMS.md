@@ -37,25 +37,30 @@ the designed background, or set a colour, a photo, or a video, plus an
 optional darkening wash. If the new background is much lighter or darker than
 the design's, set **Text colour** to match.
 
-**Upload photos and videos straight from a phone or camera. They are prepared
-for the web automatically**, in the browser, before they are sent:
+**Photos and videos are uploaded and shown exactly as they are** *(2026-10-24)*.
+The dashboard used to scale photos and re-encode videos in the browser
+(WebCodecs via `mediabunny`), and next/image re-encoded photos again on every
+view; the client's designers now prepare every file for the web, and both
+lossy passes were softening finished work, so both are gone:
 
-- **Videos** become two files plus a still: a 720p version for computers
-  (~1.2 Mbit/s) and a 480p version for phones (~0.6 Mbit/s), with sound removed
-  (backgrounds always play muted) and trimmed to the first 20 seconds (they
-  loop). A 29 MB, 40-second 1080p clip came out at 2.9 MB / 1.4 MB, about the
-  weight of the site's own hand-compressed clips. Phones download only the
-  phone file. This needs a current Chrome, Edge or Safari; an older browser
-  uploads the original and says so.
-- **Photos** are scaled to at most 2560 px and saved as WebP. The site then
-  serves every screen its own smaller copy (a phone gets ~640 px wide).
+- **Media library uploads** go to storage byte for byte (`uploadMedia` in
+  `components/admin/cms/media-library.tsx`) and bypass the image optimiser
+  (`isOptimizable` in `lib/media.ts`). Videos uploaded before this still have
+  their phone file and still beside them and keep using them.
+- **The link-preview image** is the one conversion left: a non-JPEG/PNG
+  becomes a JPEG (`share-image.ts`), because WhatsApp cannot read WebP.
+- **Dish photos** are still plated by the dashboard (a new image has to be
+  made), now losslessly (WebP at quality 1.0, PNG on Safari), and the cut-out
+  is stored as uploaded. They still go through the optimiser: the menu shows
+  ~70 at once, so each screen is sent a copy sized for it.
+- `CLIENT_GUIDE.md` §4 gives the designers export sizes.
 - **Any shape fits any screen.** A photo or video always fills its frame,
   cropping what does not fit. Nothing is stretched or letterboxed, so a
   portrait phone video works in a landscape section. Background panels have a
   **Focus** setting (centre / top / bottom / left / right) for choosing which
   part stays in view.
 
-Limits: photos 10 MB, videos 50 MB before optimising. Everything uploaded
+Limits: photos 10 MB, videos 50 MB. Everything uploaded
 appears in **Media Library** and can be reused anywhere.
 
 In text fields, `*words*` sets words in italic (the brand accent, e.g.
@@ -69,7 +74,7 @@ same `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` the menu already
 uses. Buckets are created on first use (`lib/cms/bucket.ts`):
 
 - `site-content` (**private**): `<area>/published.json`, `<area>/draft.json`, `<area>/versions/*.json`, the login rate-limit counters, `menu-visibility/hidden.json` (dishes hidden with Menu Control's Hide button - `lib/menu-visibility.ts`) and `dish-photos/sweep.json` (the unused-photo sweep's state). Drafts are never readable with the public key.
-- `site-media` (public): uploaded photos and videos. The browser optimises them first (`components/admin/cms/optimize-media.ts`, WebCodecs via `mediabunny`), then uploads straight to Supabase with signed URLs from `/api/admin/media`, so no file passes through Vercel's ~4.5 MB request limit. An optimised video is `videos/<stem>.web.mp4`, with `.web-sm.mp4` (phone) and `.web.webp` (still) beside it. Only the first is stored in content; `lib/media.ts` derives the others, and `BackgroundVideo` lists the phone file as a `<source media="(max-width: 768px)">`.
+- `site-media` (public): uploaded photos and videos, stored exactly as uploaded and uploaded straight to Supabase with signed URLs from `/api/admin/media`, so no file passes through Vercel's ~4.5 MB request limit. Videos the dashboard optimised before 2026-10-24 are `videos/<stem>.web.mp4` with `.web-sm.mp4` (phone) and `.web.webp` (still) beside them; `lib/media.ts` derives those, and `BackgroundVideo` lists the phone file as a `<source media="(max-width: 768px)">`.
 - `dish-images` (public): Menu Control's dish photos - `dishes/*` the plated squares the menu shows, `originals/*` the transparent cut-outs they were made from. Plating happens in the browser (`components/admin/plate-dish.ts`, a port of `scripts/plate-dishes.py`); `/api/admin/upload` only signs the two paths. Photos no dish or content uses any more are deleted after 14 days unused, with their cut-out (`lib/dish-photo-sweep.ts`, run after menu saves at most once a day).
 
 `ensureBucket` also corrects a bucket whose settings have drifted from `lib/cms/bucket.ts` (public flag, size limit, allowed types) - so `site-content` switched to public by hand is made private again on the next save.

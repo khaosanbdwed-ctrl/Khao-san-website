@@ -137,15 +137,34 @@ await page.goto(base + '/admin/media');
 await page.waitForSelector('text=Nothing uploaded yet');
 const [chooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('button:has-text("Upload photo")')]);
 await chooser.setFiles(FX + 'camera-photo.jpg');
-await page.waitForSelector('text=Optimised', { timeout: 60000 });
-const note = await page.locator('text=Optimised').first().textContent();
-ok(/Optimised: .* → .*/.test(note), `photo optimised (${note.trim()})`);
+await page.waitForSelector('text=Uploaded as it is', { timeout: 60000 });
+ok(true, `photo uploaded as it is (${(await page.locator('text=Uploaded as it is').first().textContent()).trim()})`);
 await page.waitForSelector('.cms-lib__item');
 ok((await page.locator('.cms-lib__item').count()) === 1, 'photo appears in the library');
+// Nothing is resized or re-encoded: the stored file is the uploaded file.
+const libSrc = await page.locator('.cms-lib__item img').first().getAttribute('src');
+const storedUrl = libSrc.includes('/_next/image') ? new URL(base + libSrc).searchParams.get('url') : libSrc;
+const stored = Buffer.from(await (await fetch(storedUrl)).arrayBuffer());
+ok(stored.equals(fs.readFileSync(FX + 'camera-photo.jpg')), `stored photo is byte-for-byte the upload (${stored.length} bytes)`);
+// ... and the public site shows it as it is: put it in the homepage gallery,
+// publish, and read what a visitor's browser actually loads.
+const homeDoc = await (await page.request.get(base + '/api/admin/content/home')).json();
+const original = structuredClone(homeDoc.content);
+const edited = structuredClone(homeDoc.content);
+edited.story.gallery[0].src = storedUrl;
+const saveAndPublish = async content => {
+    ok((await page.request.put(base + '/api/admin/content/home', { data: { content } })).ok(), 'content saved', '');
+    ok((await page.request.post(base + '/api/admin/content/home', { data: { action: 'publish' } })).ok(), 'content published', '');
+};
+await saveAndPublish(edited);
+await ap.goto(base + '/');
+const shown = await ap.evaluate(() => document.querySelector('.room-frame--lead img')?.currentSrc || '');
+ok(shown === storedUrl, 'visitors get the uploaded photo exactly as uploaded (no re-encoding)', shown);
+await saveAndPublish(original);
 if (HAS_VIDEO) {
     const [vchooser] = await Promise.all([page.waitForEvent('filechooser'), page.click('button:has-text("Upload video")')]);
     await vchooser.setFiles(FX + 'phone-video.mp4');
-    // Optimised in browsers with an H.264 encoder (Chrome, Edge, Safari);
+    // Uploaded as it is (videos are no longer re-encoded).
     // uploaded as-is where there is none (open-source Chromium builds).
     await page.waitForFunction(() => document.querySelectorAll('.cms-lib__item').length === 2, null, { timeout: 300000 });
     ok(true, 'video uploaded and appears in the library');
@@ -175,7 +194,7 @@ ok((await page.textContent('form [role=alert]')).includes('still has its backgro
 await page.setInputFiles('#dish-photo', FX + 'cutout-pad-thai.png');
 await page.waitForSelector('img[alt="How the dish will look on the menu"]', { timeout: 60000 });
 const src = await page.getAttribute('img[alt="How the dish will look on the menu"]', 'src');
-ok(/dish-images\/dishes\/.+\.(webp|jpg)$/.test(src), `plated photo uploaded (${src.split('/').slice(-2).join('/')})`);
+ok(/dish-images\/dishes\/.+\.(webp|png|jpg)$/.test(src), `plated photo uploaded (${src.split('/').slice(-2).join('/')})`);
 const platedWidth = await page.evaluate(u => new Promise(r => { const i = new Image(); i.onload = () => r(i.naturalWidth); i.onerror = () => r(0); i.src = u; }), src);
 ok(platedWidth === 1600, `plated photo is stored at 1600 px (${platedWidth})`);
 await page.screenshot({ path: SHOTS + 'admin-dish-form.png' });

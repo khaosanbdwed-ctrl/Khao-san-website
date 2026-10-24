@@ -22,7 +22,8 @@ const supabaseHost = (() => {
    - Photos and videos: any https address, because the dashboard lets an editor
      paste a link to media hosted elsewhere.
    - connect-src includes Supabase: the dashboard uploads straight to storage.
-   - worker-src blob: - the in-browser video optimiser runs workers from blobs.
+   - worker-src 'self' only: the in-browser video optimiser that needed blob:
+     workers was removed (uploads are no longer re-encoded).
    Production only: the dev server needs eval and a websocket for hot reload. */
 const supabaseOrigin = supabaseHost ? `${supabaseHost.protocol}://${supabaseHost.hostname}${supabaseHost.port ? `:${supabaseHost.port}` : ''}` : '';
 const csp = [
@@ -33,7 +34,7 @@ const csp = [
   `media-src 'self' blob: https: ${supabaseOrigin}`.trim(),
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin} https://*.supabase.co`.trim(),
-  "worker-src 'self' blob:",
+  "worker-src 'self'",
   "frame-src 'self'",
   "frame-ancestors 'self'",
   "form-action 'self'",
@@ -63,13 +64,13 @@ const nextConfig: NextConfig = {
     // A local Supabase (127.0.0.1) is a private address, which the optimiser
     // refuses unless told otherwise. Development only.
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
-    // The quality every served image is re-encoded at. Next's default is 75,
-    // and every photo has already been compressed once on upload
-    // (components/admin/cms/optimize-media.ts), so 75 was a second lossy pass
-    // that visibly softened them. With a single allowed value, every <Image>
-    // is served at it without a per-component `quality` prop. Measured on a
-    // 5 MP photo at 1920px: 75 -> 33.1 dB PSNR / ~290 KB, 85 -> 36.1 dB /
-    // ~480 KB.
+    // The quality the optimiser re-encodes at, for what still goes through it:
+    // the built-in photos under /public and the plated dish photos (which the
+    // dashboard generates losslessly, and which the 70-dish menu needs sized
+    // per screen). Photos and videos uploaded to the media library bypass the
+    // optimiser and are shown exactly as uploaded - see lib/media.ts.
+    // Next's default is 75; measured on a 5 MP photo at 1920px: 75 -> 33.1 dB
+    // PSNR, 85 -> 36.1 dB.
     qualities: [85],
   },
 

@@ -1,6 +1,7 @@
 /**
- * Naming rule for videos the dashboard has optimised (components/admin/cms/
- * optimize-media.ts). One upload becomes three files side by side:
+ * Naming rule for videos the dashboard optimised before uploads were kept as
+ * they are (videos uploaded since are played as uploaded). One upload became
+ * three files side by side:
  *
  *   videos/<stem>.web.mp4      720p H.264, for computers and tablets
  *   videos/<stem>.web-sm.mp4   480p H.264, for phones
@@ -21,16 +22,27 @@ export function videoSources(src: string): { src: string; small?: string; poster
 /** Width at or below which the phone version plays. */
 export const SMALL_VIDEO_QUERY = '(max-width: 768px)';
 
-/** Supabase projects whose public buckets next.config.ts allowlists for the
- *  image optimiser: this deployment's own, plus the original project. */
-const OPTIMIZABLE_PREFIXES = [process.env.NEXT_PUBLIC_SUPABASE_URL, 'https://breqqsquwkxgjzrxbxso.supabase.co']
+/** Supabase projects next.config.ts allowlists: this deployment's own, plus
+ *  the original project. */
+const SUPABASE_PUBLIC = [process.env.NEXT_PUBLIC_SUPABASE_URL, 'https://breqqsquwkxgjzrxbxso.supabase.co']
     .filter((u): u is string => Boolean(u))
     .map(u => `${u.replace(/\/+$/, '')}/storage/v1/object/public/`);
 
-/** Remote images (anything not under /public or an allowlisted Supabase
- *  bucket) skip the optimiser, which would otherwise refuse the host and
- *  render a broken image. A pasted link from anywhere else still shows. */
+/**
+ * Whether an image goes through next/image's optimiser (resized per screen
+ * and re-encoded) or is shown exactly as it is.
+ *
+ *  - built-in files under /public: optimised;
+ *  - plated dish photos (`dish-images`): optimised. The dashboard generates
+ *    them losslessly at 1600px, and the menu shows ~70 at once, so each
+ *    screen is sent a copy sized for it;
+ *  - ⚠ everything uploaded to the media library (`site-media`) and any
+ *    pasted link: NOT optimised - shown byte for byte as uploaded. The
+ *    client's designers prepare those files for the web, and re-encoding
+ *    them was a second lossy pass over finished work (client: "don't
+ *    compress it at all ... it is losing the quality of the design").
+ */
 export function isOptimizable(src: string) {
     if (src.startsWith('/') && !src.startsWith('//')) return true;
-    return OPTIMIZABLE_PREFIXES.some(p => src.startsWith(p));
+    return SUPABASE_PUBLIC.some(p => src.startsWith(`${p}dish-images/`));
 }

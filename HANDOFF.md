@@ -1,5 +1,23 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-24: uploads are no longer compressed (supersedes the
+> ## upload-quality bullet of 2026-10-23 below)
+>
+> The client's designers prepare every photo and video for the web, and the
+> dashboard's compression was softening finished work. Now:
+> - Media library photos and videos are stored byte for byte and shown as
+>   they are (`isOptimizable` keeps `site-media` out of next/image). The
+>   in-browser optimiser and the `mediabunny` dependency are removed, and
+>   CSP `worker-src` no longer allows `blob:`.
+> - Only the link-preview image is still converted (to JPEG, if it is not
+>   JPEG/PNG - `share-image.ts`).
+> - Dish photos are plated losslessly (WebP q1.0 / PNG) with the cut-out
+>   stored as uploaded; they alone still go through next/image, because the
+>   menu shows ~70 at once.
+> - Page weight now depends on what the designers export: CLIENT_GUIDE §4
+>   gives sizes. Dashboard suite: 52 checks (+ the stored file is
+>   byte-identical to the upload, + the public site serves it as is).
+
 > ## Update 2026-10-23: homepage alignment, upload quality, footer colours
 >
 > - **Room gallery is centred on the dish grid's column.** It used to bleed

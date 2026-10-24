@@ -26,7 +26,7 @@ mode against a local mock of Supabase (`qa/mock-supabase.mjs`, which mirrors
 the menu tables and the storage API) and exercised with Playwright:
 
 - **Security suite** (`qa/security.mjs`): 81 checks — attacks, not unit tests.
-- **Dashboard suite** (`qa/cms-e2e.mjs`): 46 checks — the client's real
+- **Dashboard suite** (`qa/cms-e2e.mjs`): 52 checks — the client's real
   workflows in a browser (2026-10-22: + hiding/showing a dish with the
   overview counts following, and the unused-photo sweep; 2026-10-23: footer
   colours set through the editor).
@@ -157,8 +157,9 @@ Everything else is **pixel-identical** to the previous build at every width
 
 Throttled mobile (slow 4G, 4× slower CPU): LCP **1.5–2.0 s**, CLS **0**, on
 the homepage and menu. Unchanged by this pass (within noise of the previous
-build). The 800 KB video optimiser loads only on the two dashboard pages that
-use it, never for visitors.
+build). (2026-10-24: the 800 KB in-browser video optimiser was removed with
+upload compression; uploads are now as prepared by the client's designers, so
+page weight depends on the files they export - CLIENT_GUIDE.md §4.)
 
 ## 7. SEO & sharing — 10/10 (was 7.0)
 

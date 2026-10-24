@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { MAX_SECONDS, OptimizeUnsupported, optimizePhoto, optimizeVideo } from './optimize-media';
+import { toShareJpeg } from './share-image';
 
 export type MediaKind = 'image' | 'video';
 export type MediaFile = {
@@ -61,47 +61,34 @@ async function uploadOne(file: Blob, name: string, type: string): Promise<string
  * Upload one file to the media library and return its public URL, plus a
  * short note on what was done to it.
  *
- * Every file is prepared for the web first (optimize-media.ts): a video
- * becomes a computer version, a phone version and a still; a photo is scaled
- * and re-saved as WebP. Then each file goes straight from the browser to
- * Supabase with a short-lived signed URL from /api/admin/media - never through
- * our own server, which caps a request at ~4.5 MB on Vercel.
+ * ⚠ FILES ARE UPLOADED EXACTLY AS CHOSEN - no resizing, no re-encoding, no
+ * trimming - and the site shows them as they are (lib/media.ts keeps
+ * uploads out of the image optimiser). The client's designers prepare every
+ * photo and video for the web themselves; any compression here was a second
+ * lossy pass over work already finished, and visibly softened the design.
+ *
+ * The one conversion left: a picture for a field marked `format: 'jpeg'`
+ * (the link-preview image) that is not already a JPEG or PNG - WhatsApp and
+ * other apps cannot read WebP previews (share-image.ts).
+ *
+ * Each file goes straight from the browser to Supabase with a short-lived
+ * signed URL from /api/admin/media - never through our own server, which
+ * caps a request at ~4.5 MB on Vercel.
  */
 export async function uploadMedia(file: File, onProgress: Progress = () => {}, opts: { jpeg?: boolean } = {}): Promise<{ url: string; note: string }> {
     const mb = (n: number) => `${(n / 1048576).toFixed(1)} MB`;
-
-    if (file.type.startsWith('video/')) {
-        try {
-            onProgress('Optimising for phones and computers', 0);
-            const v = await optimizeVideo(file, f => onProgress('Optimising for phones and computers', f));
-            onProgress('Uploading');
-            const set = await post<{ large: Signed; small: Signed; poster: Signed; publicUrl: string }>({ set: 'video', name: file.name, sizes: { large: v.large.size, small: v.small.size, poster: v.poster.size } });
-            await Promise.all([
-                put(set.large, v.large, 'video/mp4'),
-                put(set.small, v.small, 'video/mp4'),
-                put(set.poster, v.poster, v.poster.type),
-            ]);
-            return {
-                url: set.publicUrl,
-                note: `Optimised: ${mb(file.size)} → ${mb(v.large.size)} for computers, ${mb(v.small.size)} for phones.`
-                    + (v.trimmed ? ` Trimmed to the first ${MAX_SECONDS} seconds (it plays on a loop).` : ''),
-            };
-        } catch (e) {
-            if (!(e instanceof OptimizeUnsupported)) throw e;
-            // An old browser: still let the upload through, but say so.
-            onProgress('Uploading');
-            const url = await uploadOne(file, file.name, file.type);
-            return { url, note: `This browser could not optimise video, so it was uploaded as it is (${mb(file.size)}). For a faster site, upload from a current Chrome, Edge or Safari.` };
-        }
+    let upload: File = file;
+    if (opts.jpeg && !/^image\/(jpeg|png)$/.test(file.type)) {
+        onProgress('Converting for link previews');
+        upload = await toShareJpeg(file);
     }
-
-    onProgress('Optimising');
-    const photo = await optimizePhoto(file, opts);
     onProgress('Uploading');
-    const url = await uploadOne(photo, photo.name, photo.type);
+    const url = await uploadOne(upload, upload.name, upload.type);
     return {
         url,
-        note: photo === file ? 'Uploaded.' : `Optimised: ${mb(file.size)} → ${mb(photo.size)}. Each screen gets its own size automatically.`,
+        note: upload === file
+            ? `Uploaded as it is (${mb(file.size)}).`
+            : `Converted to JPEG for link previews (${mb(upload.size)}).`,
     };
 }
 
@@ -117,7 +104,7 @@ async function fetchLibrary(): Promise<{ files: MediaFile[]; error: string | nul
 const formatSize = (n: number | null) =>
     n == null ? '' : n > 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 
-/** A button that opens the file picker, optimises and uploads what is
+/** A button that opens the file picker, uploads what is
  *  chosen, and reports what it did. */
 export function UploadButton({ kind, onUploaded, label, className = 'cms-btn cms-btn--primary cms-btn--small', jpeg }: {
     kind: MediaKind;
@@ -214,7 +201,7 @@ export function MediaGrid({ kind, onChoose }: { kind?: MediaKind; onChoose?: (ur
                 )}
                 <UploadButton kind={kind ?? (filter === 'video' ? 'video' : 'image')} onUploaded={url => { load(); onChoose?.(url); }} />
                 {!kind && <UploadButton kind="video" label="Upload video" className="cms-btn cms-btn--small" onUploaded={() => load()} />}
-                <span className="cms-small cms-muted">Upload any photo or video straight from your phone or camera - it is resized and compressed automatically, with a separate lighter version for phones. Photos up to 10 MB, videos up to 50 MB; longer videos are trimmed to {MAX_SECONDS} seconds.</span>
+                <span className="cms-small cms-muted">Files are uploaded and shown exactly as they are - nothing is resized or compressed - so upload photos and videos already prepared for the web. Photos up to 10 MB, videos up to 50 MB.</span>
             </div>
             {error && <div className="cms-banner cms-banner--error">{error}</div>}
             {files === null ? (
