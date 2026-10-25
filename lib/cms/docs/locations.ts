@@ -39,8 +39,8 @@ export const locationsDefaults: LocationsContent = {
     outlets: {
         items: [
             {
-                // The outlet is called "Gulshan"; "Gulshan 1" stays in the
-                // address and map search below, where it is the postal area.
+                // Just "Gulshan" - the area is in the address underneath. An
+                // older published "Gulshan 1" is renamed on read (registry.ts).
                 name: 'Gulshan',
                 address: 'Level 1, Progress Tower, House 1, Road 23, Gulshan 1, Dhaka 1212',
                 phone: '+880 1600-068193',

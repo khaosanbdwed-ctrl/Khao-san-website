@@ -1,5 +1,17 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-25 (b): "Gulshan" everywhere; no white band above the footer
+>
+> - The outlet is named just "Gulshan". `normalizeDoc` renames a stored
+>   "Gulshan 1" on every read (lib/cms/registry.ts, `OUTLET_RENAMES`), so an
+>   older published Locations version shows "Gulshan" on the site and in the
+>   editor, and the next publish stores it. The address keeps "Gulshan 1".
+> - The closing section (`.section-reservation`) has a solid slate base and
+>   its lotus photo is no longer edge-feathered: when the film was not
+>   playing (iPhone Low Power Mode, data saver, still loading) the feathered
+>   edges showed the page's white as a band right above the footer.
+> - Dashboard suite: 64 checks.
+
 > ## Update 2026-10-25: phone spacing, footer alignment, menu page background
 >
 > - **Footer outlets share rows** (`.footer-outlets` + subgrid, 12-footer.css):

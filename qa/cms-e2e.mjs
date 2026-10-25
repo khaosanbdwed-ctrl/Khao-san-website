@@ -342,7 +342,33 @@ const stage = await pp.evaluate(() => {
     return Math.round(v.height - sl.height);
 });
 ok(stage <= 40, `phone: the menu showcase hugs its photo (${stage}px of stage around it)`);
+// Without the closing film playing (Low Power Mode, data saver, still
+// loading) nothing white may show at the bottom of that section.
+await pp.goto(base + '/');
+const filmGround = await pp.evaluate(() => {
+    const sec = document.querySelector('.section-reservation');
+    sec.querySelectorAll('video').forEach(v => v.remove());
+    const img = sec.querySelector('img');
+    const mask = img ? (getComputedStyle(img).maskImage || getComputedStyle(img).webkitMaskImage || 'none') : 'none';
+    return { bg: getComputedStyle(sec).backgroundColor, mask };
+});
+ok(filmGround.bg !== 'rgba(0, 0, 0, 0)' && filmGround.mask === 'none', `phone: the closing section has its own dark base and no faded edges (${filmGround.bg})`);
 await phone.close();
+
+console.log('5e. Outlet name: an old published "Gulshan 1" reads as "Gulshan"');
+const locDoc = await (await page.request.get(base + '/api/admin/content/locations')).json();
+const locOriginal = structuredClone(locDoc.content);
+const locOld = structuredClone(locDoc.content);
+locOld.outlets.items[0].name = 'Gulshan 1';
+await page.request.put(base + '/api/admin/content/locations', { data: { content: locOld } });
+await page.request.post(base + '/api/admin/content/locations', { data: { action: 'publish' } });
+await ap.goto(base + '/');
+const outletNames = await ap.evaluate(() => [...document.querySelectorAll('.footer-outlet-name, .haven-card h3, .footer-location-tab')].map(e => e.textContent.trim()));
+ok(outletNames.includes('Gulshan') && !outletNames.some(n => n.includes('Gulshan 1')), 'site shows "Gulshan", not "Gulshan 1"', outletNames.join(', '));
+const editorName = (await (await page.request.get(base + '/api/admin/content/locations')).json()).content.outlets.items[0].name;
+ok(editorName === 'Gulshan', `the dashboard editor shows "Gulshan" too (${editorName})`);
+await page.request.put(base + '/api/admin/content/locations', { data: { content: locOriginal } });
+await page.request.post(base + '/api/admin/content/locations', { data: { action: 'publish' } });
 
 console.log('6. Sign out');
 await page.click('button:has-text("Sign Out")');

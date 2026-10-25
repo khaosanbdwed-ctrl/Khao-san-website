@@ -245,8 +245,7 @@ section is counted as in use, so it is never removed from under the site.
 
 - Keep each outlet's **name, address and phone exactly the same as on Google
   Maps**. Google compares them; differences hurt your search ranking. (The
-  outlet is named **Gulshan**; its address still says Gulshan 1, because that
-  is the postal area the map directions use.)
+  outlet is named just **Gulshan** - the area is in its address.)
 - **WhatsApp numbers**: digits only, with the country code and no `+`, e.g.
   `8801600068193`.
 - **Opening hours**: tick the days, set opening and closing times. Add a

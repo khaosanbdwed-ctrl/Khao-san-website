@@ -342,7 +342,11 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
                 ) : (
                     <>
                         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}>
-                            <Image src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp" alt="" fill className="img-feather" style={{ objectFit: 'cover' }} />
+                            {/* No `img-feather` here: feathering fades the edges to
+                                transparent, and on a full-bleed background that
+                                only ever revealed the page's white along the
+                                bottom, right above the footer. */}
+                            <Image src="/assets/Background-20260709T183540Z-2-001/Background/Landing Page Section/Lotus background.webp" alt="" fill style={{ objectFit: 'cover' }} />
                         </div>
                         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(30, 41, 59, 0.8)', zIndex: 1 }}></div>
                         {invitation.background.video && (

@@ -35,5 +35,24 @@ export const isDocKey = (k: unknown): k is DocKey => typeof k === 'string' && (D
 
 export function normalizeDoc<K extends DocKey>(key: K, input: unknown): SiteContent[K] {
     const { def, defaults } = DOCS[key];
-    return sanitizeDoc(def, input, defaults);
+    const doc = sanitizeDoc(def, input, defaults);
+    if (key === 'locations') renameOutlets(doc as LocationsContent);
+    return doc;
+}
+
+/**
+ * One-off content correction (2026-10-25): the client renamed the outlet
+ * "Gulshan 1" to plain "Gulshan" - the area is in the address directly
+ * beneath it. The code default already says "Gulshan", but a Locations &
+ * hours version published before that still stores the old name, and the
+ * live site shows what was published. Applied on every read (site AND
+ * editor), so the dashboard shows "Gulshan" and the next publish stores it.
+ * Only the exact old name is touched; anything the client types is kept.
+ */
+const OUTLET_RENAMES: Record<string, string> = { 'Gulshan 1': 'Gulshan' };
+function renameOutlets(doc: LocationsContent) {
+    for (const outlet of doc.outlets.items) {
+        const renamed = OUTLET_RENAMES[outlet.name.trim()];
+        if (renamed) outlet.name = renamed;
+    }
 }

@@ -303,6 +303,11 @@
    near-white drink shot, so no single ink colour can survive it unaided; the
    headline takes the cream ink and the scrim below gives it a ground to sit on. */
 .section-reservation {
+    /* A solid base in the wash's own slate. The section had none, so wherever
+       the video was not painting - an iPhone in Low Power Mode or with data
+       saver on, or before it loads - the page's white showed through and
+       read as a white band above the footer (client, 2026-10-25). */
+    background-color: rgb(30, 41, 59);
     --color-text-primary: #ffffff;
     --color-text-secondary: rgba(255, 255, 255, 0.84);
     --color-primary: #ffffff;
