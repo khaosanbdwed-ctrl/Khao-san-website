@@ -278,19 +278,10 @@
     top: 12px;
     bottom: 12px;
 }
-/* Faint lotus watermark, so the label carries the brand's own line art rather
-   than reading as a generic listing block. */
-.haven-card-body::after {
-    content: "";
-    position: absolute;
-    right: -4%;
-    bottom: -6%;
-    width: 38%;
-    aspect-ratio: 1;
-    background: url('/assets/Background-20260709T183540Z-2-001/Background/Lotus/Lotus Crop Transparent.webp') no-repeat bottom right / contain;
-    opacity: 0.07;
-    pointer-events: none;
-}
+/* HISTORICAL (2026-10-25): a faint lotus watermark sat in each card's
+   bottom-right corner, under the Directions button (`.haven-card-body::after`,
+   Lotus Crop Transparent at 7%). The client asked for it out - it read as a
+   stray image behind the button, not as brand line art. */
 .haven-card-body > * {
     position: relative;
     z-index: 1;

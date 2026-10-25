@@ -294,7 +294,7 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
                             </div>
                         </div>
 
-                        <div className="reveal-hidden landing-gift-cards" style={{ position: 'relative', minHeight: '460px', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                        <div className="reveal-hidden landing-gift-cards">
                             {/* One confident brush sweep. The painted mass in
                                 saffron.png sits low-left of its own frame and the
                                 -38deg rotation swings it further, so the box is

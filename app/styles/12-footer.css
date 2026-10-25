@@ -83,8 +83,12 @@
     /* The brand column is wider: it holds a mark, a line, two hours rows and a
        button, against three short address blocks. Equal columns would leave
        the button wrapping while the outlets ran short. */
-    grid-template-columns: 1.5fr repeat(3, minmax(0, 1fr));
-    gap: clamp(28px, 3.4vw, 56px);
+    /* 1.25fr, not 1.5: at 1440-1920px the 1.5fr brand column left the
+       outlets ~180px wide, and a longer address (Uttara's) wrapped a line
+       more than its neighbours. */
+    grid-template-columns: 1.25fr repeat(3, minmax(0, 1fr));
+    --footer-gap: clamp(28px, 3.4vw, 56px);
+    gap: var(--footer-gap);
     padding-bottom: 28px;
     align-items: start;
 }
@@ -138,6 +142,39 @@
 }
 
 /* The outlets. Three identical blocks - no card, no rule, no shadow. */
+/* ⚠ THE THREE OUTLETS SHARE ROWS. Each used to be its own flex column, so
+   an address that wrapped one line more (Uttara's) pushed its phone number
+   and Directions below the other two (client: "the direction button is lower
+   than the other two"). `.footer-outlets` holds them in a three-column grid
+   with four shared rows, and each outlet is a subgrid of those rows: name,
+   address, phone and Directions each line up across all three, whatever the
+   addresses wrap to. The brand column stays outside, so its height cannot
+   stretch the outlet rows. Phones use the location picker instead. */
+.footer-outlets { display: contents; }
+@media (min-width: 768px) {
+    .footer-outlets {
+        display: grid;
+        grid-column: 2 / -1;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(4, auto);
+        column-gap: var(--footer-gap);
+        align-items: start;
+    }
+    /* `.footer-outlets >` for specificity: the base `.footer-outlet` rule
+       below (display: flex) would otherwise win on source order. */
+    .footer-outlets > .footer-outlet--desktop {
+        display: grid;
+        grid-row: span 4;
+        grid-template-rows: subgrid;
+        row-gap: 0;
+        justify-items: start;
+        align-content: start;
+    }
+    .footer-outlets > .footer-outlet--desktop > .footer-outlet-name { grid-row: 1; }
+    .footer-outlets > .footer-outlet--desktop > .footer-outlet-address { grid-row: 2; }
+    .footer-outlets > .footer-outlet--desktop > .footer-outlet-tel { grid-row: 3; }
+    .footer-outlets > .footer-outlet--desktop > .footer-outlet-map { grid-row: 4; }
+}
 .footer-outlet {
     display: flex;
     flex-direction: column;
@@ -330,8 +367,9 @@
        four lines each below this width. */
     .footer-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: clamp(26px, 3vw, 40px);
+        --footer-gap: clamp(26px, 3vw, 40px);
     }
+    .footer-outlets { grid-column: 1 / -1; }
     .footer-brand {
         grid-column: 1 / -1;
         display: grid;

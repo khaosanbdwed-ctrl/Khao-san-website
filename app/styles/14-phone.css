@@ -396,10 +396,12 @@
        A real chapter: most of a screen, content centred in it, and the
        chapter rhythm before the footer's own dark ground begins so the two
        do not run together into one indeterminate dark band. */
+    /* No margin under it any more: the client saw the chapter-rhythm gap
+       between the film and the footer as a stray white band (2026-10-25).
+       The footer's own dark ground starts directly under the footage. */
     .section-reservation {
         min-height: 72svh;
         padding-block: var(--space-macro);
-        margin-bottom: var(--space-macro);
     }
     .section-reservation .display-2 { margin-bottom: clamp(24px, 6vw, 36px) !important; }
 }

@@ -95,3 +95,34 @@
 @media (max-width: 520px) {
     .cms-preview-bar__text { display: none; }
 }
+
+/* ------------------------------------------------------------
+   Menu page: the whole-page background (Website Content -> Menu page ->
+   Whole page background; components/menu-page-client.tsx).
+   ------------------------------------------------------------ */
+/* A section with no background of its own lets the page ground show
+   through - the showcase's blue wash and the notes' tint step aside. */
+.menu-on-ground { background: transparent !important; }
+/* The ground's photo, held to the screen while the page scrolls over it:
+   one screen tall, sticky, and pulled out of the flow by its own height. */
+.menu-page-ground__layer {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    margin-bottom: -100svh;
+    pointer-events: none;
+}
+/* The category index draws its OWN white panel (the floating category label
+   and the list it opens), so its ink belongs to that panel, not to the
+   section around it. Without this, a light text tone on the page or the dish
+   list turned it white on white. Values are the root tokens (01-tokens.css),
+   so the default render is unchanged. */
+:is(.cms-tone-light, .cms-tone-dark) :is(.menu-index-current, .menu-index-window) {
+    --color-text-primary: #161616;
+    --color-text-secondary: #55606E;
+    --color-primary: #1e417b;
+    --color-accent: #1e417b;
+    --section-ink-accent: #1e417b;
+    --section-ink-mark: #8d361f;
+    color: #161616;
+}

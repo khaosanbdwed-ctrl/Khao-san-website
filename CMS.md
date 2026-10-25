@@ -79,6 +79,8 @@ uses. Buckets are created on first use (`lib/cms/bucket.ts`):
 
 `ensureBucket` also corrects a bucket whose settings have drifted from `lib/cms/bucket.ts` (public flag, size limit, allowed types) - so `site-content` switched to public by hand is made private again on the next save.
 
+**Menu page background.** `menu.page.background` (Website Content → Menu page → Whole page background) sits behind everything under the menu hero; sections without a background of their own show it through. See `components/menu-page-client.tsx`.
+
 Where things live:
 
 - `lib/cms/fields.ts`: the field vocabulary, plus `sanitizeDoc`, which every read and every save goes through. Stored content can only ever take the documented shape, and anything missing falls back to the code default.

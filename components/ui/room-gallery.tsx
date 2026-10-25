@@ -27,6 +27,12 @@ const RESUME_DELAY_MS = 1600;
  *  rather than a bounce. */
 const TURNAROUND_PAUSE_MS = 900;
 
+/** Phones: how long each photograph is held before the strip glides on. */
+const STEP_HOLD_MS = 3200;
+/** Long enough for a smooth `scrollTo` to land, during which the scroll
+ *  events are ours, not the visitor's. */
+const STEP_GLIDE_MS = 900;
+
 /* The drift flag comes from useSyncExternalStore rather than state set in an
    effect: `setState` in an effect is a double render the compiler rejects, and
    a store also re-renders when the media query flips, so switching reduced
@@ -132,8 +138,48 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
             hovering || pressing || focused || !onScreen ||
             performance.now() < interactedUntil;
 
+        /* ⚠ TWO MODES, BECAUSE PHONES SNAP. On phones the strip has
+           `scroll-snap-type: x mandatory` (14-phone.css) so a swipe lands on a
+           whole photograph. A half-pixel drift cannot coexist with that: the
+           browser snaps every write back to the nearest photograph, the strip
+           never moves, and the snap-back reads as the visitor's own scroll
+           and pauses the drift (client: the gallery "isn't automatically
+           scrolling in the phone version"). So a snapping strip advances one
+           photograph at a time - hold, glide, hold - and turns back at the
+           end; a free strip (tablet and desktop) keeps the continuous drift. */
+        let snapping = false;
+        const readSnap = () => { snapping = getComputedStyle(scroller).scrollSnapType.startsWith('x'); };
+        readSnap();
+        window.addEventListener('resize', readSnap);
+        let nextStepAt = performance.now() + STEP_HOLD_MS;
+        let glidingUntil = 0;
+
+        const stepSlide = (now: number) => {
+            if (paused()) { nextStepAt = now + STEP_HOLD_MS; return; }
+            if (now < nextStepAt) return;
+            const max = scroller.scrollWidth - scroller.clientWidth;
+            if (max <= 1) return;
+            const pad = parseFloat(getComputedStyle(scroller).scrollPaddingLeft) || 0;
+            const here = scroller.scrollLeft;
+            // The snap stops: each frame's left edge, less the scroll padding.
+            const stops = [...scroller.querySelectorAll<HTMLElement>('.room-frame')]
+                .map(f => Math.min(max, Math.max(0, f.offsetLeft - scroller.offsetLeft - pad)));
+            let target = direction === 1
+                ? stops.find(x => x > here + 4)
+                : [...stops].reverse().find(x => x < here - 4);
+            if (target === undefined) {
+                direction = direction === 1 ? -1 : 1;
+                target = direction === 1 ? stops.find(x => x > here + 4) : [...stops].reverse().find(x => x < here - 4);
+                if (target === undefined) return;
+            }
+            glidingUntil = now + STEP_GLIDE_MS;
+            nextStepAt = now + STEP_GLIDE_MS + STEP_HOLD_MS;
+            scroller.scrollTo({ left: target, behavior: 'smooth' });
+        };
+
         const step = (now: number) => {
             frame = requestAnimationFrame(step);
+            if (snapping) { stepSlide(now); return; }
             if (!lastFrameAt) { lastFrameAt = now; return; }
             /* Clamped: coming back from a background tab or a long paint hands
                us a delta of seconds, which would teleport the strip. */
@@ -166,6 +212,11 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
             /* Anything we did not write ourselves is the visitor scrolling.
                Take their position as the new truth rather than yanking the
                strip back to ours. */
+            if (snapping) {
+                // During our own glide the events are ours.
+                if (performance.now() > glidingUntil) interactedUntil = performance.now() + RESUME_DELAY_MS;
+                return;
+            }
             if (Math.abs(scroller.scrollLeft - ownScrollLeft) > 2) {
                 position = scroller.scrollLeft;
                 interactedUntil = performance.now() + RESUME_DELAY_MS;
@@ -207,6 +258,7 @@ export default function RoomGallery({ shots, ariaLabel }: RoomGalleryProps) {
         return () => {
             cancelAnimationFrame(frame);
             io.disconnect();
+            window.removeEventListener('resize', readSnap);
             scroller.removeEventListener('scroll', onScroll);
             scroller.removeEventListener('pointerenter', onEnter);
             scroller.removeEventListener('pointerleave', onLeave);

@@ -352,6 +352,15 @@
     }
 }
 .landing-gift-cards {
+    /* These four were inline styles on the element, and an inline
+       `min-height: 460px` beats any stylesheet - so the phone rule that sets
+       it to 0 (14-phone.css) never applied, and phones held open 460px for
+       ~235px of artwork: ~110px of blank above and below the gift cards. */
+    position: relative;
+    min-height: 460px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     grid-column: 2;
     grid-row: 1 / 3;
     /* Centred in the row span, not top-aligned. The copy column runs ~690px

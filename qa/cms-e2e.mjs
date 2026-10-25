@@ -281,6 +281,69 @@ await publish();
 await ap.goto(base + '/menu');
 ok((await ap.evaluate(() => getComputedStyle(document.querySelector('.footer-tagline')).color)) === 'rgb(255, 255, 255)', 'footer colours reset to the design');
 
+console.log('5c. Menu page: whole-page background');
+await page.goto(base + '/admin/content/menu');
+await page.click('button:has-text("Whole page background")');
+const groundSec = page.locator('.cms-section:has-text("Whole page background")').first();
+const groundColour = groundSec.locator('.cms-field:has(> .cms-field__label :text-is("Colour"))').first();
+await groundColour.locator('button:has-text("Choose colour")').click();
+await groundColour.locator('input.cms-input').fill('#16233d');
+await groundSec.locator('.cms-field:has(> .cms-field__label :text-is("Text colour")) select').selectOption('light');
+await publish();
+await ap.goto(base + '/menu');
+// The floating category label is drawn once the visitor is inside the menu.
+await ap.evaluate(() => document.querySelector('#b-soups').scrollIntoView());
+await ap.waitForSelector('.menu-index-current', { state: 'attached', timeout: 10000 });
+const groundState = await ap.evaluate(() => {
+    const c = s => getComputedStyle(document.querySelector(s));
+    return { ground: c('.menu-page-ground').backgroundColor, carousel: c('.menu-carousel').backgroundImage, notes: c('.menu-legal').backgroundColor, heading: c('.menu-category-title').color, chip: c('.menu-index-current').color };
+});
+ok(groundState.ground === 'rgb(22, 35, 61)', 'whole-page background applies to the menu page', groundState.ground);
+ok(groundState.carousel === 'none' && groundState.notes === 'rgba(0, 0, 0, 0)', 'showcase and notes let the page background show through');
+ok(groundState.heading === 'rgb(255, 255, 255)', 'menu text follows the page background\'s text colour', groundState.heading);
+ok(groundState.chip === 'rgb(22, 22, 22)', 'the category index keeps dark text on its white panel', groundState.chip);
+await page.click('button:has-text("Reset all to original")');
+await publish();
+
+console.log('5d. Layout regressions');
+// Footer: the three outlets share rows, so a longer address moves nothing.
+await ap.setViewportSize({ width: 1440, height: 900 });
+await ap.goto(base + '/menu');
+const outletRows = await ap.evaluate(() => {
+    document.querySelectorAll('.footer-outlet--desktop .footer-outlet-address')[2].textContent += ', Near Rajlaxmi Complex, Uttara Sector 13 Main Road';
+    return [...document.querySelectorAll('.footer-outlet--desktop')].map(o => ['.footer-outlet-tel', '.footer-outlet-map'].map(s => Math.round(o.querySelector(s).getBoundingClientRect().top)).join('/'));
+});
+ok(new Set(outletRows).size === 1, 'footer phone numbers and Directions line up across outlets', outletRows.join(' '));
+// Phone: no held-open space around the gift cards or the menu showcase, no
+// gap between the closing film and the footer, and the gallery moves.
+const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+const pp = await phone.newPage();
+await pp.goto(base + '/');
+const phoneHome = await pp.evaluate(() => {
+    const r = s => document.querySelector(s).getBoundingClientRect();
+    const cards = r('.landing-gift-cards'), art = document.querySelector('.landing-gift-cards > div:last-child').getBoundingClientRect();
+    // Layout offsets, not on-screen rects: <main>'s entrance animation shifts
+    // the sections by a few pixels for a moment, and the footer is outside it.
+    const docTop = el => { let t = 0; for (let n = el; n; n = n.offsetParent) t += n.offsetTop; return t; };
+    const film = document.querySelector('.section-reservation'), footer = document.querySelector('.site-footer');
+    return { slack: Math.round(cards.height - art.height), seam: docTop(footer) - (docTop(film) + film.offsetHeight) };
+});
+ok(phoneHome.slack < 80, `phone: gift cards are not padded with empty space (${phoneHome.slack}px around the artwork)`);
+ok(phoneHome.seam === 0, `phone: no gap between the closing film and the footer (${phoneHome.seam}px)`);
+await pp.evaluate(() => document.querySelector('.room-gallery').scrollIntoView({ block: 'center' }));
+const g0 = await pp.evaluate(() => document.querySelector('.room-gallery').scrollLeft);
+await pp.waitForTimeout(5000);
+const g1 = await pp.evaluate(() => document.querySelector('.room-gallery').scrollLeft);
+ok(g1 > g0 + 50, `phone: the room gallery advances by itself (${Math.round(g0)} -> ${Math.round(g1)})`);
+await pp.goto(base + '/menu');
+const stage = await pp.evaluate(() => {
+    const v = document.querySelector('.menu-carousel__viewport').getBoundingClientRect();
+    const sl = document.querySelector('.menu-carousel__slide').getBoundingClientRect();
+    return Math.round(v.height - sl.height);
+});
+ok(stage <= 40, `phone: the menu showcase hugs its photo (${stage}px of stage around it)`);
+await phone.close();
+
 console.log('6. Sign out');
 await page.click('button:has-text("Sign Out")');
 await page.waitForURL(/\/admin\/login/);

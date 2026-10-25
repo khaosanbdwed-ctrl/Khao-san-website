@@ -764,7 +764,11 @@
         --center-w: 78vw;
         --side-w: 60vw;
         --gap: 8px;
-        height: min(calc(100svh - var(--header-h) - 24px), 145vw);
+        /* The photo's own height plus a little air, as on desktop. It was
+           min(full screen, 145vw) - ~565px on a 390px phone around a 304px
+           square plate, so ~130px of empty band sat above and below the dish
+           (client: "a lot of space after the photo"). */
+        height: calc(var(--center-w) + 24px);
     }
     .menu-carousel__slide { border-radius: 10px; }
     .menu-carousel__control { width: 44px; height: 44px; }

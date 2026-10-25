@@ -282,6 +282,10 @@ export default function Footer({ content, locations, whatsapp }: Props) {
                     {/* Desktop retains the three complete outlet blocks. The
                         phone selector below is a separate compact treatment,
                         so the desktop NAP layout does not need to compromise. */}
+                    {/* One wrapper, so the three outlets can share rows: name,
+                        address, phone and Directions each sit on a line common
+                        to all three, whatever an address wraps to. */}
+                    <div className="footer-outlets">
                     {locations.map((loc, i) => (
                         <div className="footer-outlet footer-outlet--desktop" key={`${loc.name}-${i}`}>
                             <h3 className="footer-outlet-name">{loc.name}</h3>
@@ -297,6 +301,7 @@ export default function Footer({ content, locations, whatsapp }: Props) {
                             >Directions</a>
                         </div>
                     ))}
+                    </div>
 
                     {/* Phone-only: names stay horizontal and compact; the
                         selected branch supplies the useful NAP details. */}

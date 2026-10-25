@@ -1,5 +1,6 @@
 "use client";
 
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { DishPhotoError, prepareDishPhoto } from '@/components/admin/plate-dish';
 import { putSigned, readApi, type Signed } from '@/components/admin/cms/media-library';
@@ -238,6 +239,12 @@ export default function AdminMenu() {
                     <h1 className="display-2" style={{ fontSize: '2.5rem', marginBottom: '8px' }}>Menu Control</h1>
                     <p style={{ color: 'var(--color-text-secondary)' }}>
                         {isLoading ? 'Loading…' : `${items.length - hiddenCount} dishes on the public menu${hiddenCount ? `, ${hiddenCount} hidden` : ''}.`}
+                    </p>
+                    {/* The page's look lives in Website Content; this page is
+                        the dishes. Said here because this is where people look. */}
+                    <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginTop: '6px' }}>
+                        To change the menu page&apos;s background, showcase or notes, go to{' '}
+                        <Link href="/admin/content/menu" style={{ color: 'var(--color-primary)' }}>Website Content → Menu page</Link>.
                     </p>
                 </div>
                 <button onClick={openCreate} className="btn btn-primary" disabled={isLoading}>+ Add New Dish</button>

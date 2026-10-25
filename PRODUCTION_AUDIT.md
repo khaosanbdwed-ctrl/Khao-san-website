@@ -26,7 +26,7 @@ mode against a local mock of Supabase (`qa/mock-supabase.mjs`, which mirrors
 the menu tables and the storage API) and exercised with Playwright:
 
 - **Security suite** (`qa/security.mjs`): 81 checks — attacks, not unit tests.
-- **Dashboard suite** (`qa/cms-e2e.mjs`): 52 checks — the client's real
+- **Dashboard suite** (`qa/cms-e2e.mjs`): 61 checks — the client's real
   workflows in a browser (2026-10-22: + hiding/showing a dish with the
   overview counts following, and the unused-photo sweep; 2026-10-23: footer
   colours set through the editor).

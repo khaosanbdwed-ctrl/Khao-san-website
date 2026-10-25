@@ -5,6 +5,8 @@ import { bg, EMPTY_BACKGROUND, type Background, type DocDef } from '../fields';
  * Menu Control (their own tables), which this document never touches.
  */
 export interface MenuPageContent {
+    /** Behind everything under the opening video - see menu-page-client. */
+    page: { background: Background };
     hero: {
         background: Background;
         title: string;
@@ -24,6 +26,7 @@ export interface MenuPageContent {
 }
 
 export const menuPageDefaults: MenuPageContent = {
+    page: { background: { ...EMPTY_BACKGROUND } },
     hero: {
         background: {
             ...EMPTY_BACKGROUND,
@@ -70,6 +73,15 @@ export const menuPageDoc: DocDef = {
     description: 'The menu page around the dishes: the opening video and title, the dish showcase, backgrounds, and the notes at the bottom. Dishes and prices are edited in Menu Control.',
     previewPath: '/menu',
     sections: [
+        {
+            /* First, because it is what the client looks for: "the whole
+               background of the menu page". The per-section backgrounds
+               below still exist and sit on top of it. */
+            key: 'page',
+            title: 'Whole page background',
+            description: 'The background of the whole menu page under the opening video - behind the dish showcase, every category and the notes. A photo stays in place while the page scrolls over it. A background set on a section below sits on top of this one.',
+            fields: [{ ...bg(false, 'Page background'), help: 'Choose a colour or a photo. If it is much darker or lighter than the design, set Text colour to match so the dishes stay readable.' }],
+        },
         {
             key: 'hero',
             title: 'Opening (hero)',

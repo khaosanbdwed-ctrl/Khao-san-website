@@ -4,6 +4,7 @@ import MenuRow, { MenuBadge } from '@/components/ui/menu-row';
 import MenuShowcase, { type ShowcaseStep } from '@/components/ui/menu-showcase';
 import type { MenuPageContent } from '@/lib/cms/docs/menu-page';
 import { BackgroundLayers, sectionBackground } from '@/components/cms/cms-ui';
+import type { Background } from '@/lib/cms/fields';
 
 /* The five categories the pinned showcase steps through, in order, each with
  * the one plate that represents it.
@@ -93,6 +94,16 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
     const [categoryCueVisible, setCategoryCueVisible] = useState(false);
 
     const showcase = useMemo(() => buildShowcase(categories, page.showcase.picks), [categories, page.showcase.picks]);
+    /* The whole-page ground and how each section sits on it: a section with a
+       background of its own keeps it; one without shows the ground through
+       and borrows the ground's text tone. */
+    const ground = page.page.background;
+    const hasGround = Boolean(ground.color || ground.image);
+    const onGround = (bg: Background, className = '') => {
+        const own = Boolean(bg.color || bg.image || bg.video);
+        if (!hasGround || own) return sectionBackground(bg, undefined, className);
+        return sectionBackground({ ...bg, textTone: ground.textTone }, undefined, `${className} menu-on-ground`.trim());
+    };
     const dishCount = useMemo(
         () => categories.reduce((sum, c) => sum + c.items.length, 0),
         [categories],
@@ -322,6 +333,21 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
             </div>
         </section>
 
+        {/* ⚠ THE WHOLE-PAGE BACKGROUND (Website Content -> Menu page -> Whole
+            page background). Everything under the hero sits on one ground the
+            client can change; a section with no background of its own lets it
+            show through (`menu-on-ground` drops the designed fill), and takes
+            the ground's text tone so its type stays readable. A photo is held
+            on a sticky, screen-tall layer rather than stretched to `cover` a
+            ~40,000px page, which would blow it up beyond recognition. With
+            nothing set, the wrapper is a bare div and the page is unchanged. */}
+        <div {...sectionBackground(ground, undefined, 'menu-page-ground')}>
+        {(ground.image || ground.overlayOpacity > 0) && (
+            <div className="menu-page-ground__layer" aria-hidden="true">
+                <BackgroundLayers bg={{ ...ground, video: '' }} />
+            </div>
+        )}
+
         {/* The pinned showcase - five categories, one signature plate each.
             See components/ui/menu-showcase.tsx for how the pin works and, more
             importantly, why it is sticky rather than a wheel handler. */}
@@ -330,7 +356,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
                 steps={showcase}
                 heading={page.showcase.heading}
                 hint={page.showcase.hint}
-                sectionProps={sectionBackground(page.showcase.background)}
+                sectionProps={onGround(page.showcase.background)}
                 layers={<BackgroundLayers bg={page.showcase.background} />}
             />
         )}
@@ -338,7 +364,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
         {/* The full menu. The dishes get the whole measure - the category
             index rides the right edge over it rather than taking a column
             from it. */}
-        <div {...sectionBackground(page.dishes.background, undefined, 'menu-layout')}>
+        <div {...onGround(page.dishes.background, 'menu-layout')}>
 
 
         {/* The category index. ONE control for every screen size: there were
@@ -474,7 +500,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
         </div>
 
         {page.notes.visible && page.notes.terms.some(t => t.text) && (
-        <section {...sectionBackground(page.notes.background, undefined, 'menu-legal')}>
+        <section {...onGround(page.notes.background, 'menu-legal')}>
             <div className="container">
                 {/* The badge legend is back with the badges - a legend has to
                     explain something that is on the page. */}
@@ -484,6 +510,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
             </div>
         </section>
         )}
+        </div>
         </>
     );
 }

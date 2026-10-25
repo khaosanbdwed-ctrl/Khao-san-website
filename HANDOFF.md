@@ -1,5 +1,30 @@
 # HANDOFF — start here for a new session
 
+> ## Update 2026-10-25: phone spacing, footer alignment, menu page background
+>
+> - **Footer outlets share rows** (`.footer-outlets` + subgrid, 12-footer.css):
+>   name/address/phone/Directions line up whatever an address wraps to.
+>   Brand column 1.5fr -> 1.25fr so addresses wrap less.
+> - **Locations:** the lotus watermark in each card (`.haven-card-body::after`)
+>   is gone; the first outlet is named "Gulshan" (address keeps "Gulshan 1").
+> - **Phone spacing:** the gift cards' `min-height: 460px` was inline, so the
+>   phone rule setting it to 0 never applied - moved to CSS. The closing film's
+>   phone `margin-bottom` (white band above the footer) removed. The menu
+>   showcase stage on phones is the photo plus 24px (was min(screen, 145vw)).
+> - **Phone gallery moves:** a snapping strip cannot take a half-pixel drift
+>   (the browser snaps it back), so on phones it advances one photograph at a
+>   time; desktop keeps the drift (room-gallery.tsx).
+> - **Menu page: Whole page background** (Website Content -> Menu page, first
+>   section; `page.background`). Sections with no background of their own let
+>   it show through (`.menu-on-ground`) and take its text tone; a photo is a
+>   sticky screen-tall layer. The category index panel keeps its own dark ink.
+>   Menu Control links to it.
+> - **Known content issue, not code:** the homepage closing video
+>   (`closing-table.mp4`) is a split-screen edit, so a seam crosses the section.
+>   Replace it with a single continuous shot in the dashboard.
+> - Dashboard suite: 61 checks (+ whole-page background, footer alignment with
+>   a long address, and phone spacing/gallery regressions).
+
 > ## Update 2026-10-24: uploads are no longer compressed (supersedes the
 > ## upload-quality bullet of 2026-10-23 below)
 >

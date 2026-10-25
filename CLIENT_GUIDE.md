@@ -47,6 +47,15 @@ Locations & hours, Privacy & Terms, Google & sharing.**
 Open an area, then open a section (for example *Opening (hero)*). Every field
 has a **Reset** link that puts back the original.
 
+### Changing the menu page's background
+
+**Website Content → Menu page → Whole page background** (the first section).
+Pick a colour or a photo; it fills the whole menu page under the opening
+video - the dish showcase, every category and the notes at the bottom. A
+photo stays in place while the page scrolls over it. If the background is
+much darker or lighter than the original, set **Text colour** in the same
+box so the dish names stay readable. Menu Control has a link straight to it.
+
 ### How a change goes live
 
 1. **Edit.** Nothing is saved yet; the badge says *Unsaved changes*.
@@ -150,6 +159,8 @@ Photo types: JPG, PNG, WebP, AVIF, GIF. Video types: MP4, WebM.
 | **Signature dishes** (homepage) | Square | **Square photo, at least 1200×1200** | Use the same style as the menu photos for consistency. |
 | **Outlet photo** (Locations & hours) | Wide, about 16:10 | **Landscape, at least 1600×1000** | The room should be recognisable even when cropped slightly. |
 | **Gift card images** | About 7:4 | **1524×871** PNG/WebP | The card artwork as designed. |
+| **Closing video** (homepage, "Taste the fire.") | Tall on phones, wide on computers | **One continuous shot**, 1920×1080 or square | Not a split-screen edit: the current clip is two shots stacked one above the other, and the join shows as a line across the section. |
+| **Menu page background** (photo) | The screen, held still | **2560 px wide**, a calm texture | It sits behind every dish, so a quiet pattern works far better than a detailed picture. |
 | **Brush stroke behind the gift cards** | — | Transparent PNG | Remove it to show the cards on their own. |
 | **Section backgrounds** (photo) | Very tall on phones, wide on computers | **At least 2560 px wide** | Busy photos make text hard to read: add a Darken wash. Textures and soft patterns work better than detailed pictures. |
 | **Footer background** | Very wide on computers (about 3.5:1) | **At least 2560 px wide**, texture | Keep it dark so the white logo and text stay readable. For a light footer, pick a dark **Footer text colour** under *Background & colours* (the softer lines and dividers follow it) and turn off *Show the logo in white*. If a colour would be hard to read on the background, the dashboard says so under the colour box. |
@@ -233,7 +244,9 @@ section is counted as in use, so it is never removed from under the site.
 ## 6. Outlets and opening hours (Website Content → Locations & hours)
 
 - Keep each outlet's **name, address and phone exactly the same as on Google
-  Maps**. Google compares them; differences hurt your search ranking.
+  Maps**. Google compares them; differences hurt your search ranking. (The
+  outlet is named **Gulshan**; its address still says Gulshan 1, because that
+  is the postal area the map directions use.)
 - **WhatsApp numbers**: digits only, with the country code and no `+`, e.g.
   `8801600068193`.
 - **Opening hours**: tick the days, set opening and closing times. Add a
