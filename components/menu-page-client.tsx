@@ -314,6 +314,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
             deliberately: it is the only moving asset that is ABOUT cooking
             rather than about a room, which is what a menu page's hero should
             open on. */}
+        {page.hero.visible && (
         <section {...sectionBackground(page.hero.background, undefined, 'menu-hero')}>
             <BackgroundLayers bg={page.hero.background} priority videoClassName="menu-hero-media" />
             {/* A pool of shade behind the copy rather than a blanket wash over
@@ -332,6 +333,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
                 {page.hero.showCount && <p className="menu-hero-count">{dishCount} {page.hero.countSuffix}</p>}
             </div>
         </section>
+        )}
 
         {/* ⚠ THE WHOLE-PAGE BACKGROUND (Website Content -> Menu page -> Whole
             page background). Everything under the hero sits on one ground the

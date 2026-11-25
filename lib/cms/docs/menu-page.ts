@@ -8,6 +8,7 @@ export interface MenuPageContent {
     /** Behind everything under the opening video - see menu-page-client. */
     page: { background: Background };
     hero: {
+        visible: boolean;
         background: Background;
         title: string;
         lede: string;
@@ -28,6 +29,7 @@ export interface MenuPageContent {
 export const menuPageDefaults: MenuPageContent = {
     page: { background: { ...EMPTY_BACKGROUND } },
     hero: {
+        visible: false,
         background: {
             ...EMPTY_BACKGROUND,
             video: '/assets/video-web/theatre-craft.mp4',
@@ -85,6 +87,7 @@ export const menuPageDoc: DocDef = {
         {
             key: 'hero',
             title: 'Opening (hero)',
+            hideable: true,
             fields: [
                 { ...bg(true, 'Background video / photo'), help: 'Plays behind the title. Replace it with another video, or use a photo or colour.' },
                 { kind: 'text', key: 'title', label: 'Title', maxLength: 120 },
