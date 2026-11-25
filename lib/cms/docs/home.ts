@@ -103,7 +103,7 @@ export const homeDefaults: HomeContent = {
         dividerColor: 'saffron',
     },
     craft: {
-        visible: true,
+        visible: false,
         background: { ...EMPTY_BACKGROUND },
         video: '/assets/video-web/theatre-craft.mp4',
         poster: '/assets/posters/theatre-craft.webp',
