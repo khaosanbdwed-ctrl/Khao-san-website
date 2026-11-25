@@ -89,7 +89,10 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
             // taller than the window and pushes the title and caption out of
             // view. Cap the centre plate by window height too (~half the
             // screen) so title, photos and caption fit together.
-            const centre = width < 768 ? width * 0.78 : Math.min(width * 0.38, window.innerHeight * 0.5);
+            // ~430px is the rest of the section on a desktop: header, title,
+            // caption and hint. Subtracting it keeps the whole section on a
+            // short laptop screen (1280x720) too; 240px is the floor.
+            const centre = width < 768 ? width * 0.78 : Math.max(240, Math.min(width * 0.38, window.innerHeight * 0.5, window.innerHeight - 430));
             const side = width < 768 ? width * 0.60 : centre * 0.52;
             viewport.style.setProperty('--center-w', `${centre}px`);
             viewport.style.setProperty('--side-w', `${side}px`);

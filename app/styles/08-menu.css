@@ -1664,3 +1664,14 @@
         line-height: 1.25;
     }
 }
+
+/* With the opening hero hidden (Menu page -> Opening, switched off), the first
+   section starts at the very top of the page, under the fixed header. `.menu-lead`
+   marks that first section and pushes its content below the bar, so the
+   "A taste of Khao San" title is never covered. The section's own background
+   still runs up behind the header. */
+.menu-carousel.menu-lead { padding-top: calc(var(--header-h) + clamp(8px, 1.5vw, 20px)); }
+.menu-layout.menu-lead { padding-top: calc(var(--header-h) + clamp(24px, 3.5vw, 52px)); }
+@media (max-width: 767px) {
+    .menu-carousel.menu-lead { padding-top: calc(var(--header-h) + 8px); }
+}
