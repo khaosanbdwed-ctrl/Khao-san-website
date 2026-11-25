@@ -41,7 +41,8 @@ export function normalizeDoc<K extends DocKey>(key: K, input: unknown): SiteCont
 }
 
 /**
- * Content migration (2026-11-25): the homepage room gallery (`story.gallery`,
+ * Content migrations (2026-11-25), for a homepage version saved before
+ * that date. 1) The homepage room gallery (`story.gallery`,
  * a flat list of photos) became the room wall (`story.wall`, cards of photos
  * or a video). A stored version saved before that still has only `gallery`;
  * its photos are dealt into the default wall's photo cards, in order, so any
@@ -49,18 +50,28 @@ export function normalizeDoc<K extends DocKey>(key: K, input: unknown): SiteCont
  */
 function migrateGallery(input: unknown): unknown {
     if (!input || typeof input !== 'object') return input;
-    const doc = input as { story?: Record<string, unknown> };
+    const doc = input as { story?: Record<string, unknown>; craft?: unknown };
     const story = doc.story;
-    if (!story || typeof story !== 'object' || Array.isArray(story.wall) || !Array.isArray(story.gallery)) return input;
+    if (!story || typeof story !== 'object' || Array.isArray(story.wall)) return input;
+    /* A version without `wall` was saved before 2026-11-25, when the client
+       asked for "The Theatre of Fire" to be hidden. Such a version still
+       stores `craft.visible: true`, which would override the new default, so
+       it is read as hidden. Anything published after this stores `wall`, so
+       the CMS show/hide switch works normally from then on. */
+    const legacy = {
+        ...doc,
+        craft: { ...(doc.craft && typeof doc.craft === 'object' ? doc.craft : {}), visible: false },
+    };
+    if (!Array.isArray(story.gallery)) return legacy;
     const photos = (story.gallery as unknown[]).filter(
         (p): p is { src: string; alt?: string } => !!p && typeof p === 'object' && typeof (p as { src?: unknown }).src === 'string' && !!(p as { src: string }).src,
     );
-    if (!photos.length) return input;
+    if (!photos.length) return legacy;
     const wall = structuredClone(homeDefaults.story.wall);
     const photoCards = wall.filter(c => !c.video);
     photoCards.forEach(c => { c.photos = []; });
     photos.forEach((p, i) => photoCards[i % photoCards.length].photos.push({ src: p.src, alt: p.alt ?? '' }));
-    return { ...doc, story: { ...story, wall: wall.filter(c => c.video || c.photos.length) } };
+    return { ...legacy, story: { ...story, wall: wall.filter(c => c.video || c.photos.length) } };
 }
 
 /**

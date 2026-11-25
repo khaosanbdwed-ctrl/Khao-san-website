@@ -358,7 +358,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
                 steps={showcase}
                 heading={page.showcase.heading}
                 hint={page.showcase.hint}
-                sectionProps={onGround(page.showcase.background)}
+                sectionProps={onGround(page.showcase.background, page.hero.visible ? '' : 'menu-lead')}
                 layers={<BackgroundLayers bg={page.showcase.background} />}
             />
         )}
@@ -366,7 +366,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
         {/* The full menu. The dishes get the whole measure - the category
             index rides the right edge over it rather than taking a column
             from it. */}
-        <div {...onGround(page.dishes.background, 'menu-layout')}>
+        <div {...onGround(page.dishes.background, page.hero.visible || (page.showcase.visible && showcase.length > 0) ? 'menu-layout' : 'menu-layout menu-lead')}>
 
 
         {/* The category index. ONE control for every screen size: there were
