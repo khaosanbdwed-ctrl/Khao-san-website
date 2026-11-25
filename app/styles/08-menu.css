@@ -1675,3 +1675,66 @@
 @media (max-width: 767px) {
     .menu-carousel.menu-lead { padding-top: calc(var(--header-h) + 8px); }
 }
+
+/* ============================================================
+   Price tag (Menu page -> Dish list -> Show prices)
+
+   A small cream tag pinned to the photo's bottom-right corner rather than a
+   line of text under the dish: a column of 75 prices beside the names is
+   exactly the "price list" look the menu has already been steered away from,
+   while a tag on the plate reads as a label and keeps the name and
+   description as the reading line.
+
+   - Cream ground, deep-navy display numerals: the site's own pairing, and it
+     holds against any photo (dark wok shots and pale desserts alike).
+   - The saffron dot is the tag's eyelet - the one orange touch, the same
+     single accent the rail and the showcase use.
+   - Navy-tinted shadow, per the no-black-shadows rule (01-tokens.css).
+   ============================================================ */
+.menu-row-price {
+    position: absolute;
+    right: clamp(8px, 0.8vw, 12px);
+    bottom: clamp(8px, 0.8vw, 12px);
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 13px 6px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: rgba(255, 251, 243, 0.94);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px -8px rgba(21, 46, 88, 0.45), 0 1px 2px rgba(21, 46, 88, 0.12);
+    color: var(--color-brand-blue-deep);
+    /* Montserrat, not the display face: Camera Obscura's comma reads as a
+       decimal point ("1.250") and it has no taka sign, so the glyph fell back
+       to a tiny system one. The sans has both, with even, legible figures. */
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: clamp(0.84rem, 0.88vw, 0.95rem);
+    line-height: 1;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums lining-nums;
+    white-space: nowrap;
+    pointer-events: none;
+}
+.menu-row-price::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-burnt-saffron);
+    box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
+    flex: none;
+}
+.menu-addons-price {
+    margin-left: 6px;
+    color: var(--color-brand-blue);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+@media (max-width: 599px) {
+    .menu-row-price { font-size: 0.92rem; padding: 7px 14px 7px 11px; }
+}
