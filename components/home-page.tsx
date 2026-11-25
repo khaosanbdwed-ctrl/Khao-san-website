@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 import Image from 'next/image';
 import BackgroundVideo from '@/components/ui/background-video';
 import BrushTransition from '@/components/ui/brush-transition';
-import RoomGallery from '@/components/ui/room-gallery';
+import RoomWall from '@/components/ui/room-wall';
 import FeatureDish from '@/components/ui/feature-dish';
 import type { FeatureDishItem } from '@/components/ui/feature-dish';
 import ScrollParallax from '@/components/ui/scroll-parallax';
@@ -28,6 +28,9 @@ type Props = { content: HomeContent; locations: Location[]; whatsapp: string };
 
 export default function HomePage({ content, locations, whatsapp }: Props) {
     const { hero, craft, story, gift, invitation } = content;
+    const wallCards = story.wall
+        .map(card => ({ ...card, photos: card.photos.filter(p => p.src) }))
+        .filter(card => card.video || card.photos.length);
 
     /* The hero poster is what the visitor actually sees first - the video
        behind it cannot paint for a while, so this still is the LCP element.
@@ -140,11 +143,8 @@ export default function HomePage({ content, locations, whatsapp }: Props) {
                             <blockquote className="heritage-quote"><RichText text={story.quote} /></blockquote>
                         </div>
                     )}
-                    {/* One wide frame, two stacked beside it, repeating off the
-                        right edge - see RoomGallery. */}
-                    {story.gallery.some(s => s.src) && (
-                        <RoomGallery shots={story.gallery.filter(s => s.src)} ariaLabel="Inside our rooms" />
-                    )}
+                    {/* Masonry of photo and video cards - see RoomWall. */}
+                    {wallCards.length > 0 && <RoomWall cards={wallCards} ariaLabel="Inside our rooms" />}
                     <div className="heritage-note">
                         <CmsButton link={story.button} whatsapp={whatsapp} className="btn btn-secondary" />
                     </div>

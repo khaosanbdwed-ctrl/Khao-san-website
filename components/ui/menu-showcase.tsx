@@ -83,16 +83,25 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
             wheelTimer.current = setTimeout(() => animateTo(Math.round(positionRef.current)), 120);
         };
         // Pixel values keep gesture distance consistent with responsive CSS geometry.
-        const resize = new ResizeObserver(() => {
+        const layout = () => {
             const width = viewport.clientWidth;
-            viewport.style.setProperty('--center-w', `${width * (width < 768 ? 0.78 : 0.44)}px`);
-            viewport.style.setProperty('--side-w', `${width * (width < 768 ? 0.60 : 0.23)}px`);
+            // The plates are squares, so on wide screens width alone makes them
+            // taller than the window and pushes the title and caption out of
+            // view. Cap the centre plate by window height too (~half the
+            // screen) so title, photos and caption fit together.
+            const centre = width < 768 ? width * 0.78 : Math.min(width * 0.38, window.innerHeight * 0.5);
+            const side = width < 768 ? width * 0.60 : centre * 0.52;
+            viewport.style.setProperty('--center-w', `${centre}px`);
+            viewport.style.setProperty('--side-w', `${side}px`);
             viewport.style.setProperty('--gap', `${Math.max(8, Math.min(16, width * 0.009))}px`);
-        });
+        };
+        const resize = new ResizeObserver(layout);
         resize.observe(viewport);
+        window.addEventListener('resize', layout);
         viewport.addEventListener('wheel', wheel, { passive: false });
         return () => {
             resize.disconnect();
+            window.removeEventListener('resize', layout);
             viewport.removeEventListener('wheel', wheel);
             cancelAnimationFrame(frame.current);
             if (wheelTimer.current) clearTimeout(wheelTimer.current);
@@ -159,7 +168,7 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
                         return <div key={`${slide.categoryId}-${index}`} className="menu-carousel__slide" style={style}
                             aria-hidden={Math.abs(distance) > 0.5}>
                             {slide.imageSrc && <Image src={slide.imageSrc} alt={slide.dishTitle} fill draggable={false}
-                                sizes="(max-width: 767px) 78vw, 44vw" loading={Math.abs(distance) <= 2 ? 'eager' : 'lazy'}
+                                sizes="(max-width: 767px) 78vw, 38vw" loading={Math.abs(distance) <= 2 ? 'eager' : 'lazy'}
                                 unoptimized={!isOptimizable(slide.imageSrc)} />}
                         </div>;
                     })}
