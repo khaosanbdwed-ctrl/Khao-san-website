@@ -104,6 +104,17 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
         if (!hasGround || own) return sectionBackground(bg, undefined, className);
         return sectionBackground({ ...bg, textTone: ground.textTone }, undefined, `${className} menu-on-ground`.trim());
     };
+    /* "850" -> "৳ 850", "1250" -> "৳ 1,250". Anything that is not a plain
+       number ("850 / 1500", "Market price") is shown as typed, with the sign
+       only when it starts with a digit. */
+    const formatPrice = (raw: string | undefined) => {
+        const value = (raw ?? '').trim();
+        if (!page.dishes.showPrices || !value) return '';
+        const sign = page.dishes.currency;
+        const joiner = sign === '৳' ? '\u202F' : ' ';
+        if (/^\d+(\.\d+)?$/.test(value)) return `${sign}${joiner}${Number(value).toLocaleString('en-US')}`;
+        return /^\d/.test(value) ? `${sign}${joiner}${value}` : value;
+    };
     const dishCount = useMemo(
         () => categories.reduce((sum, c) => sum + c.items.length, 0),
         [categories],
@@ -483,6 +494,7 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
                                 badges={item.badges}
                                 portionNote={item.portionNote}
                                 addOnNote={item.addOnNote}
+                                price={formatPrice(item.price)}
                             />
                         ))}
                     </ul>
@@ -490,10 +502,16 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
                     {category.addOns && category.addOns.length > 0 && (
                         <p className="menu-addons">
                             <span className="menu-addons-label">Add ons</span>
-                            {/* Add-on prices dropped with the rest of the pricing. */}
-                            {category.addOns.map((addOn) => (
-                                <span className="menu-addons-item" key={addOn.title}>{addOn.title}</span>
-                            ))}
+                            {/* Prices only with Menu page -> Dish list -> Show prices. */}
+                            {category.addOns.map((addOn) => {
+                                const addOnPrice = formatPrice(addOn.price);
+                                return (
+                                    <span className="menu-addons-item" key={addOn.title}>
+                                        {addOn.title}
+                                        {addOnPrice && <span className="menu-addons-price">{addOnPrice}</span>}
+                                    </span>
+                                );
+                            })}
                         </p>
                     )}
                 </section>

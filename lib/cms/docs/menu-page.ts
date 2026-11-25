@@ -22,7 +22,13 @@ export interface MenuPageContent {
         hint: string;
         picks: { categoryId: string; dishTitle: string }[];
     };
-    dishes: { background: Background };
+    dishes: {
+        background: Background;
+        /** Price tag on each dish photo (and add-on prices). Prices themselves
+         *  are edited per dish in Menu Control. */
+        showPrices: boolean;
+        currency: '৳' | 'Tk' | 'BDT';
+    };
     notes: { visible: boolean; background: Background; terms: { text: string }[] };
 }
 
@@ -56,7 +62,7 @@ export const menuPageDefaults: MenuPageContent = {
             { categoryId: 'l-desserts', dishTitle: 'Mango Sticky Rice' },
         ],
     },
-    dishes: { background: { ...EMPTY_BACKGROUND } },
+    dishes: { background: { ...EMPTY_BACKGROUND }, showPrices: true, currency: '৳' },
     notes: {
         visible: true,
         background: { ...EMPTY_BACKGROUND },
@@ -120,7 +126,14 @@ export const menuPageDoc: DocDef = {
             key: 'dishes',
             title: 'Dish list',
             description: 'The full menu, category by category.',
-            fields: [bg(false)],
+            fields: [
+                bg(false),
+                { kind: 'toggle', key: 'showPrices', label: 'Show prices', help: 'Shows a price tag on every dish photo, and the add-on prices. Prices are edited per dish in Menu Control.' },
+                {
+                    kind: 'select', key: 'currency', label: 'Currency sign',
+                    options: [{ value: '৳', label: '৳ (taka sign)' }, { value: 'Tk', label: 'Tk' }, { value: 'BDT', label: 'BDT' }],
+                },
+            ],
         },
         {
             key: 'notes',

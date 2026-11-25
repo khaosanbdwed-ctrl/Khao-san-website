@@ -5,9 +5,10 @@ import { isOptimizable } from '@/lib/media';
 
 export type { MenuBadge };
 
-/* Prices are deliberately absent. The `price` / `group_price` columns still
-   exist in Supabase and are still editable in admin - the client asked for
-   prices off the site, not out of the data.
+/* Prices: shown again (2026-11-25) as a tag on the photo, behind a switch in
+   the CMS (Menu page -> Dish list -> Show prices), so the earlier "prices off
+   the site" decision is one click away. The price itself is per dish in Menu
+   Control. `group_price` is still not shown.
 
    ROUND 9: `description`, `badges` and `portionNote` are BACK. Round 8 cut
    this row to a photograph and a name, on a reference showing exactly that.
@@ -28,6 +29,8 @@ export interface MenuRowProps {
     badges?: MenuBadge[];
     portionNote?: string;
     addOnNote?: string;
+    /** Already formatted, e.g. "৳ 1,250". Empty = no tag. */
+    price?: string;
 }
 
 /**
@@ -64,6 +67,7 @@ export default function MenuRow({
     badges,
     portionNote,
     addOnNote,
+    price,
 }: MenuRowProps) {
     return (
         <li className="menu-row reveal-hidden">
@@ -82,6 +86,7 @@ export default function MenuRow({
                         unoptimized={!isOptimizable(imageSrc)}
                     />
                 )}
+                {price && <span className="menu-row-price"><span className="sr-only">Price: </span>{price}</span>}
             </div>
 
             {/* reserveSpace: the marks sit above the name, and roughly a third
