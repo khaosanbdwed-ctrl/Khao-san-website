@@ -151,7 +151,7 @@ ok(stored.equals(fs.readFileSync(FX + 'camera-photo.jpg')), `stored photo is byt
 const homeDoc = await (await page.request.get(base + '/api/admin/content/home')).json();
 const original = structuredClone(homeDoc.content);
 const edited = structuredClone(homeDoc.content);
-edited.story.gallery[0].src = storedUrl;
+edited.story.wall[0].photos[0].src = storedUrl;
 const saveAndPublish = async content => {
     ok((await page.request.put(base + '/api/admin/content/home', { data: { content } })).ok(), 'content saved', '');
     ok((await page.request.post(base + '/api/admin/content/home', { data: { action: 'publish' } })).ok(), 'content published', '');
@@ -330,11 +330,12 @@ const phoneHome = await pp.evaluate(() => {
 });
 ok(phoneHome.slack < 80, `phone: gift cards are not padded with empty space (${phoneHome.slack}px around the artwork)`);
 ok(phoneHome.seam === 0, `phone: no gap between the closing film and the footer (${phoneHome.seam}px)`);
-await pp.evaluate(() => document.querySelector('.room-gallery').scrollIntoView({ block: 'center' }));
-const g0 = await pp.evaluate(() => document.querySelector('.room-gallery').scrollLeft);
-await pp.waitForTimeout(5000);
-const g1 = await pp.evaluate(() => document.querySelector('.room-gallery').scrollLeft);
-ok(g1 > g0 + 50, `phone: the room gallery advances by itself (${Math.round(g0)} -> ${Math.round(g1)})`);
+await pp.evaluate(() => document.querySelector('.room-wall').scrollIntoView({ block: 'start' }));
+const activeSrc = () => pp.evaluate(() => document.querySelector('.room-wall__photo.is-active')?.getAttribute('src'));
+const g0 = await activeSrc();
+await pp.waitForTimeout(7000);
+const g1 = await activeSrc();
+ok(g0 && g1 && g0 !== g1, `phone: the room wall's first photo card changes by itself`);
 await pp.goto(base + '/menu');
 const stage = await pp.evaluate(() => {
     const v = document.querySelector('.menu-carousel__viewport').getBoundingClientRect();

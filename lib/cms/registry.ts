@@ -35,9 +35,32 @@ export const isDocKey = (k: unknown): k is DocKey => typeof k === 'string' && (D
 
 export function normalizeDoc<K extends DocKey>(key: K, input: unknown): SiteContent[K] {
     const { def, defaults } = DOCS[key];
-    const doc = sanitizeDoc(def, input, defaults);
+    const doc = sanitizeDoc(def, key === 'home' ? migrateGallery(input) : input, defaults);
     if (key === 'locations') renameOutlets(doc as LocationsContent);
     return doc;
+}
+
+/**
+ * Content migration (2026-11-25): the homepage room gallery (`story.gallery`,
+ * a flat list of photos) became the room wall (`story.wall`, cards of photos
+ * or a video). A stored version saved before that still has only `gallery`;
+ * its photos are dealt into the default wall's photo cards, in order, so any
+ * photos the client chose are kept. Video cards stay as the defaults.
+ */
+function migrateGallery(input: unknown): unknown {
+    if (!input || typeof input !== 'object') return input;
+    const doc = input as { story?: Record<string, unknown> };
+    const story = doc.story;
+    if (!story || typeof story !== 'object' || Array.isArray(story.wall) || !Array.isArray(story.gallery)) return input;
+    const photos = (story.gallery as unknown[]).filter(
+        (p): p is { src: string; alt?: string } => !!p && typeof p === 'object' && typeof (p as { src?: unknown }).src === 'string' && !!(p as { src: string }).src,
+    );
+    if (!photos.length) return input;
+    const wall = structuredClone(homeDefaults.story.wall);
+    const photoCards = wall.filter(c => !c.video);
+    photoCards.forEach(c => { c.photos = []; });
+    photos.forEach((p, i) => photoCards[i % photoCards.length].photos.push({ src: p.src, alt: p.alt ?? '' }));
+    return { ...doc, story: { ...story, wall: wall.filter(c => c.video || c.photos.length) } };
 }
 
 /**

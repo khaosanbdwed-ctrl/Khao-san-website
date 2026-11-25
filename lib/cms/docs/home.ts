@@ -17,6 +17,9 @@ export const BADGE_OPTIONS: Option[] = [
 ];
 
 export interface Photo { src: string; alt: string }
+/** One card in the homepage room wall. With a video it plays that video;
+ *  otherwise its photos cross-fade one after another. */
+export interface WallCard { video: string; poster: string; shape: 'tall' | 'square' | 'wide'; photos: Photo[] }
 export interface SignatureDish { image: string; name: string; blurb: string; href: string; badges: string[] }
 
 export interface HomeContent {
@@ -46,7 +49,7 @@ export interface HomeContent {
         visible: boolean;
         background: Background;
         quote: string;
-        gallery: Photo[];
+        wall: WallCard[];
         button: CmsLink;
         signatureHeading: string;
         dishes: SignatureDish[];
@@ -115,16 +118,29 @@ export const homeDefaults: HomeContent = {
         visible: true,
         background: { ...EMPTY_BACKGROUND },
         quote: 'Bangkok, *quietly elevated.*',
-        gallery: [
-            { src: '/assets/interiors/gulshan/tuktuk-booth.webp', alt: 'The blue tuk-tuk booth under caged pendant lamps, beside patterned banquette seating' },
-            { src: '/assets/interiors/dhanmondi/tables-palm.webp', alt: 'Timber tables with orange and grey chairs, set against dense planting' },
-            { src: '/assets/Heritage/neon-market.webp', alt: 'Hand-bent neon signs - Night Market, Khao San, Tom Yum, Tuk Tuk - above the tuk-tuk booth' },
-            { src: '/assets/Heritage/rocco-street.webp', alt: 'A painted Bangkok street scene with the Rocco sign glowing over the shopfronts' },
-            { src: '/assets/interiors/dhanmondi/mural-glass.webp', alt: 'Tropical mural painted across the glass partition, with the dining room beyond' },
-            { src: '/assets/interiors/uttara/dining-floor.webp', alt: 'Orange chairs and timber tables on the oak floor, framed by potted greenery' },
-            { src: '/assets/interiors/gulshan/banquette.webp', alt: 'Solid timber tables and grey banquette seating, set with daisies' },
-            { src: '/assets/Heritage/elephant-mark.webp', alt: 'The painted elephant, our mark, on the jungle mural wall' },
-            { src: '/assets/interiors/uttara/pendants.webp', alt: 'The neon signage wall and jungle mural seen past the pendant lighting rig' },
+        /* Masonry wall: cards flow down three columns in this order (two per
+           column on desktop), so the order sets which column a card lands in.
+           Heights balance per column: tall + square in each. */
+        wall: [
+            { video: '', poster: '', shape: 'square', photos: [
+                { src: '/assets/interiors/gulshan/tuktuk-booth.webp', alt: 'The blue tuk-tuk booth under caged pendant lamps, beside patterned banquette seating' },
+                { src: '/assets/Heritage/neon-market.webp', alt: 'Hand-bent neon signs - Night Market, Khao San, Tom Yum, Tuk Tuk - above the tuk-tuk booth' },
+            ] },
+            { video: '', poster: '', shape: 'tall', photos: [
+                { src: '/assets/interiors/dhanmondi/tables-palm.webp', alt: 'Timber tables with orange and grey chairs, set against dense planting' },
+                { src: '/assets/interiors/dhanmondi/mural-glass.webp', alt: 'Tropical mural painted across the glass partition, with the dining room beyond' },
+            ] },
+            { video: '/assets/video-web/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.mp4', poster: '/assets/posters/Khao_San_Thoughtful_interiors_fl_1602693357399955_720p_20260706.webp', shape: 'tall', photos: [] },
+            { video: '', poster: '', shape: 'square', photos: [
+                { src: '/assets/Heritage/rocco-street.webp', alt: 'A painted Bangkok street scene with the Rocco sign glowing over the shopfronts' },
+                { src: '/assets/Heritage/elephant-mark.webp', alt: 'The painted elephant, our mark, on the jungle mural wall' },
+            ] },
+            { video: '', poster: '', shape: 'tall', photos: [
+                { src: '/assets/interiors/uttara/dining-floor.webp', alt: 'Orange chairs and timber tables on the oak floor, framed by potted greenery' },
+                { src: '/assets/interiors/gulshan/banquette.webp', alt: 'Solid timber tables and grey banquette seating, set with daisies' },
+                { src: '/assets/interiors/uttara/pendants.webp', alt: 'The neon signage wall and jungle mural seen past the pendant lighting rig' },
+            ] },
+            { video: '/assets/video-web/theatre-craft.mp4', poster: '/assets/posters/theatre-craft.webp', shape: 'square', photos: [] },
         ],
         button: page('Explore the Menu', '/menu'),
         signatureHeading: 'Signature Spreads.',
@@ -241,18 +257,27 @@ export const homeDoc: DocDef = {
         {
             key: 'story',
             title: 'Our rooms & signature dishes',
-            description: 'The quote, the sideways photo gallery of the rooms, and the three signature dish rows. One section so the background runs unbroken behind both.',
+            description: 'The quote, the wall of room photos and videos, and the three signature dish rows. One section so the background runs unbroken behind both.',
             hideable: true,
             fields: [
                 bg(),
                 { kind: 'text', key: 'quote', label: 'Quote', rich: true, maxLength: 200 },
                 {
-                    kind: 'list', key: 'gallery', label: 'Room gallery', itemLabel: 'photo', titleKey: 'alt', max: 30,
-                    help: 'Shown in groups of three: one large photo, then two stacked beside it.',
-                    newItem: { src: '', alt: '' },
-                    fields: [...photoFields],
+                    kind: 'list', key: 'wall', label: 'Room wall (photos & videos)', itemLabel: 'card', max: 12,
+                    help: 'Cards fill three columns top to bottom: cards 1-2 make the left column, 3-4 the middle, 5-6 the right. A card with a video plays it; otherwise its photos change one after another.',
+                    newItem: { video: '', poster: '', shape: 'square', photos: [] },
+                    fields: [
+                        { kind: 'select', key: 'shape', label: 'Card shape', options: [{ value: 'tall', label: 'Tall' }, { value: 'square', label: 'Square' }, { value: 'wide', label: 'Wide' }] },
+                        { kind: 'video', key: 'video', label: 'Video (leave empty for a photo card)' },
+                        { kind: 'image', key: 'poster', label: 'Still shown while the video loads' },
+                        {
+                            kind: 'list', key: 'photos', label: 'Photos (change automatically)', itemLabel: 'photo', titleKey: 'alt', max: 8,
+                            newItem: { src: '', alt: '' },
+                            fields: [...photoFields],
+                        },
+                    ],
                 },
-                linkField('button', 'Button under the gallery'),
+                linkField('button', 'Button under the wall'),
                 { kind: 'text', key: 'signatureHeading', label: 'Signature dishes heading', maxLength: 120 },
                 {
                     kind: 'list', key: 'dishes', label: 'Signature dishes', itemLabel: 'dish', titleKey: 'name', max: 8,
