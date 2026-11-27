@@ -19,7 +19,6 @@ export interface MenuPageContent {
         visible: boolean;
         background: Background;
         heading: string;
-        hint: string;
         picks: { categoryId: string; dishTitle: string }[];
     };
     dishes: {
@@ -52,8 +51,7 @@ export const menuPageDefaults: MenuPageContent = {
     showcase: {
         visible: true,
         background: { ...EMPTY_BACKGROUND },
-        heading: 'A taste of Khao San',
-        hint: 'Drag to discover',
+        heading: 'A taste of *Khao San*',
         picks: [
             { categoryId: 'b-soups', dishTitle: 'Tom Yum Goong' },
             { categoryId: 'e-noodles', dishTitle: 'Pad Thai' },
@@ -109,8 +107,7 @@ export const menuPageDoc: DocDef = {
             hideable: true,
             fields: [
                 bg(),
-                { kind: 'text', key: 'heading', label: 'Heading', maxLength: 120 },
-                { kind: 'text', key: 'hint', label: 'Hint under the carousel', maxLength: 60 },
+                { kind: 'text', key: 'heading', label: 'Heading', rich: true, maxLength: 120, help: 'Put *stars* around the words to set in saffron, e.g. A taste of *Khao San*. With the opening switched off, this is the headline of the page, with the opening\'s text under it.' },
                 {
                     kind: 'list', key: 'picks', label: 'Dishes in the showcase', itemLabel: 'dish', titleKey: 'dishTitle', max: 13,
                     help: 'Pick a category and type the dish name exactly as it is in Menu Control. If the dish is not found, the category\'s featured dish is shown instead.',

@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { isOptimizable } from '@/lib/media';
+import { RichText } from '@/components/cms/cms-ui';
 
 export interface ShowcaseStep {
     categoryId: string;
@@ -13,7 +14,9 @@ export interface ShowcaseStep {
 export interface MenuShowcaseProps {
     steps: ShowcaseStep[];
     heading?: string;
-    hint?: string;
+    /** When the showcase opens the page (menu hero hidden): an h1 with a
+     *  small line above it and an introduction below. */
+    lead?: { eyebrow?: string; lede?: string };
     sectionProps?: { className: string; style: React.CSSProperties };
     layers?: React.ReactNode;
 }
@@ -21,7 +24,7 @@ const wrap = (value: number, length: number) => ((value % length) + length) % le
 
 /** A continuous position, not a scroll container with endpoints to reset.
  * Slides wrap only offscreen, so crossing the last category never reverses motion. */
-export default function MenuShowcase({ steps, heading = 'A taste of Khao San', hint = 'Drag to discover', sectionProps, layers }: MenuShowcaseProps) {
+export default function MenuShowcase({ steps, heading = 'A taste of *Khao San*', lead, sectionProps, layers }: MenuShowcaseProps) {
     const viewportRef = useRef<HTMLDivElement>(null);
     const positionRef = useRef(0);
     const targetRef = useRef(0);
@@ -89,10 +92,12 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
             // taller than the window and pushes the title and caption out of
             // view. Cap the centre plate by window height too (~half the
             // screen) so title, photos and caption fit together.
-            // ~430px is the rest of the section on a desktop: header, title,
-            // caption and hint. Subtracting it keeps the whole section on a
-            // short laptop screen (1280x720) too; 240px is the floor.
-            const centre = width < 768 ? width * 0.78 : Math.max(240, Math.min(width * 0.38, window.innerHeight * 0.5, window.innerHeight - 430));
+            // Everything else in the section (heading, caption, padding) is
+            // measured, not guessed, so the plate takes what is left of the
+            // screen. 240px is the floor.
+            const section = viewport.closest('section');
+            const rest = section ? section.offsetHeight - viewport.offsetHeight : 430;
+            const centre = width < 768 ? width * 0.78 : Math.max(240, Math.min(width * 0.38, window.innerHeight * 0.55, window.innerHeight - rest - 24));
             const side = width < 768 ? width * 0.60 : centre * 0.52;
             viewport.style.setProperty('--center-w', `${centre}px`);
             viewport.style.setProperty('--side-w', `${side}px`);
@@ -127,10 +132,18 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
             id="menu-carousel"
             className={`menu-carousel ${sectionProps?.className ?? ''}`.trim()}
             style={sectionProps?.style}
-            aria-label={heading || 'Dish showcase'}
+            aria-label={heading.replace(/\*/g, '') || 'Dish showcase'}
         >
             {layers}
-            {heading && <h2 className="menu-carousel__title">{heading}</h2>}
+            {lead ? (
+                <header className="menu-carousel__head">
+                    {lead.eyebrow && <p className="menu-carousel__kicker">{lead.eyebrow}</p>}
+                    {heading && <h1 className="menu-carousel__title menu-carousel__title--lead"><RichText text={heading} /></h1>}
+                    {lead.lede && <p className="menu-carousel__lede">{lead.lede}</p>}
+                </header>
+            ) : (
+                heading && <h2 className="menu-carousel__title"><RichText text={heading} /></h2>
+            )}
             <div className="menu-carousel__stage">
                 <div ref={viewportRef} className="menu-carousel__viewport" role="region" aria-roledescription="carousel"
                     aria-label="Menu categories" aria-describedby="menu-carousel-hint" tabIndex={0}
@@ -187,7 +200,9 @@ export default function MenuShowcase({ steps, heading = 'A taste of Khao San', h
                     <h3>{steps[active].dishTitle}</h3>
                     <a href={`#${steps[active].categoryId}`}>Explore {steps[active].categoryName.toLowerCase()} <span aria-hidden="true">↗</span></a>
                 </div>
-                <p id="menu-carousel-hint" className="menu-carousel__hint">{hint} {hint && <span aria-hidden="true">⟷</span>}</p>
+                {/* The visible "Drag to discover" line was removed at the client's
+                    request; the instruction stays for screen readers. */}
+                <p id="menu-carousel-hint" className="sr-only">Drag, or use the arrow keys, to see more dishes.</p>
             </div>
         </section>
     );

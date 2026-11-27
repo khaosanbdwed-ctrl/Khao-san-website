@@ -750,13 +750,6 @@
     text-decoration: underline;
 }
 .menu-carousel__details a span { margin-left: 8px; }
-.menu-carousel__hint {
-    margin: 14px 0 0;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-.menu-carousel__hint span { padding-left: 10px; font-size: 1rem; }
 .menu-carousel + .menu-layout { padding-top: clamp(24px, 3.5vw, 52px); }
 @media (max-width: 767px) {
     .menu-carousel { padding-top: 12px; padding-bottom: 24px; }
@@ -1737,4 +1730,67 @@
 }
 @media (max-width: 599px) {
     .menu-row-price { font-size: 0.92rem; padding: 7px 14px 7px 11px; }
+}
+
+/* ============================================================
+   The menu page's opening headline (2026-11-27)
+
+   With the opening video switched off, "A taste of Khao San" is the first
+   thing on the page, and as a 54px section title it did not read as the
+   start of one. When the showcase leads the page it becomes the page's h1:
+   larger, with a small "Our Menu · 68 dishes" line above and the menu's
+   introduction below, all centred over the plates.
+
+   - The starred words (`*Khao San*`) take burnt saffron: the one warm accent
+     on a navy headline, as the homepage quote does with its italic.
+   - The kicker's short rules are the saffron too; its text stays navy, since
+     saffron on cream is under 4.5:1 at that size.
+   ============================================================ */
+.menu-carousel__title em {
+    font-style: normal;
+    color: var(--color-burnt-saffron);
+}
+.menu-carousel__head {
+    padding: clamp(18px, 2.6vw, 36px) 16px clamp(18px, 2.4vw, 30px);
+    text-align: center;
+    color: var(--section-ink-accent, var(--color-brand-blue));
+}
+.menu-carousel__kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 clamp(10px, 1.2vw, 16px);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+}
+.menu-carousel__kicker::before,
+.menu-carousel__kicker::after {
+    content: "";
+    width: clamp(20px, 2.4vw, 36px);
+    height: 2px;
+    border-radius: 2px;
+    background: var(--color-burnt-saffron);
+}
+.menu-carousel__title--lead {
+    padding: 0;
+    font-size: clamp(1.9rem, 5.4vw, 5rem);
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+}
+.menu-carousel__lede {
+    max-width: 58ch;
+    margin: clamp(12px, 1.4vw, 18px) auto 0;
+    font-family: var(--font-sans);
+    font-size: clamp(0.92rem, 1vw, 1.05rem);
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+    text-wrap: balance;
+}
+@media (max-width: 767px) {
+    .menu-carousel__head { padding: 14px 20px 18px; }
+    .menu-carousel__kicker { font-size: 0.68rem; letter-spacing: 0.2em; gap: 10px; }
+    .menu-carousel__lede { font-size: 0.88rem; line-height: 1.55; }
 }

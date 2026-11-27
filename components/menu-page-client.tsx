@@ -368,7 +368,10 @@ export default function MenuPageClient({ categories, page }: { categories: MenuC
             <MenuShowcase
                 steps={showcase}
                 heading={page.showcase.heading}
-                hint={page.showcase.hint}
+                lead={page.hero.visible ? undefined : {
+                    eyebrow: page.hero.showCount ? `Our Menu · ${dishCount} ${page.hero.countSuffix}` : 'Our Menu',
+                    lede: page.hero.lede,
+                }}
                 sectionProps={onGround(page.showcase.background, page.hero.visible ? '' : 'menu-lead')}
                 layers={<BackgroundLayers bg={page.showcase.background} />}
             />

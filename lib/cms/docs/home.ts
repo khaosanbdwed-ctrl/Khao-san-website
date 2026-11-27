@@ -100,7 +100,7 @@ export const homeDefaults: HomeContent = {
         logoAlt: 'Khao San',
         eyebrow: 'Reinventing',
         title: 'The Thai Way',
-        primaryButton: wa('Book A Table', "Hi, I'd like to reserve a table at Khao San."),
+        primaryButton: page('Visit Us', '/#locations'),
         secondaryButton: page('Explore Menu', '/menu'),
         showDivider: true,
         dividerColor: 'saffron',
