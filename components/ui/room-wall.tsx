@@ -68,31 +68,69 @@ function useNearAndVisible(ref: React.RefObject<HTMLElement | null>) {
     return [near, visible] as const;
 }
 
+/** How long a card waits for its first photo before it also asks for the rest
+ *  and shows whichever arrives first. */
+const FIRST_PHOTO_PATIENCE_MS = 2500;
+
 function PhotoCard({ card, order }: { card: WallCard; order: number }) {
     const ref = useRef<HTMLDivElement>(null);
     const reduced = useReducedMotion();
     const [near, visible] = useNearAndVisible(ref);
     const [active, setActive] = useState(0);
     const [loaded, setLoaded] = useState<ReadonlySet<number>>(() => new Set());
+    /* Photos the resizer failed on, now asked for as the original file. */
+    const [raw, setRaw] = useState<ReadonlySet<number>>(() => new Set());
+    /* Photos that failed even as the original: skipped. */
+    const [failed, setFailed] = useState<ReadonlySet<number>>(() => new Set());
+    const [impatient, setImpatient] = useState(false);
     const loadedRef = useRef(loaded);
     useEffect(() => { loadedRef.current = loaded; }, [loaded]);
     const count = card.photos.length;
-    // The rest of the photos join once the first has arrived and the card is
-    // near the screen (never with reduced motion - they would never be shown).
-    const armed = near && loaded.has(0) && !reduced;
-    const playing = visible && armed && count > 1;
+
+    /* RESILIENCE (2026-11-27, client: a card sat empty "for too long"). A card
+       used to wait on its first photo forever - one broken, refused or very
+       large file left it blank with only its dots showing. Now:
+       - a photo the image resizer fails on is retried as the original file;
+       - a photo that still fails is skipped;
+       - after FIRST_PHOTO_PATIENCE_MS the card also asks for its other
+         photos and shows whichever arrives first. */
+    useEffect(() => {
+        if (!near || loaded.has(0)) return;
+        const t = setTimeout(() => setImpatient(true), FIRST_PHOTO_PATIENCE_MS);
+        return () => clearTimeout(t);
+    }, [near, loaded]);
+
+    const firstSettled = loaded.has(0) || failed.has(0) || impatient;
+    // The rest of the photos join once the first has arrived (or given up)
+    // and the card is near the screen. With reduced motion they are only
+    // fetched as stand-ins for a first photo that did not arrive.
+    const armed = near && firstSettled && (!reduced || !loaded.has(0));
+    // Showing nothing while another photo of this card is ready: show that
+    // one instead (worked out here, not stored, so no extra render).
+    const standIn = !loaded.has(active) && loaded.size > 0 && (active !== 0 || failed.has(0) || impatient);
+    const current = standIn ? Math.min(...loaded) : active;
+    const shown = loaded.has(current);
+    const playing = visible && armed && !reduced && count > 1;
 
     const markLoaded = useCallback((i: number) => {
         setLoaded(prev => (prev.has(i) ? prev : new Set(prev).add(i)));
+    }, []);
+    const markError = useCallback((i: number, optimised: boolean) => {
+        if (optimised) setRaw(prev => new Set(prev).add(i));
+        else setFailed(prev => new Set(prev).add(i));
     }, []);
 
     useEffect(() => {
         if (!playing) return;
         // Move on only to a photo that has finished loading; otherwise try
         // again on the next tick rather than fading into a blank frame.
-        const step = () => setActive(a => {
-            const next = (a + 1) % count;
-            return loadedRef.current.has(next) ? next : a;
+        const step = () => setActive(prev => {
+            const a = loadedRef.current.has(prev) || loadedRef.current.size === 0 ? prev : Math.min(...loadedRef.current);
+            for (let k = 1; k <= count; k++) {
+                const next = (a + k) % count;
+                if (loadedRef.current.has(next)) return next;
+            }
+            return a;
         });
         let interval: ReturnType<typeof setInterval> | undefined;
         const start = setTimeout(() => {
@@ -105,14 +143,17 @@ function PhotoCard({ card, order }: { card: WallCard; order: number }) {
         };
     }, [playing, count, order]);
 
+    const live = card.photos.map((_, i) => i).filter(i => !failed.has(i));
+
     return (
-        <div ref={ref} className={`room-wall__media${loaded.has(0) ? ' is-ready' : ''}`}>
+        <div ref={ref} className={`room-wall__media${shown ? ' is-ready' : ''}`}>
             {card.photos.map((photo, i) => {
-                if (i > 0 && !armed) return null;
-                const isActive = i === active;
+                if ((i > 0 && !armed) || failed.has(i)) return null;
+                const isActive = i === current;
+                const optimised = isOptimizable(photo.src) && !raw.has(i);
                 return (
                     <Image
-                        key={`${photo.src}-${i}`}
+                        key={`${photo.src}-${i}-${optimised ? 'o' : 'r'}`}
                         src={photo.src}
                         alt={isActive ? photo.alt : ''}
                         aria-hidden={isActive ? undefined : true}
@@ -120,15 +161,16 @@ function PhotoCard({ card, order }: { card: WallCard; order: number }) {
                         sizes="(max-width: 1100px) 48vw, 30vw"
                         loading={i === 0 ? 'lazy' : 'eager'}
                         onLoad={() => markLoaded(i)}
+                        onError={() => markError(i, optimised)}
                         className={`room-wall__photo${isActive ? ' is-active' : ''}${loaded.has(i) ? ' is-loaded' : ''}`}
-                        unoptimized={!isOptimizable(photo.src)}
+                        unoptimized={!optimised}
                     />
                 );
             })}
-            {count > 1 && (
+            {live.length > 1 && (
                 <div className="room-wall__dots" aria-hidden="true">
-                    {card.photos.map((photo, i) => (
-                        <span key={`${photo.src}-dot-${i}`} className={i === active ? 'is-active' : undefined} />
+                    {live.map(i => (
+                        <span key={`${card.photos[i].src}-dot-${i}`} className={i === current ? 'is-active' : undefined} />
                     ))}
                 </div>
             )}

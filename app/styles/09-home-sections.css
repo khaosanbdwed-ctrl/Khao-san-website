@@ -780,7 +780,9 @@
     margin-bottom: clamp(14px, 1.6vw, 24px);
     border-radius: clamp(18px, 1.8vw, 28px);
     overflow: hidden;
-    background: var(--color-surface-tint, #eee6d6);
+    /* A tinted ground, never the page colour: a card whose photo has not
+       arrived reads as a card, not as a hole in the wall. */
+    background: linear-gradient(160deg, var(--color-brand-powder) 0%, #efe6d6 100%);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 10px 30px -12px rgba(0, 0, 0, 0.18);
     /* Safari: keep the rounded clip on the video and the fading photos. */
     isolation: isolate;
