@@ -62,7 +62,7 @@ export const footerDefaults: FooterContent = {
         logoWhite: true,
         tagline: 'Reinventing the Thai way.',
         showHours: true,
-        button: { label: 'Reserve a Table', type: 'whatsapp', url: '', message: "Hi, I'd like to reserve a table at Khao San." },
+        button: { label: 'Find Your Nearest Outlet', type: 'url', url: '/#locations', message: '' },
         showButton: true,
     },
     links: { items: NAV },

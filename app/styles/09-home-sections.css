@@ -794,15 +794,33 @@
     width: 100%;
     height: 100%;
 }
+/* A photo is visible only when it is the active one AND has loaded, so a
+   card never fades into a half-downloaded image. The first photo fades in
+   over the tinted ground below instead of painting in line by line. */
 .room-wall__photo {
     object-fit: cover;
     opacity: 0;
     transform: scale(1.04);
-    transition: opacity 1.1s ease, transform 6s ease-out;
+    transition: opacity 0.9s ease, transform 6s ease-out;
 }
-.room-wall__photo.is-active {
+.room-wall__photo.is-active.is-loaded {
     opacity: 1;
     transform: scale(1);
+}
+/* While a card's first photo is on its way: a soft brand-tinted ground with a
+   slow sheen, so the empty card reads as arriving rather than broken. */
+.room-wall__media:not(.is-ready)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%) 0 0 / 250% 100%,
+        linear-gradient(160deg, var(--color-brand-powder) 0%, #efe6d6 100%);
+    animation: room-wall-sheen 1.6s ease-in-out infinite;
+}
+@keyframes room-wall-sheen {
+    from { background-position: 100% 0, 0 0; }
+    to { background-position: -100% 0, 0 0; }
 }
 .room-wall__dots {
     position: absolute;
@@ -843,4 +861,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
     .room-wall__photo { transition: none; transform: none; }
+    .room-wall__media:not(.is-ready)::before { animation: none; }
 }

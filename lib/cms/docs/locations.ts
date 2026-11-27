@@ -83,7 +83,7 @@ export const locationsDoc: DocDef = {
             fields: [
                 {
                     kind: 'text', key: 'primaryWhatsapp', label: 'Main WhatsApp number', maxLength: 20,
-                    help: 'Digits only, with country code and no "+" (e.g. 8801600068193). Every "Contact us" and "Book a table" button that is set to WhatsApp opens a chat with this number.',
+                    help: 'Digits only, with country code and no "+" (e.g. 8801600068193). Every "Contact us" button that is set to WhatsApp opens a chat with this number.',
                 },
             ],
         },

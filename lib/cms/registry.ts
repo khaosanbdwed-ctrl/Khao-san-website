@@ -1,4 +1,4 @@
-import { sanitizeDoc, type DocDef } from './fields';
+import { sanitizeDoc, type CmsLink, type DocDef } from './fields';
 import { homeDoc, homeDefaults, type HomeContent } from './docs/home';
 import { menuPageDoc, menuPageDefaults, type MenuPageContent } from './docs/menu-page';
 import { headerDoc, headerDefaults, footerDoc, footerDefaults, type HeaderContent, type FooterContent } from './docs/chrome';
@@ -37,7 +37,29 @@ export function normalizeDoc<K extends DocKey>(key: K, input: unknown): SiteCont
     const { def, defaults } = DOCS[key];
     const doc = sanitizeDoc(def, key === 'home' ? migrateGallery(input) : input, defaults);
     if (key === 'locations') renameOutlets(doc as LocationsContent);
+    if (key === 'home') replaceBookingLink((doc as HomeContent).hero.primaryButton, HOME_VISIT);
+    if (key === 'footer') replaceBookingLink((doc as FooterContent).brand.button, FOOTER_VISIT);
+    if (key === 'menu') {
+        const showcase = (doc as MenuPageContent).showcase;
+        if (showcase.heading.trim() === 'A taste of Khao San') showcase.heading = 'A taste of *Khao San*';
+    }
     return doc;
+}
+
+/**
+ * Content correction (2026-11-27): Khao San does not take reservations, so the
+ * "Book A Table" (homepage opening) and "Reserve a Table" (footer) buttons,
+ * which opened a WhatsApp booking chat, now send visitors to the outlets.
+ * A published version saved before this still stores the booking button, so
+ * a button whose label is one of those booking phrases is replaced on every
+ * read (site and editor); anything else the client set is kept. The menu
+ * showcase heading's old default gains its saffron highlight the same way.
+ */
+const BOOKING_LABEL = /^(book|reserve)\s+(a\s+)?table$/i;
+const HOME_VISIT: CmsLink = { label: 'Visit Us', type: 'url', url: '/#locations', message: '' };
+const FOOTER_VISIT: CmsLink = { label: 'Find Your Nearest Outlet', type: 'url', url: '/#locations', message: '' };
+function replaceBookingLink(link: CmsLink, replacement: CmsLink) {
+    if (BOOKING_LABEL.test(link.label.trim())) Object.assign(link, replacement);
 }
 
 /**
