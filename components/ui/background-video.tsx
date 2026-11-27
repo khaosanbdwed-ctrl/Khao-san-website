@@ -18,6 +18,10 @@ export interface BackgroundVideoProps {
      * decorative ambiance - the video is then hidden from assistive tech.
      */
     label?: string;
+    /** How far ahead of the screen the clip starts fetching (default 300px). */
+    prefetchMargin?: string;
+    /** Pause while off screen and resume on return. Off by default. */
+    pauseOffscreen?: boolean;
 }
 
 /**
@@ -43,6 +47,7 @@ export interface BackgroundVideoProps {
  */
 export default function BackgroundVideo({
     src, style, className, poster, priority = false, label,
+    prefetchMargin = '300px', pauseOffscreen = false,
 }: BackgroundVideoProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const sources = videoSources(src);
@@ -89,7 +94,7 @@ export default function BackgroundVideo({
                         io?.disconnect();
                     }
                 },
-                { rootMargin: '300px' },
+                { rootMargin: prefetchMargin },
             );
             io.observe(el);
         };
@@ -113,7 +118,7 @@ export default function BackgroundVideo({
             else window.clearTimeout(handle);
             io?.disconnect();
         };
-    }, [shouldLoad]);
+    }, [shouldLoad, prefetchMargin]);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -130,6 +135,23 @@ export default function BackgroundVideo({
             playback.catch(() => { /* autoplay can be blocked; ignore */ });
         }
     }, [reducedMotion, shouldLoad]);
+
+    // Optional: stop decoding while the clip is off screen (the homepage room
+    // wall has two clips side by side with the rest of the page).
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!pauseOffscreen || !video || !shouldLoad || reducedMotion || typeof IntersectionObserver === 'undefined') return;
+        const io = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                const playback = video.play();
+                if (playback && typeof playback.catch === 'function') playback.catch(() => { /* blocked; ignore */ });
+            } else {
+                video.pause();
+            }
+        });
+        io.observe(video);
+        return () => io.disconnect();
+    }, [pauseOffscreen, shouldLoad, reducedMotion]);
 
     return (
         <video
